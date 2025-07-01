@@ -162,7 +162,7 @@ export default function ResourcesPage() {
                     </div>
 
                     <div className="flex justify-end">
-                      <Button variant="outline" asChild>
+                      <Button variant="outline" asChild className="rounded-full px-6 py-2">
                         <Link href="/recursos/folha-detalhada">
                           Guia Completo da Folha de Pagamento
                           <ArrowRight className="ml-2 h-4 w-4" />

@@ -3,7 +3,7 @@ import { ShieldCheck, Lock, Award } from "lucide-react"
 export function TrustBadges() {
   return (
     <section className="w-full py-4 bg-gray-50 border-y">
-      <div className="container px-4 md:px-6">
+      <div className="max-w-4xl mx-auto px-4 md:px-6">
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-emerald-600" />

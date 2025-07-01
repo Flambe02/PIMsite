@@ -76,7 +76,7 @@ export default function SignupPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full rounded-full px-6 py-3 font-semibold">
                 Create Account
               </Button>
             </form>

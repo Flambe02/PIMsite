@@ -29,7 +29,7 @@ export default function DashboardPage() {
             Configurações
           </Link>
         </nav>
-        <Button variant="outline" size="sm" className="ml-4">
+        <Button variant="outline" size="sm" className="ml-4 rounded-full px-6 py-2">
           Sair
         </Button>
       </header>

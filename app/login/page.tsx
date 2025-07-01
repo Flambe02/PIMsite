@@ -64,7 +64,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full rounded-full px-6 py-3 font-semibold">
                 Sign In
               </Button>
             </form>

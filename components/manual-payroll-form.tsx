@@ -182,18 +182,18 @@ export function ManualPayrollForm({ onSubmit }: ManualPayrollFormProps) {
           <h3 className="text-lg font-medium">Benefícios e Adicionais</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="transportAllowance"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>Vale Transporte (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0,00" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="transportAllowance"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Vale Transporte (R$)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0,00" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
             <FormField
               control={form.control}
@@ -208,31 +208,31 @@ export function ManualPayrollForm({ onSubmit }: ManualPayrollFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="healthInsurance"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>Plano de Saúde (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0,00" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="healthInsurance"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Plano de Saúde (R$)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0,00" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="dentalInsurance"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>Plano Odontológico (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0,00" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="dentalInsurance"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Plano Odontológico (R$)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0,00" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
             <FormField
               control={form.control}
