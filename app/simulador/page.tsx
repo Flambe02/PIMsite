@@ -1,0 +1,72 @@
+import { SalaryCalculator } from "@/components/salary-calculator"
+import { Logo } from "@/components/logo"
+import Link from "next/link"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+
+export default function SimuladorPage() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <header className="px-4 lg:px-6 h-16 flex items-center border-b">
+        <Logo />
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
+            Início
+          </Link>
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recursos">
+            Recursos
+          </Link>
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/precos">
+            Preços
+          </Link>
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/sobre">
+            Sobre
+          </Link>
+        </nav>
+        <div className="ml-4 flex items-center gap-2">
+          <Link href="/login">
+            <Button variant="outline" size="sm">
+              Entrar
+            </Button>
+          </Link>
+          <Link href="/cadastro">
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+              Cadastrar
+            </Button>
+          </Link>
+        </div>
+      </header>
+
+      <main className="flex-1 py-12 px-4 md:px-6">
+        <div className="container mx-auto">
+          <div className="flex flex-col gap-8 max-w-5xl mx-auto">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-blue-900">Calculadora de Salário Líquido</h1>
+              <p className="text-gray-600 mt-2 max-w-3xl">
+                Entenda o cálculo do salário líquido 2025 e faça uma simulação com nossa calculadora a partir do seu
+                salário bruto, seus dependentes e descontos na folha de pagamento.
+              </p>
+            </div>
+
+            <SalaryCalculator />
+          </div>
+        </div>
+      </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t px-4 md:px-6">
+        <div className="flex items-center">
+          <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={32} height={32} className="h-8 w-auto mr-2" />
+          <p className="text-xs text-gray-500">© 2025 The Pimentão Rouge Company. Todos os direitos reservados.</p>
+        </div>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <Link className="text-xs hover:underline underline-offset-4" href="#">
+            Termos de Serviço
+          </Link>
+          <Link className="text-xs hover:underline underline-offset-4" href="#">
+            Privacidade
+          </Link>
+        </nav>
+      </footer>
+    </div>
+  )
+}
