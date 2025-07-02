@@ -10,39 +10,6 @@ import { Logo } from "@/components/logo"
 export default function SignupPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-white/80 backdrop-blur-md sticky top-0 z-20">
-        <Logo />
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
-            Início
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recursos">
-            Recursos
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/guia-paises">
-            Guia de Países
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/precos">
-            Preços
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/sobre">
-            Sobre
-          </Link>
-        </nav>
-        <div className="ml-4 flex items-center gap-2">
-          <Link href="/login">
-            <Button variant="outline" size="sm" className="rounded-full px-6 py-2">
-              Entrar
-            </Button>
-          </Link>
-          <Link href="/cadastro">
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 rounded-full px-6 py-2">
-              Cadastrar
-            </Button>
-          </Link>
-        </div>
-      </header>
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">

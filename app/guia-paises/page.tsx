@@ -19,6 +19,7 @@ export default async function CountryGuidePage() {
   return (
     <main className="flex-1 py-12 px-4 md:px-6">
       <div className="container mx-auto">
+        <div>DEBUG: Main content is rendering</div>
         <CountryExplorer countries={countries} />
       </div>
     </main>

@@ -10,6 +10,7 @@ type Country = { code: string; name: string }
 type CountryExplorerProps = { countries: Country[] }
 
 export function CountryExplorer({ countries }: CountryExplorerProps) {
+  console.log('CountryExplorer rendering', countries);
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredCountries = countries.filter(

@@ -13,26 +13,6 @@ import { PayslipList } from "@/components/payslip-list"
 export default function DashboardPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b">
-        <Logo />
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard">
-            Painel
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard/history">
-            Histórico
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recursos">
-            Recursos
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard/settings">
-            Configurações
-          </Link>
-        </nav>
-        <Button variant="outline" size="sm" className="ml-4 rounded-full px-6 py-2">
-          Sair
-        </Button>
-      </header>
       <main className="flex-1 py-12 px-4 md:px-6">
         <div className="container mx-auto">
           <div className="flex flex-col gap-8">

@@ -232,20 +232,6 @@ export default function ChatComPim() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-white">
-        <div className="mr-6">
-          <Logo />
-        </div>
-        <div className="flex-1 flex justify-center">
-          <h1 className="text-xl font-semibold text-center">Chat com PIM</h1>
-        </div>
-        <Link href="/" className="flex items-center text-sm text-gray-600 hover:text-gray-900">
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Voltar
-        </Link>
-      </header>
-
       {/* Chat Container */}
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-4">
         {/* Messages Area */}

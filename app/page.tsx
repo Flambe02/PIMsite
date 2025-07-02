@@ -13,38 +13,6 @@ import { ChatButton } from "@/components/chat-button"
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen relative">
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b">
-        <Logo />
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
-            Início
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recursos">
-            Recursos
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/guia-paises">
-            Guia de Países
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/precos">
-            Preços
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/sobre">
-            Sobre
-          </Link>
-        </nav>
-        <div className="ml-4 flex items-center gap-2">
-          <Link href="/login">
-            <Button variant="outline" size="sm" className="rounded-full px-6 py-2">
-              Entrar
-            </Button>
-          </Link>
-          <Link href="/cadastro">
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 rounded-full px-6 py-2">
-              Cadastrar
-            </Button>
-          </Link>
-        </div>
-      </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-emerald-50 to-white flex items-center justify-center">
           <div className="container px-4 md:px-6 flex flex-col lg:flex-row items-center justify-center gap-12">

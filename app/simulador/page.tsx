@@ -7,36 +7,6 @@ import { Button } from "@/components/ui/button"
 export default function SimuladorPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b">
-        <Logo />
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/">
-            Início
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/recursos">
-            Recursos
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/precos">
-            Preços
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/sobre">
-            Sobre
-          </Link>
-        </nav>
-        <div className="ml-4 flex items-center gap-2">
-          <Link href="/login">
-            <Button variant="outline" size="sm">
-              Entrar
-            </Button>
-          </Link>
-          <Link href="/cadastro">
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-              Cadastrar
-            </Button>
-          </Link>
-        </div>
-      </header>
-
       <main className="flex-1 py-12 px-4 md:px-6">
         <div className="container mx-auto">
           <div className="flex flex-col gap-8 max-w-5xl mx-auto">
