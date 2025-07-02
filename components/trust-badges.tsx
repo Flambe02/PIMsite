@@ -15,7 +15,7 @@ export function TrustBadges() {
           </div>
           <div className="flex items-center gap-2">
             <Award className="h-5 w-5 text-emerald-600" />
-            <span className="text-sm font-medium">ISO 27001</span>
+            {/* <span className="text-sm font-medium">ISO 27001</span> */}
           </div>
           <div className="flex items-center gap-1">
             <span className="text-sm font-medium">4.8</span>
