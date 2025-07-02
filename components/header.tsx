@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Logo } from './logo'
 import { Button } from './ui/button'
 import { Menu } from 'lucide-react'
 import { Sheet, SheetTrigger, SheetContent } from './ui/sheet'
+import { DialogTitle } from './ui/dialog'
 
 const navLinks = [
   { href: '/', label: 'Início' },
@@ -17,6 +18,11 @@ const navLinks = [
 
 export function Header() {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleClose = () => setOpen(false)
 
@@ -46,39 +52,46 @@ export function Header() {
         </div>
         {/* Mobile nav */}
         <div className="md:hidden">
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Ouvrir le menu">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-              <div className="flex flex-col gap-2 p-6">
-                {navLinks.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-base font-medium py-2"
-                    onClick={handleClose}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                <div className="flex flex-col gap-2 mt-4">
-                  <Link href="/login" onClick={handleClose}>
-                    <Button variant="outline" size="sm" className="w-full rounded-full px-6 py-2">
-                      Entrar
-                    </Button>
-                  </Link>
-                  <Link href="/cadastro" onClick={handleClose}>
-                    <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-full px-6 py-2 text-white">
-                      Cadastrar
-                    </Button>
-                  </Link>
+          {mounted ? (
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" aria-label="Ouvrir le menu">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0">
+                <DialogTitle className="sr-only">Menu principal</DialogTitle>
+                <div className="flex flex-col gap-2 p-6">
+                  {navLinks.map(link => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="text-base font-medium py-2"
+                      onClick={handleClose}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  <div className="flex flex-col gap-2 mt-4">
+                    <Link href="/login" onClick={handleClose}>
+                      <Button variant="outline" size="sm" className="w-full rounded-full px-6 py-2">
+                        Entrar
+                      </Button>
+                    </Link>
+                    <Link href="/cadastro" onClick={handleClose}>
+                      <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-full px-6 py-2 text-white">
+                        Cadastrar
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <Button variant="outline" size="icon" aria-label="Ouvrir le menu">
+              <Menu className="h-6 w-6" />
+            </Button>
+          )}
         </div>
       </div>
     </header>
