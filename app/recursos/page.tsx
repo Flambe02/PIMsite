@@ -767,39 +767,13 @@ export default function ResourcesPage() {
                           </div>
                         </div>
                       )}
-                    </TabsContent>
-                    <TabsContent value="beneficios">
-                      <div>
-                        <h3 className="text-xl font-bold mb-2">Guia de Benefícios</h3>
-                        <p className="text-gray-700">Aqui você encontra informações sobre os principais benefícios trabalhistas, independente do seu perfil. Em breve, conteúdos personalizados para cada categoria!</p>
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="direitos">
-                      {selectedProfile === "geral" && (
-                        <div>
-                          <h3 className="text-xl font-bold mb-2">Direitos e Deveres Gerais</h3>
-                          <p className="text-gray-700">Conheça os direitos e deveres básicos de todo trabalhador no Brasil...</p>
-                        </div>
-                      )}
-                      {selectedProfile === "CLT" && (
-                        <div>
-                          <h3 className="text-xl font-bold mb-2">Direitos do Trabalhador CLT</h3>
-                          <p className="text-gray-700">Férias, 13º salário, aviso prévio, e mais...</p>
-                        </div>
-                      )}
-                      {selectedProfile === "PJ" && (
-                        <div>
-                          <h3 className="text-xl font-bold mb-2">Direitos e Obrigações do PJ</h3>
-                          <p className="text-gray-700">Contratos, impostos, obrigações fiscais...</p>
-                        </div>
-                      )}
                       {selectedProfile === "Estagiário" && (
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
                           {/* Colonne 1 : Recibo de Pagamento de Bolsa-Auxílio */}
                           <div className="md:col-span-5 pl-0 md:pl-0">
                             <div className="bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 p-6 max-w-lg mx-auto">
                               <h2 className="text-xl font-bold text-emerald-900 mb-4">Recibo de Pagamento de Bolsa-Auxílio</h2>
-                              {/* Détails de paiement */}
+                              {/* Détails de pagamento */}
                               <div className="mb-2">
                                 <div className="font-semibold text-emerald-800 mb-1">Detalhes do Pagamento</div>
                                 <button className={`w-full flex justify-between items-center px-2 py-3 rounded transition ${selectedItem === 'estagio_bolsa' ? 'bg-emerald-100' : 'hover:bg-emerald-50'}`} onClick={() => setSelectedItem('estagio_bolsa')}>
@@ -869,6 +843,32 @@ export default function ResourcesPage() {
                               </div>
                             )}
                           </div>
+                        </div>
+                      )}
+                    </TabsContent>
+                    <TabsContent value="beneficios">
+                      <div>
+                        <h3 className="text-xl font-bold mb-2">Guia de Benefícios</h3>
+                        <p className="text-gray-700">Aqui você encontra informações sobre os principais benefícios trabalhistas, independente do seu perfil. Em breve, conteúdos personalizados para cada categoria!</p>
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="direitos">
+                      {selectedProfile === "geral" && (
+                        <div>
+                          <h3 className="text-xl font-bold mb-2">Direitos e Deveres Gerais</h3>
+                          <p className="text-gray-700">Conheça os direitos e deveres básicos de todo trabalhador no Brasil...</p>
+                        </div>
+                      )}
+                      {selectedProfile === "CLT" && (
+                        <div>
+                          <h3 className="text-xl font-bold mb-2">Direitos do Trabalhador CLT</h3>
+                          <p className="text-gray-700">Férias, 13º salário, aviso prévio, e mais...</p>
+                        </div>
+                      )}
+                      {selectedProfile === "PJ" && (
+                        <div>
+                          <h3 className="text-xl font-bold mb-2">Direitos e Obrigações do PJ</h3>
+                          <p className="text-gray-700">Contratos, impostos, obrigações fiscais...</p>
                         </div>
                       )}
                     </TabsContent>
