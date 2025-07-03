@@ -33,7 +33,7 @@ export default function RootLayout({
               <div className="flex items-center">
                 <img src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={28} height={28} className="h-7 w-auto mr-2" />
                 <span className="font-bold text-emerald-700">Pimentão Rouge Company</span>
-                <span className="text-[10px] text-gray-400 ml-2">V0.0.6</span>
+                <span className="text-[10px] text-gray-400 ml-2">V0.1.0</span>
               </div>
             </div>
             <div className="text-xs text-gray-600 text-center sm:text-left max-w-md leading-snug mb-2 sm:mb-0">
