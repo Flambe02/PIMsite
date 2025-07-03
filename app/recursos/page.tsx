@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, HelpCircle } from "lucide-react"
+import { ArrowRight, HelpCircle, User, Building2, GraduationCap, UserCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +18,7 @@ export default function ResourcesPage() {
   const [selectedItem, setSelectedItem] = useState<string>('salario_base');
   const [viewMode, setViewMode] = useState<'simplified' | 'complete'>('simplified');
   const [selectedItemPJ, setSelectedItemPJ] = useState<string>('contrato');
-  const [pjSubProfile, setPjSubProfile] = useState<string | null>(null);
+  const [pjSubProfile, setPjSubProfile] = useState<string>("freelancer");
   const [pjView, setPjView] = useState<'simplified' | 'complete'>('simplified');
   const explanationRef = useRef<HTMLDivElement>(null);
 
@@ -82,8 +82,93 @@ export default function ResourcesPage() {
                     <TabsContent value="pagamento">
                       {selectedProfile === "geral" && (
                         <div>
-                          <h3 className="text-xl font-bold mb-2">Entendendo a Remuneração</h3>
-                          <p className="text-gray-700">Conteúdo geral sobre salário bruto, líquido e as deduções mais comuns no Brasil...</p>
+                          <h2 className="text-3xl font-bold text-center mb-2">Qual profissional você é?</h2>
+                          <p className="text-lg text-muted-foreground text-center mb-8">Selecione um perfil para entender em detalhes como sua remuneração funciona.</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {/* Card 1: Salariado (CLT) */}
+                            <Card className="hover:shadow-lg transition-shadow">
+                              <CardHeader>
+                                <div className="flex items-center gap-2">
+                                  <User className="h-5 w-5 text-emerald-600" />
+                                  <h3 className="text-lg font-semibold">Salariado (CLT)</h3>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm text-muted-foreground">Para quem trabalha com carteira assinada e recebe holerite mensal.</p>
+                              </CardContent>
+                              <CardContent className="pt-0">
+                                <Button 
+                                  className="w-full" 
+                                  onClick={() => setSelectedProfile('CLT')}
+                                >
+                                  Ver Guia CLT →
+                                </Button>
+                              </CardContent>
+                            </Card>
+
+                            {/* Card 2: Empresa (PJ) */}
+                            <Card className="hover:shadow-lg transition-shadow">
+                              <CardHeader>
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="h-5 w-5 text-blue-600" />
+                                  <h3 className="text-lg font-semibold">Empresa (PJ)</h3>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm text-muted-foreground">Para quem tem um CNPJ, emite notas fiscais ou é sócio de uma empresa.</p>
+                              </CardContent>
+                              <CardContent className="pt-0">
+                                <Button 
+                                  className="w-full" 
+                                  onClick={() => setSelectedProfile('PJ')}
+                                >
+                                  Ver Guia PJ →
+                                </Button>
+                              </CardContent>
+                            </Card>
+
+                            {/* Card 3: Estagiário */}
+                            <Card className="hover:shadow-lg transition-shadow">
+                              <CardHeader>
+                                <div className="flex items-center gap-2">
+                                  <GraduationCap className="h-5 w-5 text-purple-600" />
+                                  <h3 className="text-lg font-semibold">Estagiário</h3>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm text-muted-foreground">Para estudantes em um programa de estágio, regido por lei própria.</p>
+                              </CardContent>
+                              <CardContent className="pt-0">
+                                <Button 
+                                  className="w-full" 
+                                  onClick={() => setSelectedProfile('Estagiário')}
+                                >
+                                  Ver Guia Estagiário →
+                                </Button>
+                              </CardContent>
+                            </Card>
+
+                            {/* Card 4: Autônomo */}
+                            <Card className="hover:shadow-lg transition-shadow">
+                              <CardHeader>
+                                <div className="flex items-center gap-2">
+                                  <UserCheck className="h-5 w-5 text-orange-600" />
+                                  <h3 className="text-lg font-semibold">Autônomo (CPF)</h3>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm text-muted-foreground">Para quem presta serviços como pessoa física, sem CNPJ, e emite RPA.</p>
+                              </CardContent>
+                              <CardContent className="pt-0">
+                                <Button 
+                                  className="w-full" 
+                                  onClick={() => { setSelectedProfile('Autonomo'); setSelectedItem('autonomo_bruto'); }}
+                                >
+                                  Ver Guia Autônomo →
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          </div>
                         </div>
                       )}
                       {selectedProfile === "CLT" && (
@@ -698,90 +783,7 @@ export default function ResourcesPage() {
                       )}
                       {selectedProfile === "PJ" && (
                         <>
-                          {/* PJ Subprofile Selector */}
-                          <div className="flex gap-4 mb-8">
-                            <Button
-                              variant={pjSubProfile === "mei" ? "default" : "outline"}
-                              className="flex-1 py-4 text-base"
-                              onClick={() => { setPjSubProfile("mei"); setSelectedItem("mei_faturamento"); }}
-                            >
-                              Sou MEI
-                            </Button>
-                            <Button
-                              variant={pjSubProfile === "freelancer" ? "default" : "outline"}
-                              className="flex-1 py-4 text-base"
-                              onClick={() => { setPjSubProfile("freelancer"); setPjView("simplified"); setSelectedItem("pj_valor_servicos"); }}
-                            >
-                              Sou Prestador de Serviços (Simples Nacional)
-                            </Button>
-                            <Button
-                              variant={pjSubProfile === "dirigente" ? "default" : "outline"}
-                              className="flex-1 py-4 text-base"
-                              onClick={() => { setPjSubProfile("dirigente"); setPjView("complete"); setSelectedItem("pro_labore"); }}
-                            >
-                              Sou Sócio / Dirigente
-                            </Button>
-                          </div>
-
-                          {/* MEI View */}
-                          {pjSubProfile === "mei" && (
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-                              {/* Colonne 1 : Fluxo Financeiro do MEI */}
-                              <div className="md:col-span-5 pl-0 md:pl-0">
-                                <div className="bg-yellow-50 rounded-xl shadow-lg border border-yellow-100 p-6 max-w-lg mx-auto">
-                                  <h2 className="text-xl font-bold text-yellow-900 mb-4">Fluxo Financeiro do MEI</h2>
-                                  <div className="space-y-2 mb-4">
-                                    <button className={`w-full flex justify-between items-center px-3 py-3 rounded transition ${selectedItem === 'mei_faturamento' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('mei_faturamento')}>
-                                      <span className="font-medium text-left">Faturamento Bruto Mensal</span>
-                                      <span className="font-mono font-bold">R$ 6.000,00</span>
-                                    </button>
-                                    <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'mei_das' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('mei_das')}>
-                                      <span className="font-medium text-left">Custo Fixo Mensal: DAS-MEI</span>
-                                      <span className="font-mono font-bold text-rose-700">-R$ 77,80</span>
-                                    </button>
-                                    <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'mei_lucro_isento' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('mei_lucro_isento')}>
-                                      <span className="font-medium text-left">Lucro Isento de Imposto (32%)</span>
-                                      <span className="font-mono font-bold">R$ 1.920,00</span>
-                                    </button>
-                                    <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'mei_despesas' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('mei_despesas')}>
-                                      <span className="font-medium text-left">Dinheiro para Despesas da Empresa</span>
-                                      <span className="font-mono font-bold">R$ 4.002,20</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Colonne 2 : Explicação MEI */}
-                              <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto">
-                                <div className="mb-4 text-sm text-muted-foreground">Clique em um item do fluxo para ver a explicação detalhada.</div>
-                                {selectedItem === 'mei_faturamento' && (
-                                  <div className="space-y-4">
-                                    <h3 className="text-2xl font-bold">Faturamento Bruto Mensal</h3>
-                                    <p className="text-muted-foreground">É o total de vendas ou serviços emitidos em notas fiscais pelo MEI no mês. O limite anual do MEI é de R$ 81.000,00 (média de R$ 6.750,00/mês).</p>
-                                  </div>
-                                )}
-                                {selectedItem === 'mei_das' && (
-                                  <div className="space-y-4">
-                                    <h3 className="text-2xl font-bold">Custo Fixo Mensal: DAS-MEI</h3>
-                                    <p className="text-muted-foreground">O DAS-MEI é um imposto fixo mensal que cobre INSS e tributos federais. Para prestadores de serviço, o valor é de R$ 77,80 (2024). Deve ser pago todo mês, mesmo sem faturamento.</p>
-                                  </div>
-                                )}
-                                {selectedItem === 'mei_lucro_isento' && (
-                                  <div className="space-y-4">
-                                    <h3 className="text-2xl font-bold">Lucro Isento de Imposto (32%)</h3>
-                                    <p className="text-muted-foreground">Para MEI prestador de serviço, até 32% do faturamento pode ser transferido para a pessoa física como lucro isento de IR. Exemplo: R$ 6.000,00 x 32% = R$ 1.920,00.</p>
-                                  </div>
-                                )}
-                                {selectedItem === 'mei_despesas' && (
-                                  <div className="space-y-4">
-                                    <h3 className="text-2xl font-bold">Dinheiro para Despesas da Empresa</h3>
-                                    <p className="text-muted-foreground">O valor restante após o pagamento do DAS e a retirada do lucro isento pode ser usado para pagar despesas da empresa (contas, fornecedores, etc.).</p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Freelancer View */}
+                          {/* Affichage direct de la vue détaillée selon le sous-profil sélectionné par défaut */}
                           {pjSubProfile === "freelancer" && (
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
                               {/* Colonne 1 : Toggle + PJ Receipts */}
@@ -805,8 +807,7 @@ export default function ResourcesPage() {
                                 {/* Simplified View - Freelancer Invoice */}
                                 {pjView === 'simplified' && (
                                   <div className="relative p-6 bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 max-w-lg">
-                                    {/* Badge */}
-                                    <span className="absolute top-4 right-6 bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">Nota Fiscal Exemplo</span>
+                                    <h2 className="text-xl font-bold text-emerald-900 mb-4 text-center">Recibo do Prestador de Serviços</h2>
                                     {/* Invoice Header */}
                                     <div className="mb-4 grid grid-cols-2 gap-4 text-xs">
                                       <div>
@@ -837,33 +838,37 @@ export default function ResourcesPage() {
                                       </div>
                                     </div>
                                     <div className="my-3 border-b border-emerald-100"></div>
-                                    {/* Invoice Items */}
-                                    <div className="space-y-2 mb-4">
-                                      <button className={`w-full flex justify-between items-center px-3 py-3 rounded transition ${selectedItem === 'pj_valor_servicos' ? 'bg-emerald-100' : 'hover:bg-emerald-50'}`} onClick={() => setSelectedItem('pj_valor_servicos')}>
-                                        <span className="font-medium text-left">Valor dos Serviços Prestados</span>
-                                        <span className="font-mono font-bold">R$ 7.000,00</span>
-                                      </button>
-                                      <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'pj_irrf' ? 'bg-rose-100' : 'hover:bg-rose-50'}`} onClick={() => setSelectedItem('pj_irrf')}>
-                                        <span className="font-medium text-left">Imposto de Renda Retido na Fonte (IRRF)</span>
-                                        <span className="font-mono font-bold text-rose-700">-R$ 787,50</span>
-                                      </button>
+                                    {/* Invoice Items - tableau propre */}
+                                    <div className="mb-4">
+                                      <div className="grid grid-cols-2 text-sm font-semibold py-2 border-b border-emerald-200">
+                                        <div>Descrição</div>
+                                        <div className="text-right">Valor</div>
+                                      </div>
+                                      <div className="grid grid-cols-2 text-sm py-2 border-b border-emerald-100 bg-emerald-100/40 rounded">
+                                        <div>Valor dos Serviços Prestados</div>
+                                        <div className="text-right font-mono font-bold">R$ 7.000,00</div>
+                                      </div>
+                                      <div className="grid grid-cols-2 text-sm py-2 border-b border-emerald-100">
+                                        <div>Imposto de Renda Retido na Fonte (IRRF)</div>
+                                        <div className="text-right font-mono font-bold text-rose-700">-R$ 787,50</div>
+                                      </div>
                                     </div>
                                     {/* Totals Section */}
-                                    <div className="flex justify-between items-center py-3 border-t border-emerald-200 font-bold text-emerald-900 text-lg mb-4">
+                                    <div className="flex justify-between items-center py-3 border-t border-emerald-200 font-bold text-emerald-900 text-lg mb-4 bg-emerald-100 rounded">
                                       <span>Valor Líquido Recebido</span>
                                       <span className="font-mono">R$ 6.212,50</span>
                                     </div>
                                     {/* Tax Reminder Section */}
                                     <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
                                       <div className="font-semibold text-yellow-900 mb-2">Custos e Impostos da Empresa (PJ)</div>
-                                      <button className={`w-full flex justify-between items-center px-2 py-2 rounded transition ${selectedItem === 'pj_simples_nacional' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('pj_simples_nacional')}>
-                                        <span className="font-medium text-left">Simples Nacional (DAS)</span>
+                                      <div className="flex justify-between items-center py-2">
+                                        <span>Simples Nacional (DAS)</span>
                                         <span className="font-mono font-bold">R$ 500,00</span>
-                                      </button>
-                                      <button className={`w-full flex justify-between items-center px-2 py-2 rounded transition ${selectedItem === 'pj_plano_saude' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('pj_plano_saude')}>
-                                        <span className="font-medium text-left">Plano de Saúde Empresarial</span>
+                                      </div>
+                                      <div className="flex justify-between items-center py-2">
+                                        <span>Plano de Saúde Empresarial</span>
                                         <span className="font-mono font-bold">R$ 600,00</span>
-                                      </button>
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -1424,6 +1429,155 @@ export default function ResourcesPage() {
                           </div>
                         </div>
                       )}
+                      {selectedProfile === "Autonomo" && (
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mt-8">
+                          <div className="md:col-span-5 pl-0 md:pl-0">
+                            <div className="bg-orange-50 rounded-xl shadow-lg border border-orange-100 p-6 max-w-lg mx-auto">
+                              <h2 className="text-xl font-bold text-orange-900 mb-4 text-center">Recibo de Pagamento de Autônomo (RPA)</h2>
+                              <div className="space-y-2 mb-4">
+                                <button className={`w-full flex justify-between items-center px-3 py-3 rounded transition ${selectedItem === 'autonomo_bruto' ? 'bg-orange-100' : 'hover:bg-orange-50'}`} onClick={() => setSelectedItem('autonomo_bruto')}>
+                                  <span className="font-medium text-left">Valor do Serviço Bruto</span>
+                                  <span className="font-mono font-bold">R$ 7.000,00</span>
+                                </button>
+                                <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'autonomo_inss' ? 'bg-orange-100' : 'hover:bg-orange-50'}`} onClick={() => setSelectedItem('autonomo_inss')}>
+                                  <span className="font-medium text-left">Desconto: INSS (20%)</span>
+                                  <span className="font-mono font-bold text-rose-700">-R$ 908,85</span>
+                                </button>
+                                <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'autonomo_irrf' ? 'bg-orange-100' : 'hover:bg-orange-50'}`} onClick={() => setSelectedItem('autonomo_irrf')}>
+                                  <span className="font-medium text-left">Desconto: IRRF (tabela progressiva)</span>
+                                  <span className="font-mono font-bold text-rose-700">-R$ 884,97</span>
+                                </button>
+                                <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'autonomo_iss' ? 'bg-orange-100' : 'hover:bg-orange-50'}`} onClick={() => setSelectedItem('autonomo_iss')}>
+                                  <span className="font-medium text-left">Desconto: ISS (Imposto Sobre Serviços)</span>
+                                  <span className="font-mono font-bold text-rose-700">-R$ 350,00</span>
+                                </button>
+                              </div>
+                              <div className="flex justify-between items-center py-3 border-t border-orange-200 font-bold text-orange-900 text-lg mb-2 bg-orange-100 rounded">
+                                <span>Valor Líquido a Receber</span>
+                                <span className="font-mono">R$ 4.856,18</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground text-center">* Valores simulados para ilustração</div>
+                            </div>
+                          </div>
+                          <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto">
+                            <div className="mb-4 text-sm text-muted-foreground">Clique em um item do recibo para ver a explicação detalhada.</div>
+                            {selectedItem === 'autonomo_bruto' && (
+                              <div className="space-y-6">
+                                <h3 className="text-2xl font-bold">Valor do Serviço Bruto</h3>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">O que é?</h4>
+                                  <p className="text-muted-foreground">É o valor total acordado pelo serviço prestado, antes de qualquer desconto de impostos. Serve de base para todos os cálculos de retenção no RPA.</p>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Como funciona?</h4>
+                                  <p className="text-muted-foreground">O valor bruto é definido no contrato ou acordo de prestação de serviço. Sobre ele incidem todos os descontos obrigatórios (INSS, IRRF, ISS). Não há férias, 13º ou FGTS para autônomos.</p>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Exemplo Prático</h4>
+                                  <p className="text-muted-foreground">Se você prestou um serviço e combinou receber R$ 7.000,00, esse será o valor bruto do seu RPA, antes dos descontos.</p>
+                                </div>
+                              </div>
+                            )}
+                            {selectedItem === 'autonomo_inss' && (
+                              <div className="space-y-6">
+                                <h3 className="text-2xl font-bold">Desconto: INSS (20%)</h3>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">O que é?</h4>
+                                  <p className="text-muted-foreground">O INSS é a contribuição previdenciária obrigatória do autônomo, recolhida diretamente na fonte pela empresa contratante.</p>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Como funciona?</h4>
+                                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                                    <li>Alíquota de 20% sobre o valor bruto do serviço, limitada ao teto do INSS (R$ 7.786,02 em 2024).</li>
+                                    <li>O desconto é feito pela fonte pagadora, que recolhe e repassa à Previdência.</li>
+                                    <li>Garante acesso a benefícios como aposentadoria, auxílio-doença, etc.</li>
+                                  </ul>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Exemplo Prático</h4>
+                                  <p className="text-muted-foreground">Para um serviço de R$ 7.000,00, o desconto de INSS será de R$ 1.400,00 (20%), mas se o valor bruto ultrapassar o teto, o desconto será limitado ao máximo permitido.</p>
+                                </div>
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+                                  <h4 className="text-lg font-semibold mb-1 text-blue-900">Consulta Teto INSS</h4>
+                                  <p className="text-muted-foreground text-sm">Confira o teto e as regras atualizadas no <a href='https://www.gov.br/inss/pt-br' target='_blank' rel='noopener noreferrer' className='underline hover:text-blue-700'>site do INSS</a>.</p>
+                                </div>
+                              </div>
+                            )}
+                            {selectedItem === 'autonomo_irrf' && (
+                              <div className="space-y-6">
+                                <h3 className="text-2xl font-bold">Desconto: IRRF (tabela progressiva)</h3>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">O que é?</h4>
+                                  <p className="text-muted-foreground">O IRRF é o Imposto de Renda Retido na Fonte, calculado sobre o valor bruto menos o INSS, conforme a tabela progressiva da Receita Federal.</p>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Como funciona?</h4>
+                                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                                    <li>Aplica-se a tabela progressiva mensal do IRRF, igual à dos trabalhadores CLT.</li>
+                                    <li>O cálculo considera o valor bruto do serviço menos o INSS retido.</li>
+                                    <li>O desconto pode ser elevado para valores altos.</li>
+                                  </ul>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Exemplo Prático</h4>
+                                  <p className="text-muted-foreground">Se o valor bruto é R$ 7.000,00 e o INSS descontado foi R$ 908,85, a base do IRRF será R$ 6.091,15. O imposto será calculado conforme a faixa correspondente.</p>
+                                </div>
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+                                  <h4 className="text-lg font-semibold mb-1 text-blue-900">Simule seu IRRF</h4>
+                                  <p className="text-muted-foreground text-sm">Use o <a href='https://www.calculador.com.br/calculo/irrf-autonomo' target='_blank' rel='noopener noreferrer' className='underline hover:text-blue-700'>simulador de IRRF para autônomos</a> para ver quanto será descontado.</p>
+                                </div>
+                              </div>
+                            )}
+                            {selectedItem === 'autonomo_iss' && (
+                              <div className="space-y-6">
+                                <h3 className="text-2xl font-bold">Desconto: ISS (Imposto Sobre Serviços)</h3>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">O que é?</h4>
+                                  <p className="text-muted-foreground">O ISS é um imposto municipal obrigatório sobre a prestação de serviços, descontado diretamente no RPA.</p>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Como funciona?</h4>
+                                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                                    <li>A alíquota varia de 2% a 5% conforme o município e o tipo de serviço.</li>
+                                    <li>O desconto é feito pela fonte pagadora e repassado à prefeitura.</li>
+                                    <li>Nem todo serviço está sujeito ao ISS, mas a maioria sim.</li>
+                                  </ul>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Exemplo Prático</h4>
+                                  <p className="text-muted-foreground">Se a alíquota do seu município é 5%, para um serviço de R$ 7.000,00 o ISS descontado será de R$ 350,00.</p>
+                                </div>
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+                                  <h4 className="text-lg font-semibold mb-1 text-blue-900">Consulta ISS Municipal</h4>
+                                  <p className="text-muted-foreground text-sm">Consulte a alíquota do seu município no <a href='https://www.confaz.fazenda.gov.br/legislacao/aliquotas/iss' target='_blank' rel='noopener noreferrer' className='underline hover:text-blue-700'>portal nacional do ISS</a> ou no site da prefeitura.</p>
+                                </div>
+                              </div>
+                            )}
+                            {selectedItem === 'autonomo_liquido' && (
+                              <div className="space-y-6">
+                                <h3 className="text-2xl font-bold">Valor Líquido Recebido</h3>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">O que é?</h4>
+                                  <p className="text-muted-foreground">Este é o valor que efetivamente entra na sua conta pessoal após todas as retenções de impostos na fonte.</p>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Como funciona?</h4>
+                                  <p className="text-muted-foreground">O valor líquido é calculado subtraindo todos os descontos obrigatórios do valor bruto do serviço. É o que você realmente recebe.</p>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold mb-2">Exemplo Prático</h4>
+                                  <p className="text-muted-foreground">Para um serviço de R$ 7.000,00, após descontos de INSS, IRRF e ISS, o valor líquido pode ser de R$ 4.856,18.</p>
+                                </div>
+                                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                  <h4 className="text-lg font-semibold mb-2 text-amber-900">🚀 Oportunidade de Otimização</h4>
+                                  <p className="text-muted-foreground">Como você pode ver, os impostos para um Autônomo são muito elevados. Para rendimentos regulares, a melhor estratégia de otimização é <strong>abrir uma empresa (obter um CNPJ)</strong> e passar ao regime PJ (Simples Nacional), onde os impostos unificados começam em apenas 6% sobre o faturamento.</p>
+                                  <Button className="mt-4" onClick={() => setSelectedProfile('PJ')}>Comparar com o Guia PJ →</Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </TabsContent>
                     <TabsContent value="beneficios">
                       <div>
@@ -1433,9 +1587,16 @@ export default function ResourcesPage() {
                     </TabsContent>
                     <TabsContent value="direitos">
                       {selectedProfile === "geral" && (
-                        <div>
-                          <h3 className="text-xl font-bold mb-2">Direitos e Deveres Gerais</h3>
-                          <p className="text-gray-700">Conheça os direitos e deveres básicos de todo trabalhador no Brasil...</p>
+                        <div className="text-center py-8">
+                          <h3 className="text-xl font-bold mb-4">Direitos e Deveres</h3>
+                          <p className="text-gray-700 mb-6">Para ver os direitos e deveres específicos do seu perfil profissional, selecione um dos perfis na aba "Pagamento & Deduções".</p>
+                          <Button 
+                            onClick={() => setTab("pagamento")}
+                            className="inline-flex items-center gap-2"
+                          >
+                            Voltar para Seleção de Perfil
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
                         </div>
                       )}
                       {selectedProfile === "CLT" && (
