@@ -78,11 +78,54 @@ function HeroSection() {
   )
 }
 
+function HowItWorksSection() {
+  const steps = [
+    {
+      title: "Envie seu holerite ou preencha manualmente",
+      desc: "Escolha entre upload ou preenchimento dos dados.",
+      icon: <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl">1</div>,
+    },
+    {
+      title: "Nossa IA analisa seus dados",
+      desc: "Processamento seguro e análise inteligente.",
+      icon: <div className="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-2xl">2</div>,
+    },
+    {
+      title: "Receba recomendações personalizadas",
+      desc: "Veja os melhores passos para você economizar.",
+      icon: <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl">3</div>,
+    },
+  ];
+  return (
+    <section className="w-full py-10 md:py-16 bg-white">
+      <div className="max-w-4xl mx-auto px-4 md:px-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">Como funciona</h2>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16 relative">
+          {/* Ligne de progression */}
+          <div className="hidden md:block absolute left-0 right-0 top-1/2 h-1 bg-gradient-to-r from-emerald-200 via-yellow-200 to-blue-200 z-0" style={{transform: 'translateY(-50%)'}} />
+          {steps.map((step, i) => (
+            <div key={i} className="flex flex-col items-center text-center bg-white z-10 w-full md:w-1/3">
+              <div className="mb-4 relative">
+                {step.icon}
+                {/* Animation de point */}
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-emerald-400 animate-pulse md:hidden" />
+              </div>
+              <h3 className="font-semibold text-lg mb-1">{step.title}</h3>
+              <p className="text-gray-500 text-sm mb-2">{step.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen relative">
       <main className="flex-1">
         <HeroSection />
+        <HowItWorksSection />
 
         <TrustBadges />
 
