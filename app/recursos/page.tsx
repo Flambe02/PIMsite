@@ -18,6 +18,7 @@ export default function ResourcesPage() {
   const [selectedItem, setSelectedItem] = useState<string>('salario_base');
   const [viewMode, setViewMode] = useState<'simplified' | 'complete'>('simplified');
   const [selectedItemPJ, setSelectedItemPJ] = useState<string>('contrato');
+  const [pjSubProfile, setPjSubProfile] = useState<string | null>(null);
   const explanationRef = useRef<HTMLDivElement>(null);
 
   const handleItemClick = (itemKey: string) => {
@@ -56,7 +57,7 @@ export default function ResourcesPage() {
                 <Button
                   variant={selectedProfile === "PJ" ? "default" : "outline"}
                   className="flex-1 py-6 text-lg"
-                  onClick={() => { setSelectedProfile("PJ"); setSelectedItem("pj_contrato"); }}
+                  onClick={() => { setSelectedProfile("PJ"); setPjSubProfile(null); setSelectedItem(""); }}
                 >
                   PJ
                 </Button>
@@ -695,77 +696,233 @@ export default function ResourcesPage() {
                         </>
                       )}
                       {selectedProfile === "PJ" && (
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-                          {/* Colonne 1 : Extrato de Pagamento PJ */}
-                          <div className="md:col-span-5 pl-0 md:pl-0">
-                            {/* Extrato de Pagamento PJ */}
-                            <div className="bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 p-6 max-w-lg mx-auto">
-                              {/* Header */}
-                              <div className="mb-4 grid grid-cols-2 gap-4 text-xs">
+                        <>
+                          {/* Explanatory section for PJ types */}
+                          {pjSubProfile === null && (
+                            <>
+                              <h2 className="text-2xl font-bold text-center mb-4">Qual tipo de PJ você é? Entenda a diferença.</h2>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div>
-                                  <div className="font-bold mb-1 text-emerald-700">Dados do Prestador</div>
-                                  <div className="flex flex-col gap-1 mt-1">
-                                    <div className="flex items-center gap-1"><span>Nome:</span><span>Maria Oliveira</span></div>
-                                    <div className="flex items-center gap-1"><span>CNPJ:</span><span>23.456.789/0001-10</span></div>
-                                  </div>
+                                  <h3 className="text-lg font-semibold mb-2">Prestador de Serviços / Freelancer</h3>
+                                  <p className="text-muted-foreground">Pense nisso como um profissional autônomo. Você presta um serviço específico para um cliente e emite uma Nota Fiscal pelo valor total do serviço.</p>
                                 </div>
                                 <div>
-                                  <div className="font-bold mb-1 text-emerald-700">Dados da Empresa Contratante</div>
-                                  <div className="flex flex-col gap-1 mt-1">
-                                    <div className="flex items-center gap-1"><span>Razão Social:</span><span>Cliente Exemplo Ltda.</span></div>
-                                    <div className="flex items-center gap-1"><span>CNPJ:</span><span>98.765.432/0001-55</span></div>
-                                  </div>
+                                  <h3 className="text-lg font-semibold mb-2">Sócio / Dirigente de Empresa</h3>
+                                  <p className="text-muted-foreground">Aqui, você é o 'dono' da sua própria empresa (mesmo que seja só você). Você não emite uma nota para si mesmo, mas retira um 'salário de administrador' chamado Pró-labore.</p>
                                 </div>
                               </div>
-                              <div className="my-3 border-b border-emerald-100"></div>
-                              {/* Payment Table */}
-                              <div className="space-y-1 mb-4">
-                                <button className={`w-full flex justify-between items-center px-2 py-3 rounded transition ${selectedItem === 'valor_servicos' ? 'bg-emerald-100' : 'hover:bg-emerald-50'}`} onClick={() => setSelectedItem('valor_servicos')}>
-                                  <span className="font-medium text-left">Valor dos Serviços Prestados</span>
-                                  <span className="font-mono font-bold">R$ 7.000,00</span>
-                                </button>
-                                <button className={`w-full flex justify-between items-center px-2 py-3 rounded transition ${selectedItem === 'irrf_pj' ? 'bg-rose-100' : 'hover:bg-rose-50'}`} onClick={() => setSelectedItem('irrf_pj')}>
-                                  <span className="font-medium text-left">Imposto de Renda Retido na Fonte (IRRF)</span>
-                                  <span className="font-mono font-bold text-rose-700">-R$ 787,50</span>
-                                </button>
-                              </div>
-                              {/* Totals Section */}
-                              <div className="flex justify-between items-center py-3 border-t border-emerald-200 font-bold text-emerald-900 text-lg mb-4">
-                                <span>Valor Líquido Recebido</span>
-                                <span className="font-mono">R$ 6.212,50</span>
-                              </div>
-                              {/* Tax Reminder Section */}
-                              <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-                                <div className="font-semibold text-yellow-900 mb-2">Impostos a pagar como PJ</div>
-                                <button className={`w-full flex justify-between items-center px-2 py-2 rounded transition ${selectedItem === 'simples_nacional' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('simples_nacional')}>
-                                  <span className="font-medium text-left">Simples Nacional (DAS)</span>
-                                  <span className="font-mono font-bold">R$ 500,00</span>
-                                </button>
+                            </>
+                          )}
+                          
+                          {/* Sub-selector for PJ types */}
+                          {pjSubProfile === null && (
+                            <div className="text-center py-8">
+                              <h3 className="text-xl font-bold mb-6 text-emerald-900">Qual tipo de PJ você é?</h3>
+                              <div className="flex gap-4 justify-center">
+                                <Button
+                                  variant="outline"
+                                  className="px-8 py-4 text-lg"
+                                  onClick={() => { setPjSubProfile("freelancer"); setSelectedItem("valor_servicos"); }}
+                                >
+                                  Prestador de Serviços
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="px-8 py-4 text-lg"
+                                  onClick={() => { setPjSubProfile("dirigente"); setSelectedItem("pro_labore"); }}
+                                >
+                                  Sócio / Dirigente
+                                </Button>
                               </div>
                             </div>
-                          </div>
-                          {/* Colonne 2 : Explication contextuelle PJ */}
-                          <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto">
-                            {selectedItem === 'valor_servicos' && (
-                              <div>
-                                <h3 className="text-2xl font-bold">Valor dos Serviços Prestados</h3>
-                                <p className="text-muted-foreground mt-4">Explicação sobre como é definido o valor dos serviços, critérios de negociação, e boas práticas para contratos PJ...</p>
+                          )}
+                          
+                          {/* Freelancer View (existing content) */}
+                          {pjSubProfile === "freelancer" && (
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                              {/* Colonne 1 : Extrato de Pagamento PJ */}
+                              <div className="md:col-span-5 pl-0 md:pl-0">
+                                {/* Extrato de Pagamento PJ */}
+                                <div className="bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 p-6 max-w-lg mx-auto">
+                                  {/* Header */}
+                                  <div className="mb-4 grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                      <div className="font-bold mb-1 text-emerald-700">Dados do Prestador</div>
+                                      <div className="flex flex-col gap-1 mt-1">
+                                        <div className="flex items-center gap-1"><span>Nome:</span><span>Maria Oliveira</span></div>
+                                        <div className="flex items-center gap-1"><span>CNPJ:</span><span>23.456.789/0001-10</span></div>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div className="font-bold mb-1 text-emerald-700">Dados da Empresa Contratante</div>
+                                      <div className="flex flex-col gap-1 mt-1">
+                                        <div className="flex items-center gap-1"><span>Razão Social:</span><span>Cliente Exemplo Ltda.</span></div>
+                                        <div className="flex items-center gap-1"><span>CNPJ:</span><span>98.765.432/0001-55</span></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="my-3 border-b border-emerald-100"></div>
+                                  {/* Payment Table */}
+                                  <div className="space-y-1 mb-4">
+                                    <button className={`w-full flex justify-between items-center px-2 py-3 rounded transition ${selectedItem === 'valor_servicos' ? 'bg-emerald-100' : 'hover:bg-emerald-50'}`} onClick={() => setSelectedItem('valor_servicos')}>
+                                      <span className="font-medium text-left">Valor dos Serviços Prestados</span>
+                                      <span className="font-mono font-bold">R$ 7.000,00</span>
+                                    </button>
+                                    <button className={`w-full flex justify-between items-center px-2 py-3 rounded transition ${selectedItem === 'irrf_pj' ? 'bg-rose-100' : 'hover:bg-rose-50'}`} onClick={() => setSelectedItem('irrf_pj')}>
+                                      <span className="font-medium text-left">Imposto de Renda Retido na Fonte (IRRF)</span>
+                                      <span className="font-mono font-bold text-rose-700">-R$ 787,50</span>
+                                    </button>
+                                  </div>
+                                  {/* Totals Section */}
+                                  <div className="flex justify-between items-center py-3 border-t border-emerald-200 font-bold text-emerald-900 text-lg mb-4">
+                                    <span>Valor Líquido Recebido</span>
+                                    <span className="font-mono">R$ 6.212,50</span>
+                                  </div>
+                                  {/* Tax Reminder Section */}
+                                  <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                                    <div className="font-semibold text-yellow-900 mb-2">Impostos a pagar como PJ</div>
+                                    <button className={`w-full flex justify-between items-center px-2 py-2 rounded transition ${selectedItem === 'simples_nacional' ? 'bg-yellow-100' : 'hover:bg-yellow-50'}`} onClick={() => setSelectedItem('simples_nacional')}>
+                                      <span className="font-medium text-left">Simples Nacional (DAS)</span>
+                                      <span className="font-mono font-bold">R$ 500,00</span>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                            )}
-                            {selectedItem === 'irrf_pj' && (
-                              <div>
-                                <h3 className="text-2xl font-bold">Imposto de Renda Retido na Fonte (IRRF)</h3>
-                                <p className="text-muted-foreground mt-4">Explicação sobre o IRRF para PJ, quando é retido, como calcular e como declarar...</p>
+                              {/* Colonne 2 : Explication contextuelle PJ */}
+                              <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto">
+                                {selectedItem === 'valor_servicos' && (
+                                  <div>
+                                    <h3 className="text-2xl font-bold">Valor dos Serviços Prestados</h3>
+                                    <p className="text-muted-foreground mt-4">Explicação sobre como é definido o valor dos serviços, critérios de negociação, e boas práticas para contratos PJ...</p>
+                                  </div>
+                                )}
+                                {selectedItem === 'irrf_pj' && (
+                                  <div>
+                                    <h3 className="text-2xl font-bold">Imposto de Renda Retido na Fonte (IRRF)</h3>
+                                    <p className="text-muted-foreground mt-4">Explicação sobre o IRRF para PJ, quando é retido, como calcular e como declarar...</p>
+                                  </div>
+                                )}
+                                {selectedItem === 'simples_nacional' && (
+                                  <div>
+                                    <h3 className="text-2xl font-bold">Simples Nacional (DAS)</h3>
+                                    <p className="text-muted-foreground mt-4">O Documento de Arrecadação do Simples Nacional (DAS) é a guia unificada para o pagamento dos impostos do microempreendedor...</p>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {selectedItem === 'simples_nacional' && (
-                              <div>
-                                <h3 className="text-2xl font-bold">Simples Nacional (DAS)</h3>
-                                <p className="text-muted-foreground mt-4">O Documento de Arrecadação do Simples Nacional (DAS) é a guia unificada para o pagamento dos impostos do microempreendedor...</p>
+                            </div>
+                          )}
+
+                          {/* Dirigente View */}
+                          {pjSubProfile === "dirigente" && (
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                              {/* Colonne 1 : Pró-labore Receipt */}
+                              <div className="md:col-span-7 pl-0 md:pl-0">
+                                {/* Recibo do Sócio */}
+                                <div className="bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 p-6 mb-6">
+                                  <h2 className="text-xl font-bold text-emerald-900 mb-4">Recibo do Sócio</h2>
+                                  <div className="space-y-2 mb-4">
+                                    <button className={`w-full flex justify-between items-center px-3 py-3 rounded transition ${selectedItem === 'pro_labore' ? 'bg-emerald-100' : 'hover:bg-emerald-50'}`} onClick={() => setSelectedItem('pro_labore')}>
+                                      <span className="font-medium text-left">Pró-labore</span>
+                                      <span className="font-mono font-bold">R$ 1.520,00</span>
+                                    </button>
+                                    <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'inss_pro_labore' ? 'bg-rose-100' : 'hover:bg-rose-50'}`} onClick={() => setSelectedItem('inss_pro_labore')}>
+                                      <span className="font-medium text-left">INSS (11%)</span>
+                                      <span className="font-mono font-bold text-rose-700">-R$ 167,20</span>
+                                    </button>
+                                    <button className={`w-full flex justify-between items-center px-3 py-2 rounded transition ${selectedItem === 'irrf_pro_labore' ? 'bg-rose-100' : 'hover:bg-rose-50'}`} onClick={() => setSelectedItem('irrf_pro_labore')}>
+                                      <span className="font-medium text-left">IRRF</span>
+                                      <span className="font-mono font-bold text-rose-700">-R$ 0,00</span>
+                                    </button>
+                                  </div>
+                                  <div className="flex justify-between items-center py-3 border-t border-emerald-200 font-bold text-emerald-900 text-lg">
+                                    <span>Net a receber</span>
+                                    <span className="font-mono">R$ 1.352,80</span>
+                                  </div>
+                                </div>
+
+                                {/* Custo para a Empresa */}
+                                <div className="bg-blue-50 rounded-xl shadow-lg border border-blue-100 p-6">
+                                  <h2 className="text-xl font-bold text-blue-900 mb-4">Custo para a Empresa (PJ)</h2>
+                                  <div className="space-y-2 mb-4">
+                                    <button className={`w-full flex justify-between items-center px-3 py-3 rounded transition ${selectedItem === 'inss_patronal' ? 'bg-blue-100' : 'hover:bg-blue-50'}`} onClick={() => setSelectedItem('inss_patronal')}>
+                                      <span className="font-medium text-left">INSS Patronal (20%)</span>
+                                      <span className="font-mono font-bold">R$ 304,00</span>
+                                    </button>
+                                  </div>
+                                  <div className="flex justify-between items-center py-3 border-t border-blue-200 font-bold text-blue-900 text-lg">
+                                    <span>Custo Total para a Empresa</span>
+                                    <span className="font-mono">R$ 1.824,00</span>
+                                  </div>
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        </div>
+
+                              {/* Colonne 2 : Explication contextuelle Dirigente */}
+                              <div className="md:col-span-5 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto">
+                                <div className="mb-4 text-sm text-muted-foreground">Clique em um item do recibo para ver a explicação detalhada.</div>
+                                {selectedItem === 'pro_labore' && (
+                                  <div className="space-y-4">
+                                    <h3 className="text-2xl font-bold">Pró-labore</h3>
+                                    <h4 className="font-semibold">O que é?</h4>
+                                    <p className="text-muted-foreground">Remuneração paga aos sócios e dirigentes de empresas, equivalente ao salário de um funcionário CLT.</p>
+                                    <h4 className="font-semibold">Como funciona?</h4>
+                                    <ul className="list-disc list-inside text-muted-foreground">
+                                      <li>É obrigatório para sócios que trabalham na empresa</li>
+                                      <li>Deve ser pelo menos o valor do salário mínimo</li>
+                                      <li>Gera obrigações de INSS e IRRF</li>
+                                    </ul>
+                                    <h4 className="font-semibold">Exemplo Prático</h4>
+                                    <p className="text-muted-foreground">No exemplo, o sócio recebe R$ 1.520,00 de pró-labore, que é o salário mínimo de 2024.</p>
+                                  </div>
+                                )}
+                                {selectedItem === 'inss_pro_labore' && (
+                                  <div className="space-y-4">
+                                    <h3 className="text-2xl font-bold">INSS sobre Pró-labore</h3>
+                                    <h4 className="font-semibold">O que é?</h4>
+                                    <p className="text-muted-foreground">Contribuição previdenciária obrigatória sobre o pró-labore, similar ao desconto de INSS do CLT.</p>
+                                    <h4 className="font-semibold">Como funciona?</h4>
+                                    <ul className="list-disc list-inside text-muted-foreground">
+                                      <li>Alíquota de 11% sobre o valor do pró-labore</li>
+                                      <li>É descontado diretamente do valor recebido</li>
+                                      <li>Garante direitos previdenciários futuros</li>
+                                    </ul>
+                                    <h4 className="font-semibold">Exemplo Prático</h4>
+                                    <p className="text-muted-foreground">Sobre R$ 1.520,00 de pró-labore, o INSS é de R$ 167,20 (11% de R$ 1.520,00).</p>
+                                  </div>
+                                )}
+                                {selectedItem === 'irrf_pro_labore' && (
+                                  <div className="space-y-4">
+                                    <h3 className="text-2xl font-bold">IRRF sobre Pró-labore</h3>
+                                    <h4 className="font-semibold">O que é?</h4>
+                                    <p className="text-muted-foreground">Imposto de Renda Retido na Fonte sobre o pró-labore, calculado conforme tabela progressiva.</p>
+                                    <h4 className="font-semibold">Como funciona?</h4>
+                                    <ul className="list-disc list-inside text-muted-foreground">
+                                      <li>Segue a mesma tabela do IRRF de funcionários CLT</li>
+                                      <li>Considera dependentes e outras deduções</li>
+                                      <li>Pode ser isento dependendo do valor</li>
+                                    </ul>
+                                    <h4 className="font-semibold">Exemplo Prático</h4>
+                                    <p className="text-muted-foreground">Com base de cálculo de R$ 1.352,80 (pró-labore - INSS), o IRRF seria isento por estar abaixo da faixa tributável.</p>
+                                  </div>
+                                )}
+                                {selectedItem === 'inss_patronal' && (
+                                  <div className="space-y-4">
+                                    <h3 className="text-2xl font-bold">INSS Patronal</h3>
+                                    <h4 className="font-semibold">O que é?</h4>
+                                    <p className="text-muted-foreground">Contribuição previdenciária paga pela empresa sobre o pró-labore do sócio/dirigente.</p>
+                                    <h4 className="font-semibold">Como funciona?</h4>
+                                    <ul className="list-disc list-inside text-muted-foreground">
+                                      <li>Alíquota de 20% sobre o valor do pró-labore</li>
+                                      <li>É um custo adicional para a empresa</li>
+                                      <li>Não é descontado do sócio, mas pago pela empresa</li>
+                                    </ul>
+                                    <h4 className="font-semibold">Exemplo Prático</h4>
+                                    <p className="text-muted-foreground">Sobre R$ 1.520,00 de pró-labore, a empresa paga R$ 304,00 de INSS patronal (20% de R$ 1.520,00).</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                       {selectedProfile === "Estagiário" && (
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
