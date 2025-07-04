@@ -11,6 +11,7 @@ import { DialogTitle } from './ui/dialog'
 const navLinks = [
   { href: '/', label: 'Início' },
   { href: '/recursos', label: 'Recursos' },
+  { href: '/calculadora', label: 'Calculadora' },
   { href: '/guia-paises', label: 'Guia de Países' },
   { href: '/precos', label: 'Preços' },
   { href: '/sobre', label: 'Sobre' },
