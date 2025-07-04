@@ -99,6 +99,22 @@ export function parsePayslipV2(rawText: string, lines: any[]): PayslipParsed {
   };
 }
 
+export function parsePayslipV3(result: any): PayslipParsed {
+  const text = result.ParsedText.replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ");
+  // TODO extraction avancée (CNPJ, salário líquido, etc.)
+  return {
+    empresa: { nome: "", cnpj: "", endereco: "" },
+    colaborador: { nome: "", cpf: "", cargo: "", admissao: "" },
+    folha_pagamento: {
+      mes_referencia: "",
+      itens: [],
+      totaux: { total_venc: 0, total_desc: 0, salario_liquido: 0 },
+      bases: { base_inss: 0, base_fgts: 0, valor_fgts: 0, base_irrf: 0 },
+    },
+    raw_text: text,
+  };
+}
+
 export async function analyzePayslip(fileUrl: string) {
   await new Promise(res => setTimeout(res, 2000));
   return {

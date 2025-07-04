@@ -8,10 +8,13 @@ export async function POST(request: NextRequest) {
     const password = formData.get("password") as string
     const redirectTo = formData.get("redirectTo") as string
 
+    // Get origin with fallback
+    const origin = request.nextUrl.origin || 'http://localhost:3000'
+
     if (!email || !password) {
-      return NextResponse.redirect(
-        new URL("/login?message=Email and password are required", request.url)
-      )
+      const redirectUrl = new URL('/login', origin)
+      redirectUrl.searchParams.set('message', 'Email and password are required')
+      return NextResponse.redirect(redirectUrl)
     }
 
     const supabase = await createClient()
@@ -23,18 +26,20 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Login error:", error.message)
-      return NextResponse.redirect(
-        new URL(`/login?message=${encodeURIComponent(error.message)}`, request.url)
-      )
+      const redirectUrl = new URL('/login', origin)
+      redirectUrl.searchParams.set('message', error.message)
+      return NextResponse.redirect(redirectUrl)
     }
 
     // Successful login - redirect to requested page or dashboard
-    const redirectUrl = redirectTo || "/dashboard"
-    return NextResponse.redirect(new URL(redirectUrl, request.url))
+    const finalRedirectTo = redirectTo || "/dashboard"
+    const redirectUrl = new URL(finalRedirectTo, origin)
+    return NextResponse.redirect(redirectUrl)
   } catch (error) {
     console.error("Login route error:", error)
-    return NextResponse.redirect(
-      new URL("/login?message=An unexpected error occurred", request.url)
-    )
+    const origin = request.nextUrl.origin || 'http://localhost:3000'
+    const redirectUrl = new URL('/login', origin)
+    redirectUrl.searchParams.set('message', 'An unexpected error occurred')
+    return NextResponse.redirect(redirectUrl)
   }
 } 

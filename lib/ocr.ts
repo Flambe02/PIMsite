@@ -30,4 +30,55 @@ export async function parseWithOCRSpace(file: File) {
     rawText: first.ParsedText ?? "",
     lines: first.TextOverlay?.Lines ?? [],
   };
+}
+
+export async function parseWithOCRSpaceEnhanced(file: File | Buffer) {
+  const key = process.env.NEXT_PUBLIC_OCR_SPACE_KEY ?? "helloworld";
+  let buf: Buffer;
+  if (typeof Buffer !== "undefined" && file instanceof Buffer) {
+    buf = file;
+  } else if (typeof File !== "undefined" && file instanceof File) {
+    buf = Buffer.from(await file.arrayBuffer());
+  } else {
+    throw new Error("Unsupported file type");
+  }
+
+  // PDF ? => convert via API
+  const isPdf = buf.slice(0, 4).toString("hex") === "25504446";
+  let img: Buffer;
+  
+  if (isPdf) {
+    const formData = new FormData();
+    formData.append("file", new Blob([buf]), "document.pdf");
+    
+    const response = await fetch("/api/convert-pdf", {
+      method: "POST",
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error("Failed to convert PDF");
+    }
+    
+    img = Buffer.from(await response.arrayBuffer());
+  } else {
+    img = buf;
+  }
+
+  const form = new FormData();
+  form.append("file", new Blob([img]), "page.png");
+  form.append("language", "por");
+  form.append("isTable", "true");
+  form.append("scale", "true");
+  form.append("OCREngine", "2");
+  form.append("isOverlayRequired", "true");
+
+  const res = await fetch("https://api.ocr.space/parse/image", {
+    method: "POST",
+    headers: { apikey: key },
+    body: form,
+  }).then(r => r.json() as any);
+
+  if (!res.ParsedResults?.[0]?.ParsedText) throw new Error(res.ErrorMessage || "OCR failed");
+  return res.ParsedResults[0]; // { ParsedText, TextOverlay, … }
 } 
