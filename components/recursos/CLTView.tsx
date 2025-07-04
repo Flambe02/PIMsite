@@ -8,6 +8,24 @@ const CLTView: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<string>('salario_base');
   const explanationRef = useRef<HTMLDivElement>(null);
 
+  // Correction : reset sur Salário Base si l'item sélectionné n'existe pas dans la vue courante
+  React.useEffect(() => {
+    const simplifiedKeys = [
+      'salario_base', 'horas_extras', 'adicional_noturno', 'ferias', 'decimo_terceiro', 'comissoes',
+      'inss', 'irrf', 'vale_transporte', 'vale_refeicao', 'adiantamentos', 'faltas_atrasos',
+      'base_inss', 'base_fgts', 'fgts_mes', 'base_irrf',
+    ];
+    const completeKeys = [
+      'salario_base', 'horas_extras', 'adicional_noturno', 'adicional_periculosidade', 'ferias', 'decimo_terceiro', 'ferias_terco', 'comissoes',
+      'inss', 'irrf', 'vale_transporte', 'vale_refeicao', 'adiantamentos', 'plano_saude', 'pensao_alimenticia', 'contribuicao_sindical', 'faltas_atrasos',
+      'base_inss', 'base_fgts', 'fgts_mes', 'base_irrf',
+    ];
+    const allowed = viewMode === 'simplified' ? simplifiedKeys : completeKeys;
+    if (!allowed.includes(selectedItem)) {
+      setSelectedItem('salario_base');
+    }
+  }, [viewMode]);
+
   // Handler pour sélectionner un item du tableau (affiche l'explication à droite)
   const handleItemClick = (itemKey: string) => {
     setSelectedItem(itemKey);
@@ -19,285 +37,215 @@ const CLTView: React.FC = () => {
   // TODO: Ajouter le JSX détaillé ici (header, tableau, explications, etc.)
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-      {/* Colonne 1 : Toggle + Holerite visuel interactif */}
+      {/* Colonne 1 : Carte Holerite harmonisée */}
       <div className="md:col-span-5 pl-0 md:pl-0">
-        {/* Toggle Simplified/Complete */}
-        <div className="flex justify-center items-center mb-4 gap-2">
-          <button
-            className={`px-4 py-2 rounded-l-full border border-emerald-400 font-semibold text-sm transition ${viewMode === 'simplified' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
-            onClick={() => setViewMode('simplified')}
-          >
-            Visão Simplificada
-          </button>
-          <button
-            className={`px-4 py-2 rounded-r-full border border-emerald-400 font-semibold text-sm transition ${viewMode === 'complete' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
-            onClick={() => setViewMode('complete')}
-          >
-            Visão Completa
-          </button>
+        <div className="bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 p-6 max-w-lg mx-auto">
+          <div className="flex flex-col gap-2 mb-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <h2 className="text-xl font-bold text-emerald-900">Holerite Exemplo</h2>
+              <div className="flex gap-2 mt-2 md:mt-0">
+                <button
+                  className={`px-4 py-2 rounded-l-full border border-emerald-400 font-semibold text-sm transition ${viewMode === 'simplified' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
+                  onClick={() => setViewMode('simplified')}
+                >
+                  Visão Simplificada
+                </button>
+                <button
+                  className={`px-4 py-2 rounded-r-full border border-emerald-400 font-semibold text-sm transition ${viewMode === 'complete' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
+                  onClick={() => setViewMode('complete')}
+                >
+                  Visão Completa
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs mt-2">
+              <div>
+                <span className="font-bold text-emerald-700">Dados do Funcionário</span>
+                <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex items-center gap-1"><span>Nome Completo:</span><span>João da Silva</span></div>
+                  <div className="flex items-center gap-1"><span>CPF:</span><span>123.456.789-00</span></div>
+                  <div className="flex items-center gap-1"><span>Cargo:</span><span>Analista de RH</span></div>
+                  <div className="flex items-center gap-1"><span>Data de Admissão:</span><span>01/02/2020</span></div>
+                </div>
+              </div>
+              <div>
+                <span className="font-bold text-emerald-700">Dados da Empresa</span>
+                <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex items-center gap-1"><span>Razão Social:</span><span>Empresa Exemplo S.A.</span></div>
+                  <div className="flex items-center gap-1"><span>CNPJ:</span><span>12.345.678/0001-99</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="my-3 border-b border-emerald-100"></div>
+          {/* Table et totaux conditionnels selon viewMode */}
+          {viewMode === 'simplified' && (
+            <>
+              <div>
+                <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 font-bold text-xs border-b pb-2 mb-2 text-emerald-800">
+                  <div className="font-mono">Cód.</div>
+                  <div>Descrição</div>
+                  <div>Ref.</div>
+                  <div className="text-right">Vencimentos</div>
+                  <div className="text-right">Descontos</div>
+                </div>
+                {/* Vencimentos simplifiés */}
+                {[
+                  { code: '001', key: 'salario_base', label: 'Salário Base', ref: '30,00', val: '5.000,00' },
+                  { code: '005', key: 'horas_extras', label: 'Horas Extras', ref: '10,00', val: '250,00' },
+                  { code: '010', key: 'adicional_noturno', label: 'Adicional Noturno', ref: '5,00', val: '100,00' },
+                  { code: '020', key: 'ferias', label: 'Férias', ref: '2,50', val: '416,67' },
+                  { code: '021', key: 'decimo_terceiro', label: '13º Salário', ref: '2,50', val: '416,67' },
+                  { code: '022', key: 'comissoes', label: 'Comissões', ref: '---', val: '300,00' },
+                ].map((item, idx) => (
+                  <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-emerald-100/40' : ''}`}>
+                    <div className="font-mono text-gray-500">{item.code}</div>
+                    <button className="text-left underline text-emerald-700 col-span-1 flex items-center gap-1 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick(item.key)}>{item.label}</button>
+                    <div className="font-mono text-gray-500">{item.ref}</div>
+                    <div className="font-mono text-emerald-700 font-medium text-right">{item.val}</div>
+                    <div></div>
+                  </div>
+                ))}
+                {/* Déductions simplifiées en rouge */}
+                {[
+                  { code: '301', key: 'inss', label: 'INSS', ref: '9,00%', val: '450,00' },
+                  { code: '302', key: 'irrf', label: 'IRRF', ref: '7,50%', val: '150,00' },
+                  { code: '401', key: 'vale_transporte', label: 'Vale-Transporte', ref: '6,00%', val: '300,00' },
+                  { code: '402', key: 'vale_refeicao', label: 'Vale-Refeição/Alimentação', ref: '---', val: '200,00' },
+                  { code: '403', key: 'adiantamentos', label: 'Adiantamentos', ref: '---', val: '100,00' },
+                  { code: '501', key: 'faltas_atrasos', label: 'Faltas/Atrasos', ref: '2,00', val: '100,00' },
+                ].map((item, idx) => (
+                  <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-rose-50/40' : ''}`}>
+                    <div className="font-mono text-gray-500">{item.code}</div>
+                    <button className="text-left underline text-rose-700 col-span-1 flex items-center gap-1 hover:bg-rose-100/60 rounded px-1 transition font-semibold" onClick={() => handleItemClick(item.key)}>{item.label}</button>
+                    <div className="font-mono text-gray-500">{item.ref}</div>
+                    <div></div>
+                    <div className="font-mono text-rose-700 font-bold text-right">{item.val}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 space-y-1 text-xs">
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_inss')}>Base Cálc. INSS</button>
+                  <span className="font-mono">R$ 5.350,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_fgts')}>Base Cálc. FGTS</button>
+                  <span className="font-mono">R$ 5.350,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('fgts_mes')}>FGTS do Mês</button>
+                  <span className="font-mono">R$ 428,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_irrf')}>Base Cálc. IRRF</button>
+                  <span className="font-mono">R$ 4.900,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <span>Total de Vencimentos</span>
+                  <span className="font-mono">R$ 5.350,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-rose-700">
+                  <span>Total de Descontos</span>
+                  <span className="font-mono">R$ 1.000,00</span>
+                </div>
+                <div className="flex justify-between items-center py-2 mt-2 border-t font-bold text-emerald-900 text-lg">
+                  <span>Valor Líquido</span>
+                  <span className="font-mono">R$ 4.350,00</span>
+                </div>
+              </div>
+            </>
+          )}
+          {viewMode === 'complete' && (
+            <>
+              <div>
+                <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 font-bold text-xs border-b pb-2 mb-2 text-emerald-800">
+                  <div className="font-mono">Cód.</div>
+                  <div>Descrição</div>
+                  <div>Ref.</div>
+                  <div className="text-right">Vencimentos</div>
+                  <div className="text-right">Descontos</div>
+                </div>
+                {/* Vencimentos complets */}
+                {[
+                  { code: '001', key: 'salario_base', label: 'Salário Base', ref: '30,00', val: '5.000,00' },
+                  { code: '005', key: 'horas_extras', label: 'Horas Extras', ref: '10,00', val: '250,00' },
+                  { code: '010', key: 'adicional_noturno', label: 'Adicional Noturno', ref: '5,00', val: '100,00' },
+                  { code: '012', key: 'adicional_periculosidade', label: 'Adicional de Periculosidade', ref: '---', val: '200,00' },
+                  { code: '020', key: 'ferias', label: 'Férias', ref: '2,50', val: '416,67' },
+                  { code: '021', key: 'decimo_terceiro', label: '13º Salário', ref: '2,50', val: '416,67' },
+                  { code: '023', key: 'ferias_terco', label: 'Férias (com 1/3)', ref: '---', val: '138,89' },
+                  { code: '022', key: 'comissoes', label: 'Comissões', ref: '---', val: '300,00' },
+                ].map((item, idx) => (
+                  <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-emerald-100/40' : ''}`}>
+                    <div className="font-mono text-gray-500">{item.code}</div>
+                    <button className="text-left underline text-emerald-700 col-span-1 flex items-center gap-1 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick(item.key)}>{item.label}</button>
+                    <div className="font-mono text-gray-500">{item.ref}</div>
+                    <div className="font-mono text-emerald-700 font-medium text-right">{item.val}</div>
+                    <div></div>
+                  </div>
+                ))}
+                {/* Déductions complets en rouge */}
+                {[
+                  { code: '301', key: 'inss', label: 'INSS', ref: '9,00%', val: '450,00' },
+                  { code: '302', key: 'irrf', label: 'IRRF', ref: '7,50%', val: '150,00' },
+                  { code: '401', key: 'vale_transporte', label: 'Vale-Transporte', ref: '6,00%', val: '300,00' },
+                  { code: '402', key: 'vale_refeicao', label: 'Vale-Refeição/Alimentação', ref: '---', val: '200,00' },
+                  { code: '403', key: 'adiantamentos', label: 'Adiantamentos', ref: '---', val: '100,00' },
+                  { code: '404', key: 'plano_saude', label: 'Plano de Saúde', ref: '---', val: '250,00' },
+                  { code: '405', key: 'pensao_alimenticia', label: 'Pensão Alimentícia', ref: '---', val: '300,00' },
+                  { code: '406', key: 'contribuicao_sindical', label: 'Contribuição Sindical', ref: '---', val: '50,00' },
+                  { code: '501', key: 'faltas_atrasos', label: 'Faltas/Atrasos', ref: '2,00', val: '100,00' },
+                ].map((item, idx) => (
+                  <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-rose-50/40' : ''}`}>
+                    <div className="font-mono text-gray-500">{item.code}</div>
+                    <button className="text-left underline text-rose-700 col-span-1 flex items-center gap-1 hover:bg-rose-100/60 rounded px-1 transition font-semibold" onClick={() => handleItemClick(item.key)}>{item.label}</button>
+                    <div className="font-mono text-gray-500">{item.ref}</div>
+                    <div></div>
+                    <div className="font-mono text-rose-700 font-bold text-right">{item.val}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 space-y-1 text-xs">
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_inss')}>Base Cálc. INSS</button>
+                  <span className="font-mono">R$ 5.350,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_fgts')}>Base Cálc. FGTS</button>
+                  <span className="font-mono">R$ 5.350,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('fgts_mes')}>FGTS do Mês</button>
+                  <span className="font-mono">R$ 428,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_irrf')}>Base Cálc. IRRF</button>
+                  <span className="font-mono">R$ 4.900,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
+                  <span>Total de Vencimentos</span>
+                  <span className="font-mono">R$ 5.350,00</span>
+                </div>
+                <div className="flex justify-between items-center py-1 font-bold text-rose-700">
+                  <span>Total de Descontos</span>
+                  <span className="font-mono">R$ 1.000,00</span>
+                </div>
+                <div className="flex justify-between items-center py-2 mt-2 border-t font-bold text-emerald-900 text-lg">
+                  <span>Valor Líquido</span>
+                  <span className="font-mono">R$ 4.350,00</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-        {/* Payslip Conditional Rendering */}
-        {viewMode === 'simplified' && (
-          <div className="relative p-6 bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 max-w-lg">
-            <span className="absolute top-4 right-6 bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">Holerite Exemplo</span>
-            {/* Payslip Header */}
-            <div className="mb-4 grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <button className="font-bold mb-1 text-left text-emerald-700 underline" onClick={() => handleItemClick('dados_funcionario')}>Dados do Funcionário</button>
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex items-center gap-1">
-                    <span>Nome Completo:</span>
-                    <span>João da Silva</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>CPF:</span>
-                    <span>123.456.789-00</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>Cargo:</span>
-                    <span>Analista de RH</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>Data de Admissão:</span>
-                    <span>01/02/2020</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <button className="font-bold mb-1 text-left text-emerald-700 underline" onClick={() => handleItemClick('dados_empresa')}>Dados da Empresa</button>
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex items-center gap-1">
-                    <span>Razão Social:</span>
-                    <span>Empresa Exemplo S.A.</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>CNPJ:</span>
-                    <span>12.345.678/0001-99</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="my-3 border-b border-emerald-100"></div>
-            {/* Payslip Table */}
-            <div>
-              <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 font-bold text-xs border-b pb-2 mb-2 text-emerald-800">
-                <div className="font-mono">Cód.</div>
-                <div>Descrição</div>
-                <div>Ref.</div>
-                <div className="text-right">Vencimentos</div>
-                <div className="text-right">Descontos</div>
-              </div>
-              {/* Vencimentos */}
-              {[
-                { code: '001', key: 'salario_base', label: 'Salário Base', ref: '30,00', val: '5.000,00' },
-                { code: '005', key: 'horas_extras', label: 'Horas Extras', ref: '10,00', val: '250,00' },
-                { code: '010', key: 'adicional_noturno', label: 'Adicional Noturno', ref: '5,00', val: '100,00' },
-                { code: '020', key: 'ferias', label: 'Férias', ref: '2,50', val: '416,67' },
-                { code: '021', key: 'decimo_terceiro', label: '13º Salário', ref: '2,50', val: '416,67' },
-                { code: '022', key: 'comissoes', label: 'Comissões', ref: '---', val: '300,00' },
-              ].map((item, idx) => (
-                <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-emerald-100/40' : ''}`}>
-                  <div className="font-mono text-gray-500">{item.code}</div>
-                  <button className="text-left underline text-emerald-700 col-span-1 flex items-center gap-1 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick(item.key)}>{item.label}</button>
-                  <div className="font-mono text-gray-500">{item.ref}</div>
-                  <div className="font-mono text-emerald-700 font-medium text-right">{item.val}</div>
-                  <div></div>
-                </div>
-              ))}
-              {/* Descontos */}
-              {[
-                { code: '301', key: 'inss', label: 'INSS', ref: '9,00%', val: '450,00' },
-                { code: '302', key: 'irrf', label: 'IRRF', ref: '7,50%', val: '150,00' },
-                { code: '401', key: 'vale_transporte', label: 'Vale-Transporte', ref: '6,00%', val: '300,00' },
-                { code: '402', key: 'vale_refeicao', label: 'Vale-Refeição/Alimentação', ref: '---', val: '200,00' },
-                { code: '403', key: 'adiantamentos', label: 'Adiantamentos', ref: '---', val: '100,00' },
-                { code: '501', key: 'faltas_atrasos', label: 'Faltas/Atrasos', ref: '2,00', val: '100,00' },
-              ].map((item, idx) => (
-                <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-rose-50/40' : ''}`}>
-                  <div className="font-mono text-gray-500">{item.code}</div>
-                  <button className="text-left underline text-rose-700 col-span-1 flex items-center gap-1 hover:bg-rose-100/60 rounded px-1 transition" onClick={() => handleItemClick(item.key)}>{item.label}</button>
-                  <div className="font-mono text-gray-500">{item.ref}</div>
-                  <div></div>
-                  <div className="font-mono text-rose-700 font-medium text-right">{item.val}</div>
-                </div>
-              ))}
-            </div>
-            {/* Payslip Footer */}
-            <div className="mt-4 text-xs">
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_inss')}>Base Cálc. INSS</button>
-                <span className="font-mono">R$ 5.350,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_fgts')}>Base Cálc. FGTS</button>
-                <span className="font-mono">R$ 5.350,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('fgts_mes')}>FGTS do Mês</button>
-                <span className="font-mono">R$ 428,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_irrf')}>Base Cálc. IRRF</button>
-                <span className="font-mono">R$ 4.900,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <span>Total de Vencimentos</span>
-                <span className="font-mono">R$ 5.350,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-rose-700">
-                <span>Total de Descontos</span>
-                <span className="font-mono">R$ 1.000,00</span>
-              </div>
-              <div className="flex justify-between items-center py-2 mt-2 border-t font-bold text-emerald-900 text-lg">
-                <span>Valor Líquido</span>
-                <span className="font-mono">R$ 4.350,00</span>
-              </div>
-            </div>
-          </div>
-        )}
-        {viewMode === 'complete' && (
-          <div className="relative p-6 bg-emerald-50 rounded-xl shadow-lg border border-emerald-100 max-w-lg">
-            {/* Badge */}
-            <span className="absolute top-4 right-6 bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">Holerite Completo</span>
-            {/* Payslip Header - plus détaillé */}
-            <div className="mb-4 grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <button className="font-bold mb-1 text-left text-emerald-700 underline" onClick={() => handleItemClick('dados_funcionario')}>Dados do Funcionário</button>
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex items-center gap-1">
-                    <span>Nome Completo:</span>
-                    <span>João da Silva</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>CPF:</span>
-                    <span>123.456.789-00</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>PIS:</span>
-                    <span>123.45678.90-1</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>Endereço:</span>
-                    <span>Rua Exemplo, 123</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>Cargo:</span>
-                    <span>Analista de RH</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>Data de Admissão:</span>
-                    <span>01/02/2020</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <button className="font-bold mb-1 text-left text-emerald-700 underline" onClick={() => handleItemClick('dados_empresa')}>Dados da Empresa</button>
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex items-center gap-1">
-                    <span>Razão Social:</span>
-                    <span>Empresa Exemplo S.A.</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>CNPJ:</span>
-                    <span>12.345.678/0001-99</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>Endereço:</span>
-                    <span>Av. Central, 456</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="my-3 border-b border-emerald-100"></div>
-            {/* Payslip Table - Vencimentos */}
-            <div>
-              <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 font-bold text-xs border-b pb-2 mb-2 text-emerald-800">
-                <div className="font-mono">Cód.</div>
-                <div>Descrição</div>
-                <div>Ref.</div>
-                <div className="text-right">Vencimentos</div>
-                <div className="text-right">Descontos</div>
-              </div>
-              {/* Vencimentos - plus complet */}
-              {[
-                { code: '001', key: 'salario_base', label: 'Salário Base', ref: '30,00', val: '5.000,00' },
-                { code: '005', key: 'horas_extras', label: 'Horas Extras', ref: '10,00', val: '250,00' },
-                { code: '010', key: 'adicional_noturno', label: 'Adicional Noturno', ref: '5,00', val: '100,00' },
-                { code: '012', key: 'adicional_periculosidade', label: 'Adicional de Periculosidade', ref: '---', val: '200,00' },
-                { code: '020', key: 'ferias', label: 'Férias', ref: '2,50', val: '416,67' },
-                { code: '021', key: 'decimo_terceiro', label: '13º Salário', ref: '2,50', val: '416,67' },
-                { code: '023', key: 'ferias_terco', label: 'Férias (com 1/3)', ref: '---', val: '138,89' },
-                { code: '022', key: 'comissoes', label: 'Comissões', ref: '---', val: '300,00' },
-              ].map((item, idx) => (
-                <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-emerald-100/40' : ''}`}>
-                  <div className="font-mono text-gray-500">{item.code}</div>
-                  <button className="text-left underline text-emerald-700 col-span-1 flex items-center gap-1 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick(item.key)}>{item.label}</button>
-                  <div className="font-mono text-gray-500">{item.ref}</div>
-                  <div className="font-mono text-emerald-700 font-medium text-right">{item.val}</div>
-                  <div></div>
-                </div>
-              ))}
-              {/* Descontos - plus complet */}
-              {[
-                { code: '301', key: 'inss', label: 'INSS', ref: '9,00%', val: '450,00' },
-                { code: '302', key: 'irrf', label: 'IRRF', ref: '7,50%', val: '150,00' },
-                { code: '401', key: 'vale_transporte', label: 'Vale-Transporte', ref: '6,00%', val: '300,00' },
-                { code: '402', key: 'vale_refeicao', label: 'Vale-Refeição/Alimentação', ref: '---', val: '200,00' },
-                { code: '403', key: 'adiantamentos', label: 'Adiantamentos', ref: '---', val: '100,00' },
-                { code: '404', key: 'plano_saude', label: 'Plano de Saúde', ref: '---', val: '250,00' },
-                { code: '405', key: 'pensao_alimenticia', label: 'Pensão Alimentícia', ref: '---', val: '300,00' },
-                { code: '406', key: 'contribuicao_sindical', label: 'Contribuição Sindical', ref: '---', val: '50,00' },
-                { code: '501', key: 'faltas_atrasos', label: 'Faltas/Atrasos', ref: '2,00', val: '100,00' },
-              ].map((item, idx) => (
-                <div key={item.key} className={`grid grid-cols-[auto_1fr_auto_auto_auto] gap-x-6 items-center text-xs border-b py-1 ${idx % 2 === 1 ? 'bg-rose-50/40' : ''}`}>
-                  <div className="font-mono text-gray-500">{item.code}</div>
-                  <button className="text-left underline text-rose-700 col-span-1 flex items-center gap-1 hover:bg-rose-100/60 rounded px-1 transition" onClick={() => handleItemClick(item.key)}>{item.label}</button>
-                  <div className="font-mono text-gray-500">{item.ref}</div>
-                  <div></div>
-                  <div className="font-mono text-rose-700 font-medium text-right">{item.val}</div>
-                </div>
-              ))}
-            </div>
-            {/* Payslip Footer */}
-            <div className="mt-4 text-xs">
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_inss')}>Base Cálc. INSS</button>
-                <span className="font-mono">R$ 5.350,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_fgts')}>Base Cálc. FGTS</button>
-                <span className="font-mono">R$ 5.350,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('fgts_mes')}>FGTS do Mês</button>
-                <span className="font-mono">R$ 428,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <button className="text-left underline text-emerald-700 hover:bg-emerald-100/60 rounded px-1 transition" onClick={() => handleItemClick('base_irrf')}>Base Cálc. IRRF</button>
-                <span className="font-mono">R$ 4.900,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-emerald-800">
-                <span>Total de Vencimentos</span>
-                <span className="font-mono">R$ 5.350,00</span>
-              </div>
-              <div className="flex justify-between items-center py-1 font-bold text-rose-700">
-                <span>Total de Descontos</span>
-                <span className="font-mono">R$ 1.000,00</span>
-              </div>
-              <div className="flex justify-between items-center py-2 mt-2 border-t font-bold text-emerald-900 text-lg">
-                <span>Valor Líquido</span>
-                <span className="font-mono">R$ 4.350,00</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
       {/* Colonne 2 : Explication contextuelle */}
       <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto" ref={explanationRef}>
         <div className="mb-6">
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-emerald-800 font-semibold text-base">
             <Info className="w-5 h-5 text-emerald-600" />
-            <span>Clique em um item do extrato para ver a explicação detalhada.</span>
+            <span>Clique em um item do extrato pour ver la explication détaillée.</span>
           </div>
         </div>
         {selectedItem === 'salario_base' && (
@@ -334,70 +282,106 @@ const CLTView: React.FC = () => {
           <div className="space-y-4">
             <h3 className="text-2xl font-bold">Horas Extras</h3>
             <h4 className="font-semibold">O que é?</h4>
-            <p className="text-muted-foreground">Remuneração pelas horas trabalhadas além da sua jornada normal de trabalho.</p>
+            <p className="text-muted-foreground">Remuneração adicional paga ao trabalhador pelas horas trabalhadas além da jornada normal prevista em contrato.</p>
             <h4 className="font-semibold">Como funciona?</h4>
             <ul className="list-disc list-inside text-muted-foreground">
-              <li>Horas extras em dias úteis são pagas com um adicional de no mínimo 50%.</li>
-              <li>Horas extras em domingos e feriados são pagas com um adicional de 100%.</li>
+              <li>O limite máximo de horas extras é de 2 por dia, salvo exceções.</li>
+              <li>Em dias úteis, o adicional mínimo é de 50% sobre a hora normal.</li>
+              <li>Em domingos e feriados, o adicional é de 100%.</li>
+              <li>O pagamento deve constar no holerite e incide sobre férias, 13º e FGTS.</li>
             </ul>
             <h4 className="font-semibold">Exemplo Prático</h4>
-            <p className="text-muted-foreground">Se você trabalhou 10 horas extras em um mês, cada uma será paga com o adicional correspondente.</p>
+            <p className="text-muted-foreground">Se você trabalhou 10 horas extras em um mês, cada uma será paga com o adicional correspondente. Exemplo: salário-hora de R$ 20,00, hora extra em dia útil = R$ 30,00.</p>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+              <h4 className="text-lg font-semibold mb-1 text-blue-900">Simulador de Horas Extras</h4>
+              <p className="text-muted-foreground text-sm">
+                Calcule o valor das suas horas extras no <a href="https://www.calculador.com.br/calculo/horas-extras" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700 ml-1">Calculador.com.br</a>.
+              </p>
+            </div>
           </div>
         )}
         {selectedItem === 'adicional_noturno' && (
           <div className="space-y-4">
             <h3 className="text-2xl font-bold">Adicional Noturno</h3>
             <h4 className="font-semibold">O que é?</h4>
-            <p className="text-muted-foreground">Valor extra pago para trabalho realizado entre 22h e 5h.</p>
+            <p className="text-muted-foreground">Valor extra pago para trabalho realizado entre 22h e 5h, conforme a CLT.</p>
             <h4 className="font-semibold">Como funciona?</h4>
             <ul className="list-disc list-inside text-muted-foreground">
               <li>O adicional é de, no mínimo, 20% sobre a hora diurna.</li>
+              <li>Para trabalhadores rurais, o período noturno é diferente.</li>
               <li>O cálculo pode variar conforme convenção coletiva.</li>
             </ul>
             <h4 className="font-semibold">Exemplo Prático</h4>
-            <p className="text-muted-foreground">Se você trabalhou 5 horas noturnas, receberá 20% a mais por cada uma.</p>
+            <p className="text-muted-foreground">Se você trabalhou 5 horas noturnas, receberá 20% a mais por cada uma. Exemplo: salário-hora de R$ 20,00, adicional noturno = R$ 24,00/hora.</p>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+              <h4 className="text-lg font-semibold mb-1 text-blue-900">Saiba mais</h4>
+              <p className="text-muted-foreground text-sm">
+                Veja detalhes no <a href="https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/empregador/legislacao/legislacao-trabalhista/consolida%C3%A7%C3%A3o-das-leis-do-trabalho-clt" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700 ml-1">site oficial da CLT</a>.
+              </p>
+            </div>
           </div>
         )}
         {selectedItem === 'ferias' && (
           <div className="space-y-4">
             <h3 className="text-2xl font-bold">Férias</h3>
             <h4 className="font-semibold">O que é?</h4>
-            <p className="text-muted-foreground">Período anual de descanso remunerado garantido por lei.</p>
+            <p className="text-muted-foreground">Período anual de descanso remunerado garantido por lei, após 12 meses de trabalho.</p>
             <h4 className="font-semibold">Como funciona?</h4>
             <ul className="list-disc list-inside text-muted-foreground">
-              <li>Após 12 meses de trabalho, você tem direito a 30 dias de férias.</li>
+              <li>Você tem direito a 30 dias de férias a cada 12 meses trabalhados.</li>
               <li>Recebe 1/3 a mais do salário durante as férias.</li>
+              <li>As férias podem ser divididas em até 3 períodos, sendo um deles de pelo menos 14 dias.</li>
             </ul>
             <h4 className="font-semibold">Exemplo Prático</h4>
-            <p className="text-muted-foreground">Se seu salário é R$ 3.000,00, nas férias você recebe R$ 4.000,00 (salário + 1/3).</p>
+            <p className="text-muted-foreground">Se seu salário é R$ 3.000,00, nas férias você recebe R$ 4.000,00 (salário + 1/3). Se dividir as férias, o valor é proporcional.</p>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+              <h4 className="text-lg font-semibold mb-1 text-blue-900">Guia de Férias</h4>
+              <p className="text-muted-foreground text-sm">
+                Veja regras e simule no <a href="https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/empregador/ferias" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700 ml-1">Portal do Ministério do Trabalho</a>.
+              </p>
+            </div>
           </div>
         )}
         {selectedItem === 'decimo_terceiro' && (
           <div className="space-y-4">
             <h3 className="text-2xl font-bold">13º Salário</h3>
             <h4 className="font-semibold">O que é?</h4>
-            <p className="text-muted-foreground">Pagamento extra anual equivalente a um salário, proporcional ao tempo trabalhado.</p>
+            <p className="text-muted-foreground">Pagamento extra anual equivalente a um salário, proporcional ao tempo trabalhado no ano.</p>
             <h4 className="font-semibold">Como funciona?</h4>
             <ul className="list-disc list-inside text-muted-foreground">
-              <li>Pago em duas parcelas, normalmente em novembro e dezembro.</li>
+              <li>Pago em duas parcelas: até 30/11 e até 20/12.</li>
               <li>Proporcional se você trabalhou menos de 12 meses.</li>
+              <li>Incide INSS e IRRF sobre o valor.</li>
             </ul>
             <h4 className="font-semibold">Exemplo Prático</h4>
-            <p className="text-muted-foreground">Se trabalhou o ano todo e seu salário é R$ 3.000,00, recebe mais R$ 3.000,00 de 13º.</p>
+            <p className="text-muted-foreground">Se trabalhou o ano todo e seu salário é R$ 3.000,00, recebe mais R$ 3.000,00 de 13º. Se trabalhou 6 meses, recebe metade.</p>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+              <h4 className="text-lg font-semibold mb-1 text-blue-900">Simulador de 13º</h4>
+              <p className="text-muted-foreground text-sm">
+                Calcule seu 13º no <a href="https://www.calculador.com.br/calculo/decimo-terceiro-salario" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700 ml-1">Calculador.com.br</a>.
+              </p>
+            </div>
           </div>
         )}
         {selectedItem === 'comissoes' && (
           <div className="space-y-4">
             <h3 className="text-2xl font-bold">Comissões</h3>
             <h4 className="font-semibold">O que é?</h4>
-            <p className="text-muted-foreground">Valores variáveis pagos conforme desempenho, vendas ou metas atingidas.</p>
+            <p className="text-muted-foreground">Valores variáveis pagos conforme desempenho, vendas ou metas atingidas, previstos em contrato.</p>
             <h4 className="font-semibold">Como funciona?</h4>
             <ul className="list-disc list-inside text-muted-foreground">
               <li>Podem ser fixas ou percentuais sobre vendas.</li>
               <li>Devem constar no holerite e influenciam FGTS, INSS e férias.</li>
+              <li>O valor pode variar mês a mês.</li>
             </ul>
             <h4 className="font-semibold">Exemplo Prático</h4>
             <p className="text-muted-foreground">Se você vendeu R$ 10.000,00 e sua comissão é 3%, recebe R$ 300,00.</p>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+              <h4 className="text-lg font-semibold mb-1 text-blue-900">Saiba mais</h4>
+              <p className="text-muted-foreground text-sm">
+                Veja exemplos e regras no <a href="https://www.todamateria.com.br/comissao/" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700 ml-1">guia de Comissões</a>.
+              </p>
+            </div>
           </div>
         )}
         {selectedItem === 'inss' && (
@@ -561,66 +545,74 @@ const CLTView: React.FC = () => {
             <p className="text-muted-foreground">Se sua base de cálculo é R$ 3.000,00, a alíquota será de 15%.</p>
           </div>
         )}
-        {selectedItem === 'dados_funcionario' && (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold">Dados do Funcionário</h3>
-            <div>
-              <h4 className="text-lg font-semibold mb-2">O que são?</h4>
-              <p className="text-muted-foreground">
-                Esta seção contém suas informações de identificação pessoal e profissional na empresa. Elas são essenciais para garantir que os pagamentos e as obrigações legais estejam corretos.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Detalhamento dos Campos</h4>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li><strong>Nome Completo, CPF, Endereço:</strong> Seus dados de identificação civil e fiscal.</li>
-                <li><strong>Cargo e Data de Admissão:</strong> Definem sua função, responsabilidades e tempo de casa, impactando cálculos de férias e outros direitos.</li>
-              </ul>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="text-lg font-semibold mb-2 text-blue-900">PIS (Programa de Integração Social)</h4>
-              <p className="text-muted-foreground mb-3">
-                É um número de cadastro essencial para o trabalhador, usado para o recebimento de benefícios como o Abono Salarial e o seguro-desemprego.
-              </p>
-              <h5 className="font-semibold mb-2">Não sabe seu número do PIS? Onde encontrar:</h5>
-              <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
-                <li>Na sua <strong>Carteira de Trabalho Digital</strong> (aplicativo).</li>
-                <li>No site ou aplicativo <strong>Meu INSS</strong>.</li>
-                <li>No aplicativo <strong>Caixa Trabalhador</strong>.</li>
-                <li><a href="https://www.caixa.gov.br/atendimento/paginas/default.aspx" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700">No Atendimento ao Cidadão da Caixa</a> ou pelo telefone 0800 726 0207.</li>
-              </ul>
-            </div>
+        {selectedItem === 'adicional_periculosidade' && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold">Adicional de Periculosidade</h3>
+            <h4 className="font-semibold">O que é?</h4>
+            <p className="text-muted-foreground">Valor extra pago a trabalhadores expostos a atividades perigosas (eletricidade, explosivos, inflamáveis, etc.).</p>
+            <h4 className="font-semibold">Como funciona?</h4>
+            <ul className="list-disc list-inside text-muted-foreground">
+              <li>Corresponde a 30% do salário base, sem incluir outros adicionais.</li>
+              <li>É obrigatório para funções regulamentadas como perigosas.</li>
+            </ul>
+            <h4 className="font-semibold">Exemplo Prático</h4>
+            <p className="text-muted-foreground">Se seu salário base é R$ 2.000,00, o adicional será de R$ 600,00.</p>
           </div>
         )}
-        {selectedItem === 'dados_empresa' && (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold">Dados da Empresa</h3>
-            <div>
-              <h4 className="text-lg font-semibold mb-2">O que são?</h4>
-              <p className="text-muted-foreground">
-                São as informações cadastrais e fiscais da empresa onde você trabalha. Elas garantem a legalidade do vínculo empregatício e são essenciais para o correto recolhimento de impostos e benefícios.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Detalhamento dos Campos</h4>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li><strong>Razão Social:</strong> Nome oficial da empresa, registrado nos órgãos competentes.</li>
-                <li><strong>CNPJ:</strong> Cadastro Nacional da Pessoa Jurídica, identifica a empresa perante a Receita Federal e outros órgãos.</li>
-                <li><strong>Endereço:</strong> Localização física da empresa, importante para questões fiscais e trabalhistas.</li>
-              </ul>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="text-lg font-semibold mb-2 text-blue-900">CNPJ (Cadastro Nacional da Pessoa Jurídica)</h4>
-              <p className="text-muted-foreground mb-3">
-                O CNPJ é o número que identifica a empresa junto à Receita Federal. Ele é fundamental para garantir que a empresa está regularizada e para a emissão de notas fiscais, recolhimento de impostos e acesso a benefícios.
-              </p>
-              <h5 className="font-semibold mb-2">Onde consultar o CNPJ da empresa?</h5>
-              <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
-                <li>No <a href="https://www.gov.br/receitafederal/pt-br" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-700">site da Receita Federal</a> (consulta pública).</li>
-                <li>Em documentos oficiais da empresa, como holerite, contrato de trabalho ou nota fiscal.</li>
-                <li>Solicitando ao setor de RH ou departamento pessoal da empresa.</li>
-              </ul>
-            </div>
+        {selectedItem === 'ferias_terco' && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold">Férias (com 1/3)</h3>
+            <h4 className="font-semibold">O que é?</h4>
+            <p className="text-muted-foreground">Valor adicional pago nas férias, equivalente a 1/3 do salário.</p>
+            <h4 className="font-semibold">Como funciona?</h4>
+            <ul className="list-disc list-inside text-muted-foreground">
+              <li>Todo trabalhador tem direito ao adicional de 1/3 nas férias.</li>
+              <li>É pago junto com o valor das férias.</li>
+            </ul>
+            <h4 className="font-semibold">Exemplo Prático</h4>
+            <p className="text-muted-foreground">Se suas férias são R$ 3.000,00, o adicional será de R$ 1.000,00.</p>
+          </div>
+        )}
+        {selectedItem === 'plano_saude' && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold">Plano de Saúde</h3>
+            <h4 className="font-semibold">O que é?</h4>
+            <p className="text-muted-foreground">Benefício oferecido pela empresa para custear despesas médicas e hospitalares do empregado e, às vezes, de seus dependentes.</p>
+            <h4 className="font-semibold">Como funciona?</h4>
+            <ul className="list-disc list-inside text-muted-foreground">
+              <li>Pode ser custeado integralmente pela empresa ou com desconto em folha.</li>
+              <li>O valor e cobertura variam conforme o plano contratado.</li>
+            </ul>
+            <h4 className="font-semibold">Exemplo Prático</h4>
+            <p className="text-muted-foreground">Se o desconto do plano é R$ 250,00, esse valor aparecerá no seu holerite.</p>
+          </div>
+        )}
+        {selectedItem === 'pensao_alimenticia' && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold">Pensão Alimentícia</h3>
+            <h4 className="font-semibold">O que é?</h4>
+            <p className="text-muted-foreground">Valor descontado do salário por determinação judicial para sustento de filhos ou ex-cônjuge.</p>
+            <h4 className="font-semibold">Como funciona?</h4>
+            <ul className="list-disc list-inside text-muted-foreground">
+              <li>O valor é definido por decisão judicial.</li>
+              <li>O desconto é feito diretamente na folha de pagamento.</li>
+            </ul>
+            <h4 className="font-semibold">Exemplo Prático</h4>
+            <p className="text-muted-foreground">Se a pensão é de R$ 300,00, esse valor será descontado do seu salário todo mês.</p>
+          </div>
+        )}
+        {selectedItem === 'contribuicao_sindical' && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold">Contribuição Sindical</h3>
+            <h4 className="font-semibold">O que é?</h4>
+            <p className="text-muted-foreground">Valor pago ao sindicato da categoria, atualmente opcional.</p>
+            <h4 className="font-semibold">Como funciona?</h4>
+            <ul className="list-disc list-inside text-muted-foreground">
+              <li>Desde 2017, só é descontado se o trabalhador autorizar.</li>
+              <li>O valor corresponde a um dia de salário por ano.</li>
+            </ul>
+            <h4 className="font-semibold">Exemplo Prático</h4>
+            <p className="text-muted-foreground">Se autorizado, será descontado um dia de salário em março.</p>
           </div>
         )}
       </div>
