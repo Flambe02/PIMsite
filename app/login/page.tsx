@@ -12,6 +12,7 @@ import { AlertCircle } from "lucide-react"
 export default function LoginPage() {
   const searchParams = useSearchParams()
   const message = searchParams.get("message")
+  const redirectTo = searchParams.get("redirectTo")
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -40,6 +41,10 @@ export default function LoginPage() {
             )}
 
             <form action="/auth/login" method="POST" className="space-y-4">
+              {redirectTo && (
+                <input type="hidden" name="redirectTo" value={redirectTo} />
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

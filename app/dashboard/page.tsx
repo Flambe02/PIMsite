@@ -1,103 +1,75 @@
-"use client"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 import Link from "next/link"
-import Image from "next/image"
-import { BarChart3, FileText, Shield, Upload } from "lucide-react"
+import type { PayslipLine } from "@/types"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Logo } from "@/components/logo"
-import { SalaryCalculator } from "@/components/salary-calculator"
-import { PayslipUpload } from "@/components/payslip-upload"
-import { PayslipList } from "@/components/payslip-list"
+export default async function Dashboard() {
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set() {},
+        remove() {},
+      },
+    }
+  )
+  const { data: { session } } = await supabase.auth.getSession()
+  const userId = session?.user?.id
 
-export default function DashboardPage() {
+  const { data: payslips } = userId
+    ? await supabase
+        .from("holerites")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+    : { data: [] }
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-1 py-12 px-4 md:px-6">
-        <div className="container mx-auto">
-          <div className="flex flex-col gap-8">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-blue-900">Tableau de Bord</h1>
-              <p className="text-gray-600 mt-2">
-                Gérez vos bulletins de paie et analysez vos salaires avec nos outils avancés.
-              </p>
+    <main className="max-w-3xl mx-auto p-4">
+      <h1 className="text-xl font-semibold mb-4">Mes bulletins</h1>
+
+      {(!payslips || payslips.length === 0) && <p>Aucun bulletin pour l'instant.</p>}
+
+      <ul className="space-y-6">
+        {payslips?.map((p: any) => (
+          <li key={p.id} className="border rounded p-4 shadow-sm bg-white">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-medium">{p.empresa}</p>
+                <p className="text-sm text-slate-500">
+                  Salário Líquido: R$ {p.salario_liquido?.toFixed(2)}
+                </p>
+              </div>
+              <Link
+                href={`/calculadora/${p.id}`}
+                className="text-indigo-600 hover:underline text-sm"
+              >
+                Voir détails →
+              </Link>
             </div>
 
-            {/* Bulletins de Paie Section */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <Upload className="h-6 w-6 text-blue-600" />
-                <h2 className="text-2xl font-semibold text-blue-900">Bulletins de Paie</h2>
+            {/* preview des 3 premières lignes */}
+            {p.structured_data && p.structured_data.folha_pagamento?.itens && (
+              <div className="mt-3">
+                <h4 className="text-sm font-medium mb-2">Détails des lignes :</h4>
+                <div className="text-xs text-gray-600">
+                  {p.structured_data.folha_pagamento.itens.slice(0, 3).map((item: PayslipLine, index: number) => (
+                    <div key={index} className="flex justify-between">
+                      <span>{item.descricao}</span>
+                      <span>R$ {item.venc?.toFixed(2) || item.desc?.toFixed(2) || '—'}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              
-              <div className="grid gap-6 lg:grid-cols-2">
-                <PayslipUpload />
-                <PayslipList />
-              </div>
-            </div>
-
-            {/* Calculateur de Salaire Section */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
-                <h2 className="text-2xl font-semibold text-blue-900">Calculateur de Salaire</h2>
-              </div>
-              <SalaryCalculator />
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-3 mt-8">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Análises Anteriores</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">Você ainda não analisou nenhum documento.</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Economia Potencial</CardTitle>
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">R$ 0</div>
-                  <p className="text-xs text-muted-foreground">
-                    Envie seu primeiro documento para ver economias potenciais.
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pontuação de Otimização</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">N/A</div>
-                  <p className="text-xs text-muted-foreground">
-                    Complete sua primeira análise para obter sua pontuação.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t px-4 md:px-6">
-        <div className="flex items-center">
-          <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={32} height={32} className="h-8 w-auto mr-2" />
-          <p className="text-xs text-gray-500">© 2025 The Pimentão Rouge Company. Todos os direitos reservados.</p>
-        </div>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
-            Termos de Serviço
-          </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
-            Privacidade
-          </Link>
-        </nav>
-      </footer>
-    </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </main>
   )
 }

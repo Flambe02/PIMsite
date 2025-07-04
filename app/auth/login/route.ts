@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const email = formData.get("email") as string
     const password = formData.get("password") as string
+    const redirectTo = formData.get("redirectTo") as string
 
     if (!email || !password) {
       return NextResponse.redirect(
@@ -27,8 +28,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Successful login - redirect to dashboard
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    // Successful login - redirect to requested page or dashboard
+    const redirectUrl = redirectTo || "/dashboard"
+    return NextResponse.redirect(new URL(redirectUrl, request.url))
   } catch (error) {
     console.error("Login route error:", error)
     return NextResponse.redirect(
