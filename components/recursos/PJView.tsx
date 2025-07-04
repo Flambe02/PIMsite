@@ -1,11 +1,12 @@
 import React, { useState, useRef } from "react";
+import { Info } from "lucide-react";
 
 // Composant autonome pour la vue PJ (Pessoa Jurídica - Freelancer/Sócio-Dirigente)
 const PJView: React.FC = () => {
   // États principaux pour la vue PJ
-  const [pjView, setPjView] = useState<'simplified' | 'complete'>('simplified');
+  const [pjView, setPjView] = useState<'simplified' | 'complete'>('complete');
   const [pjSubProfile, setPjSubProfile] = useState<'freelancer' | 'dirigente'>('freelancer');
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string>('pro_labore');
   const explanationRef = useRef<HTMLDivElement>(null);
 
   // Handler pour sélectionner un item du tableau (affiche l'explication à droite)
@@ -26,16 +27,16 @@ const PJView: React.FC = () => {
             {/* Toggle Simplified/Complete */}
             <div className="flex justify-center items-center mb-4 gap-2">
               <button
-                className={`px-4 py-2 rounded-l-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'simplified' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
-                onClick={() => setPjView('simplified')}
-              >
-                Visão Simplificada (Freelancer)
-              </button>
-              <button
-                className={`px-4 py-2 rounded-r-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'complete' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
+                className={`px-4 py-2 rounded-l-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'complete' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
                 onClick={() => setPjView('complete')}
               >
-                Visão Completa (Sócio-Dirigente)
+                Sócio-Dirigente
+              </button>
+              <button
+                className={`px-4 py-2 rounded-r-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'simplified' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
+                onClick={() => setPjView('simplified')}
+              >
+                Freelancer
               </button>
             </div>
 
@@ -159,7 +160,12 @@ const PJView: React.FC = () => {
 
           {/* Colonne 2 : Explication contextuelle PJ */}
           <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto" ref={explanationRef}>
-            <div className="mb-4 text-sm text-muted-foreground">Clique em um item do recibo para ver a explicação detalhada.</div>
+            <div className="mb-6">
+              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-emerald-800 font-semibold text-base">
+                <Info className="w-5 h-5 text-emerald-600" />
+                <span>Clique em um item do recibo para ver a explicação detalhada.</span>
+              </div>
+            </div>
             
             {/* Freelancer explanations */}
             {selectedItem === 'pj_valor_servicos' && (
@@ -308,16 +314,16 @@ const PJView: React.FC = () => {
             {/* Toggle Simplified/Complete */}
             <div className="flex justify-center items-center mb-4 gap-2">
               <button
-                className={`px-4 py-2 rounded-l-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'simplified' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
-                onClick={() => setPjView('simplified')}
-              >
-                Visão Simplificada (Freelancer)
-              </button>
-              <button
-                className={`px-4 py-2 rounded-r-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'complete' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
+                className={`px-4 py-2 rounded-l-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'complete' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
                 onClick={() => setPjView('complete')}
               >
-                Visão Completa (Sócio-Dirigente)
+                Sócio-Dirigente
+              </button>
+              <button
+                className={`px-4 py-2 rounded-r-full border border-emerald-400 font-semibold text-sm transition ${pjView === 'simplified' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-700 hover:bg-emerald-100'}`}
+                onClick={() => setPjView('simplified')}
+              >
+                Freelancer
               </button>
             </div>
 
@@ -441,7 +447,12 @@ const PJView: React.FC = () => {
 
           {/* Colonne 2 : Explication contextuelle PJ */}
           <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto" ref={explanationRef}>
-            <div className="mb-4 text-sm text-muted-foreground">Clique em um item do recibo para ver a explicação detalhada.</div>
+            <div className="mb-6">
+              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-emerald-800 font-semibold text-base">
+                <Info className="w-5 h-5 text-emerald-600" />
+                <span>Clique em um item do recibo para ver a explicação detalhada.</span>
+              </div>
+            </div>
             
             {/* Freelancer explanations */}
             {selectedItem === 'pj_valor_servicos' && (

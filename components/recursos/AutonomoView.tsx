@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Info } from "lucide-react";
 
 interface AutonomoViewProps {
   onProfileChange?: (profile: string) => void;
@@ -75,7 +76,12 @@ export default function AutonomoView({ onProfileChange }: AutonomoViewProps) {
 
       {/* Colonne 2 : Explications détaillées */}
       <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto" ref={explanationRef}>
-        <div className="mb-4 text-sm text-muted-foreground">Clique em um item do recibo para ver a explicação detalhada.</div>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-emerald-800 font-semibold text-base">
+            <Info className="w-5 h-5 text-emerald-600" />
+            <span>Clique em um item do recibo para ver a explicação detalhada.</span>
+          </div>
+        </div>
         
         {/* Explication: Valor do Serviço Bruto */}
         {selectedItem === 'autonomo_bruto' && (

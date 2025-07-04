@@ -1,9 +1,10 @@
 import React, { useState, useRef } from "react";
+import { Info } from "lucide-react";
 
 // Composant autonome pour la vue Estagiário (Bolsa-Auxílio, Recesso, etc.)
 const EstagiarioView: React.FC = () => {
   // États principaux pour la vue Estagiário
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string>('estagio_bolsa');
   const explanationRef = useRef<HTMLDivElement>(null);
 
   // Handler pour sélectionner un item du recibo (affiche l'explication à droite)
@@ -52,7 +53,12 @@ const EstagiarioView: React.FC = () => {
       </div>
       {/* Colonne 2 : Explication contextuelle Estagiário */}
       <div className="md:col-span-7 p-6 bg-white rounded-lg shadow-sm border h-full overflow-y-auto" ref={explanationRef}>
-        <div className="mb-4 text-sm text-muted-foreground">Clique em um item do recibo ou conceito para ver a explicação detalhada.</div>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-emerald-800 font-semibold text-base">
+            <Info className="w-5 h-5 text-emerald-600" />
+            <span>Clique em um item do recibo ou conceito para ver a explicação detalhada.</span>
+          </div>
+        </div>
         {selectedItem === 'estagio_bolsa' && (
           <div>
             <h3 className="text-2xl font-bold">Bolsa-Auxílio</h3>
