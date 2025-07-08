@@ -9,12 +9,12 @@ export function Header() {
   return (
     <header className="w-full border-b bg-white sticky top-0 z-30">
       <div className="max-w-5xl mx-auto flex items-center justify-between h-16 px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo className="h-8 w-8" />
-          <span className="font-bold text-lg">PIM</span>
-        </Link>
+        <Logo />
         {/* Partie navigation et actions */}
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-4">
+          {/* Onglets toujours visibles */}
+          <Link href="/recursos" className="text-sm px-3 py-1 border rounded">Recursos</Link>
+          <Link href="/guia-paises" className="text-sm px-3 py-1 border rounded">Guia dos Países</Link>
           {/* Partie client (session, login, logout) */}
           <HeaderClient />
         </nav>
