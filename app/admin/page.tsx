@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { 
-v  Globe, 
+  Globe, 
   Building2, 
   Gift, 
   Calculator, 
@@ -23,6 +23,7 @@ v  Globe,
 import { CountryList } from '@/components/admin/country-list'
 import { ProviderList } from '@/components/admin/provider-list'
 import { BenefitList } from '@/components/admin/benefit-list'
+import fs from 'fs';
 
 interface AdminUser {
   name: string
@@ -66,6 +67,27 @@ export default function AdminPage() {
   
   const [message, setMessage] = useState('')
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [prompt, setPrompt] = useState('');
+  const [promptMessage, setPromptMessage] = useState('');
+
+  // Charger le prompt actuel au montage (uniquement côté serveur, donc ici simuler)
+  // En prod, il faudrait une API route pour lire PromptResult.md
+  // Ici, on simule la lecture initiale :
+  useState(() => {
+    fetch('/PromptResult.md')
+      .then(res => res.text())
+      .then(text => {
+        // Extraire le contenu entre les balises ```
+        const match = text.match(/```([\s\S]*?)```/);
+        setPrompt(match ? match[1].trim() : text);
+      });
+  });
+
+  const handlePromptSave = async () => {
+    // En prod, il faudrait une API route POST pour sauvegarder PromptResult.md
+    // Ici, on simule juste le message de succès
+    setPromptMessage('Prompt salvo com sucesso! (Simulado)');
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -198,7 +220,7 @@ export default function AdminPage() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Dashboard
@@ -214,6 +236,10 @@ export default function AdminPage() {
             <TabsTrigger value="providers" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Fournisseurs
+            </TabsTrigger>
+            <TabsTrigger value="prompt" className="flex items-center gap-2">
+              <Calculator className="h-4 w-4" />
+              Prompt LLM
             </TabsTrigger>
           </TabsList>
 
@@ -497,6 +523,31 @@ export default function AdminPage() {
                   </Button>
                 </form>
                 <ProviderList />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Prompt LLM Tab */}
+          <TabsContent value="prompt" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Editar Prompt LLM</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Label htmlFor="prompt-editor">Prompt atual</Label>
+                  <Textarea
+                    id="prompt-editor"
+                    value={prompt}
+                    onChange={e => setPrompt(e.target.value)}
+                    rows={12}
+                    className="font-mono"
+                  />
+                  <Button onClick={handlePromptSave} className="bg-emerald-600 hover:bg-emerald-700">
+                    Salvar Prompt
+                  </Button>
+                  {promptMessage && <div className="text-green-600 mt-2">{promptMessage}</div>}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

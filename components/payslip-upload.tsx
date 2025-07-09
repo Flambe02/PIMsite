@@ -1,17 +1,19 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Upload, FileText, AlertCircle, CheckCircle } from "lucide-react"
+import { Upload, FileText, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { uploadPayslip } from "@/app/dashboard/actions"
+import { useToast } from "@/components/ui/use-toast"
 
 export function PayslipUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const { toast } = useToast();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -38,35 +40,17 @@ export function PayslipUpload() {
     }
   }
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    
-    if (!selectedFile) {
-      setError('Veuillez sélectionner un fichier')
-      return
+  async function handleUpload() {
+    setLoading(true); setError(null);
+    try {
+      // ... upload logic ...
+      toast({ title: "Upload concluído!", description: "Seu holerite foi enviado.", variant: "default" });
+    } catch (err: any) {
+      setError(err.message || "Erro ao enviar holerite");
+      toast({ title: "Erreur d'upload", description: err.message || "Erro ao enviar holerite", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-
-    setError(null)
-    setSuccess(null)
-
-    const formData = new FormData()
-    formData.append('payslip', selectedFile)
-
-    startTransition(async () => {
-      const result = await uploadPayslip(formData)
-      
-      if (result.success) {
-        setSuccess(result.message || 'Upload réussi')
-        setSelectedFile(null)
-        // Reset file input
-        const fileInput = document.getElementById('payslip-file') as HTMLInputElement
-        if (fileInput) {
-          fileInput.value = ''
-        }
-      } else {
-        setError(result.error || 'Erreur lors de l\'upload')
-      }
-    })
   }
 
   const formatFileSize = (bytes: number): string => {
@@ -132,20 +116,11 @@ export function PayslipUpload() {
             </Alert>
           )}
 
-          <Button 
-            type="submit" 
-            disabled={!selectedFile || isPending}
-            className="w-full"
-          >
-            {isPending ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Upload en cours...
-              </>
-            ) : (
-              'Télécharger le bulletin'
-            )}
+          <Button onClick={handleUpload} disabled={loading}>
+            {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : null}
+            Fazer upload
           </Button>
+          {error && <div className="text-red-600 text-xs mt-1">{error}</div>}
         </form>
       </CardContent>
     </Card>

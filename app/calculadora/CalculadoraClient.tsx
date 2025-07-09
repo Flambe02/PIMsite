@@ -7,8 +7,9 @@ import { toast } from "@/components/ui/use-toast";
 import { Loader2, UploadCloud, FileText, Edit, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { parseWithOCRSpaceEnhanced } from "@/lib/ocr";
-import { parsePayslipV3 } from "@/lib/payroll-parser";
 import PayslipPreview from "@/components/payslip-preview";
+import AnalysisDisplay from "@/components/AnalysisDisplay";
+import { useToast } from "@/components/ui/use-toast";
 
 const initialFields = {
   nome: "",
@@ -59,6 +60,8 @@ export default function CalculadoraClient({ user }: { user: any }) {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const { toast } = useToast();
 
   // Stepper header
   const Stepper = () => (
@@ -97,9 +100,13 @@ export default function CalculadoraClient({ user }: { user: any }) {
       {error && <div className="text-red-600 text-sm">{error}</div>}
       <div className="flex flex-col gap-2 w-full max-w-md">
         <Button className="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-bold rounded-xl py-3" disabled={!file || loading} onClick={handleOcr}>
-          {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2 inline" /> : <ArrowRight className="w-5 h-5 mr-2 inline" />} Usar OCR
+          {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : null}
+          Analisar com IA
         </Button>
-        <Button variant="ghost" className="w-full text-emerald-700 underline" onClick={()=>{setFields(initialFields); setStep(2); setEditing(true);}}>Pular OCR e preencher manualmente</Button>
+        <Button variant="ghost" className="w-full text-emerald-700 underline" onClick={()=>{setFields(initialFields); setStep(2); setEditing(true);}} disabled={loading}>
+          Pular OCR e preencher manualmente
+        </Button>
+        {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
       </div>
     </div>
   );
@@ -145,23 +152,21 @@ export default function CalculadoraClient({ user }: { user: any }) {
 
   // Step 3: Resultado
   const ResultadoStep = () => (
-    <div className="flex flex-col items-center gap-6">
-      <h2 className="text-xl font-bold text-emerald-900">Análise concluída!</h2>
-      <Card className="p-6 rounded-2xl shadow-lg border-0 bg-emerald-50 max-w-xl w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ResultField label="Nome do funcionário" value={fields.nome} />
-          <ResultField label="Nome da empresa" value={fields.empresa} />
-          <ResultField label="Salário bruto (R$)" value={fields.salario_bruto} />
-          <ResultField label="Descontos INSS (R$)" value={fields.inss} />
-          <ResultField label="Descontos IRRF (R$)" value={fields.irrf} />
-          <ResultField label="Salário líquido (R$)" value={fields.salario_liquido} />
-          <ResultField label="Data de pagamento" value={fields.data_pagamento} />
+    <div className="flex flex-col gap-6">
+      {analysisResult ? (
+        <>
+          <AnalysisDisplay data={analysisResult} />
+          <div className="flex gap-4 mt-8 justify-center">
+            <Button variant="outline" onClick={resetFlow}>Analisar outro holerite</Button>
+            <Button className="bg-emerald-400 hover:bg-emerald-500 text-white font-bold rounded-xl px-8 py-3" onClick={()=>window.location.href='/dashboard'}>Ir para o dashboard</Button>
+          </div>
+        </>
+      ) : (
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-emerald-900">Análise concluída!</h2>
+          <p className="text-gray-600 mt-2">Resultados disponíveis</p>
         </div>
-      </Card>
-      <div className="flex gap-4 mt-4">
-        <Button variant="outline" onClick={resetFlow}>Voltar ao início</Button>
-        <Button className="bg-emerald-400 hover:bg-emerald-500 text-white font-bold rounded-xl px-8 py-3" onClick={()=>window.location.href='/dashboard'}>Ir para o dashboard</Button>
-      </div>
+      )}
     </div>
   );
 
@@ -189,37 +194,25 @@ export default function CalculadoraClient({ user }: { user: any }) {
     if (!file) return;
     setLoading(true); setError(null);
     try {
-      // Upload file to Supabase Storage and get public URL
-      const fileName = `${user.id}/${Date.now()}-${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("payslips")
-        .upload(fileName, file);
-      
-      if (uploadError) throw new Error("Erro ao fazer upload do arquivo");
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("payslips")
-        .getPublicUrl(fileName);
-      
-      setPreviewUrl(publicUrl);
-      
-      const ocrRes = await parseWithOCRSpaceEnhanced(file);
-      const parsed = parsePayslipV3(ocrRes);
-      setFields({
-        nome: parsed.colaborador.nome,
-        empresa: parsed.empresa.nome,
-        salario_bruto: "", // V3 stub does not extract yet
-        salario_liquido: parsed.folha_pagamento.totaux.salario_liquido.toString(),
-        inss: parsed.folha_pagamento.bases.base_inss?.toString() ?? "",
-        irrf: parsed.folha_pagamento.bases.base_irrf?.toString() ?? "",
-        data_pagamento: "", // V3 stub does not extract yet
-        raw_text: parsed.raw_text,
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch('/api/process-payslip', {
+        method: 'POST',
+        body: formData,
       });
-      setStep(2);
-      setEditing(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || 'Erro ao processar holerite');
+        toast({ title: "Erreur d'analyse", description: errorData.error || 'Erro ao processar holerite', variant: "destructive" });
+        return;
+      }
+      const result = await response.json();
+      setAnalysisResult(result.analysisData);
+      setStep(3);
+      toast({ title: "Análise concluída!", description: "Veja as oportunidades identificadas.", variant: "default" });
     } catch (err: any) {
-      setError(err.message || "Erro ao processar OCR");
+      setError(err.message || "Erro ao processar holerite");
+      toast({ title: "Erreur d'analyse", description: err.message || "Erro ao processar holerite", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -260,6 +253,7 @@ export default function CalculadoraClient({ user }: { user: any }) {
     setError(null);
     setLoading(false);
     setPreviewUrl("");
+    setAnalysisResult(null);
   }
 
   return (

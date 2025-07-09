@@ -4,6 +4,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, BarChart3, FileText, Search, Shield, ChevronUp } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { createBrowserClient } from "@supabase/ssr"
 
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/logo"
@@ -21,6 +23,40 @@ const HERO_TEXT = {
 function HeroSection() {
   const [showManual, setShowManual] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
+  const [session, setSession] = useState<any>(null)
+  const router = useRouter()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
+  }, [])
+
+  // Redirection logic for upload/manual
+  const handleUploadClick = () => {
+    if (session) {
+      router.push("/calculadora")
+    } else {
+      router.push("/login?redirectTo=/calculadora")
+    }
+  }
+  const handleManualClick = () => {
+    if (session) {
+      router.push("/calculadora?manual=1")
+    } else {
+      router.push("/login?redirectTo=/calculadora?manual=1")
+    }
+  }
 
   return (
     <section id="hero-section" className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-emerald-50 to-white flex items-center justify-center">
@@ -33,14 +69,14 @@ function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-start mt-2">
             <button
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition"
-              onClick={() => setShowUpload(true)}
+              onClick={handleUploadClick}
               type="button"
             >
               {HERO_TEXT.upload}
             </button>
             <button
               className="bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition"
-              onClick={() => setShowManual(true)}
+              onClick={handleManualClick}
               type="button"
             >
               {HERO_TEXT.manual}

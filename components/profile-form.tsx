@@ -2,6 +2,8 @@
 import { useState, FormEvent } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
 export default function ProfileForm({
   initialFirst,
@@ -24,43 +26,53 @@ export default function ProfileForm({
   const [pwd2, setPwd2] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const { toast } = useToast();
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
+    try {
+      // 1) update profile table
+      const { error: pErr } = await supabase
+        .from("profiles")
+        .update({ first_name: first, last_name: last })
+        .eq("id", (await supabase.auth.getUser()).data.user?.id);
 
-    // 1) update profile table
-    const { error: pErr } = await supabase
-      .from("profiles")
-      .update({ first_name: first, last_name: last })
-      .eq("id", (await supabase.auth.getUser()).data.user?.id);
+      if (pErr) {
+        setMsg(pErr.message);
+        toast({ title: "Erreur de profil", description: pErr.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
 
-    if (pErr) {
-      setMsg(pErr.message);
+      // 2) change password (si renseigné)
+      if (pwd1 || pwd2) {
+        if (pwd1 !== pwd2) {
+          setMsg("Les mots de passe ne correspondent pas");
+          toast({ title: "Erreur de profil", description: "Les mots de passe ne correspondent pas", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+        const { error: pwErr } = await supabase.auth.updateUser({
+          password: pwd1,
+        });
+        if (pwErr) {
+          setMsg(pwErr.message);
+          toast({ title: "Erreur de profil", description: pwErr.message, variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+      }
+
+      setMsg("Profil mis à jour ✅");
+      toast({ title: "Perfil atualizado!", description: "Seus dados foram salvos.", variant: "default" });
+    } catch (err: any) {
+      setMsg(err.message || "Erro ao atualizar perfil");
+      toast({ title: "Erreur de profil", description: err.message || "Erro ao atualizar perfil", variant: "destructive" });
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // 2) change password (si renseigné)
-    if (pwd1 || pwd2) {
-      if (pwd1 !== pwd2) {
-        setMsg("Les mots de passe ne correspondent pas");
-        setLoading(false);
-        return;
-      }
-      const { error: pwErr } = await supabase.auth.updateUser({
-        password: pwd1,
-      });
-      if (pwErr) {
-        setMsg(pwErr.message);
-        setLoading(false);
-        return;
-      }
-    }
-
-    setMsg("Profil mis à jour ✅");
-    setLoading(false);
   }
 
   async function deleteAccount() {
@@ -121,14 +133,15 @@ export default function ProfileForm({
         onChange={(e) => setPwd2(e.target.value)}
       />
 
-      {msg && <p className="text-sm text-red-600">{msg}</p>}
+      {msg && <div className="text-red-600 text-xs mt-1">{msg}</div>}
 
       <button
         type="submit"
         disabled={loading}
-        className="bg-indigo-600 text-white px-4 py-2 rounded"
+        className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center"
       >
-        {loading ? "…Enregistrement" : "Enregistrer"}
+        {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : null}
+        Salvar
       </button>
 
       <button

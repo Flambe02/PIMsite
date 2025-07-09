@@ -18,3 +18,7 @@ export function getEmojiFlag(countryCode: string): string {
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
+
+export function newUploadId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
