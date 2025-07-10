@@ -59,9 +59,9 @@ function HeroSection() {
 
   return (
     <section id="hero-section" className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-emerald-50 to-white flex items-center justify-center">
-      <div className="container mx-auto px-4 md:px-6 flex flex-col lg:flex-row items-center justify-between gap-8">
+      <div className="container mx-auto px-4 md:px-6 flex flex-col lg:flex-row items-center justify-center gap-4 md:gap-8 space-x-0 md:space-x-8">
         {/* Colonne gauche : texte */}
-        <div className="flex-1 flex flex-col items-start justify-center space-y-6 max-w-2xl w-full">
+        <div className="flex-1 flex flex-col items-start justify-center space-y-6 max-w-xl w-full">
           <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium mb-2">Para CLT, PJ ou Estagiários</span>
           <h1 className="font-bold text-4xl md:text-5xl leading-tight">{HERO_TEXT.title}</h1>
           <p className="text-lg md:text-xl text-gray-600 mt-2">{HERO_TEXT.subtitle}</p>
@@ -84,7 +84,7 @@ function HeroSection() {
           <span className="text-xs text-gray-500 mt-2">{HERO_TEXT.security}</span>
         </div>
         {/* Colonne droite : image */}
-        <div className="flex-1 flex items-center justify-center w-full max-w-xl mx-auto lg:mx-0">
+        <div className="flex-1 flex items-center justify-center w-full max-w-md mx-auto lg:mx-0">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-6BkboFHypQ21vOUXShB9EYLfuvsqhj.png"
             alt="Folha de pagamento e alocação de benefícios"

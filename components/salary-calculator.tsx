@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useToast } from "@/components/ui/use-toast";
 
 export function SalaryCalculator() {
   // Form state
@@ -148,13 +149,13 @@ export function SalaryCalculator() {
     // Check file type
     const validTypes = ["application/pdf", "image/jpeg", "image/png"]
     if (!validTypes.includes(file.type)) {
-      alert("Formato de arquivo inválido. Por favor, envie um PDF, JPG ou PNG.")
+      toast({ title: "Arquivo inválido", description: "Formato de arquivo inválido. Por favor, envie um PDF, JPG ou PNG.", variant: "destructive" });
       return
     }
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert("Arquivo muito grande. O tamanho máximo é 10MB.")
+      toast({ title: "Arquivo muito grande", description: "O tamanho máximo é 10MB.", variant: "destructive" });
       return
     }
 
@@ -189,6 +190,8 @@ export function SalaryCalculator() {
   const formatCurrency = (value: number): string => {
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }).replace("R$", "R$ ")
   }
+
+  const { toast } = useToast();
 
   return (
     <div className="w-full max-w-5xl mx-auto">

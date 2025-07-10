@@ -89,7 +89,7 @@ export default function ProfileForm({
     const { error } = await supabase.functions.invoke("delete-user", {
       body: { uid: userId },
     });
-    if (error) alert(error.message);
+    if (error) toast({ title: "Erreur de profil", description: error.message, variant: "destructive" });
     else router.push("/goodbye");
   }
 

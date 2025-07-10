@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Info, UploadCloud, FileText, Loader2, XCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/components/ui/use-toast";
 
 const pastel = {
   green: "#B8E4C7",
@@ -20,10 +21,11 @@ const checklist = [
   "Possibilidade de portabilidade",
 ];
 
-export default function UploadHolerite() {
+export default function UploadHolerite({ onResult }: { onResult?: (result: any) => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -46,13 +48,123 @@ export default function UploadHolerite() {
 
   const removeFile = () => setFile(null);
 
-  const onAnalyze = () => {
+  const onAnalyze = async () => {
+    if (!file) return;
     setLoading(true);
-    setTimeout(() => setLoading(false), 2200); // Simule l'analyse
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('/api/process-payslip', {
+        method: 'POST',
+        body: formData,
+      });
+      console.log('Réponse brute:', res);
+      const data = await res.json();
+      console.log('Données reçues:', data);
+      setLoading(false);
+      if (data.success && onResult) {
+        // --- ENRICHISSEMENT PJ ---
+        let analysis = data.analysisData.analysis || {};
+        const raw = data.analysisData;
+        const nowYear = new Date().getFullYear();
+        let periodYear = null;
+        if (raw.period) {
+          const match = String(raw.period).match(/(\d{4})/);
+          if (match) periodYear = parseInt(match[1]);
+        }
+        // 1. Warning année différente
+        if (periodYear && periodYear !== nowYear) {
+          analysis.optimization_opportunities = analysis.optimization_opportunities || [];
+          analysis.optimization_opportunities.push(`Atenção: Este holerite é de ${periodYear}. Alguns valores (salário mínimo, INSS, faixas de impostos) podem não ser comparáveis com as regras atuais.`);
+        }
+        // 2. Analyse pro-labore, INSS, autres prélèvements
+        if (raw.profile_type === 'PJ') {
+          analysis.optimization_opportunities = analysis.optimization_opportunities || [];
+          // Honorário pro-labore
+          const hasProLabore = (raw.earnings || []).some((e:any) => String(e.description).toLowerCase().includes('pro-labore')) || false;
+          if (!hasProLabore) {
+            analysis.optimization_opportunities.push('Atenção: Não foi identificado honorário pro-labore. Verifique se está corretamente declarado.');
+          }
+          // INSS pro-labore
+          const hasINSS = (raw.deductions || []).some((d:any) => String(d.description).toLowerCase().includes('inss')) || false;
+          if (!hasINSS) {
+            analysis.optimization_opportunities.push('Atenção: Não foi identificado desconto de INSS sobre o pro-labore. Confirme se a contribuição está correta.');
+          }
+          // Autres prélèvements
+          const hasIRPJ = (raw.deductions || []).some((d:any) => String(d.description).toLowerCase().includes('irpj'));
+          if (!hasIRPJ) {
+            analysis.optimization_opportunities.push('Avalie se há incidência de IRPJ ou outros tributos sobre o pro-labore.');
+          }
+          // 3. Efficacité financière
+          let eficiencia = null;
+          if (raw.gross_salary && raw.net_salary) {
+            eficiencia = (raw.net_salary / raw.gross_salary) * 100;
+            if (eficiencia < 75) {
+              analysis.optimization_opportunities.push('Eficiência abaixo de 75%: Sua estrutura fiscal pode ser otimizada para reduzir descontos e aumentar o valor líquido recebido.');
+            }
+          }
+          // 4. Recommandations PJ personnalisées (toujours ajouter)
+          const recosPJ = [
+            'Simule diferentes formas de retirada (pro labore vs distribuição de lucros) para pagar menos impostos.',
+            'Considere contratar um plano de saúde empresarial dedutível para reduzir a base tributária.',
+            'Avalie contribuir para uma previdência privada dedutível (PGBL) para otimizar sua aposentadoria e reduzir IRPJ.',
+            'Se sua empresa for elegível, avalie o Simples Nacional ou Lucro Presumido para simplificar e possivelmente reduzir a carga tributária.'
+          ];
+          for (const reco of recosPJ) {
+            if (!analysis.optimization_opportunities.includes(reco)) {
+              analysis.optimization_opportunities.push(reco);
+            }
+          }
+          // 5. Infobulle explicative efficacité
+          analysis.efficiency_tooltip = 'Eficiência representa quanto do seu salário bruto você realmente recebe. Uma eficiência abaixo de 75% pode indicar excesso de descontos ou estrutura fiscal ineficiente.';
+        }
+        // --- FIN ENRICHISSEMENT PJ ---
+        onResult({
+          salarioBruto: data.analysisData.gross_salary,
+          salarioLiquido: data.analysisData.net_salary,
+          descontos: (data.analysisData.gross_salary || 0) - (data.analysisData.net_salary || 0),
+          eficiencia: data.analysisData.gross_salary && data.analysisData.net_salary ? ((data.analysisData.net_salary / data.analysisData.gross_salary) * 100).toFixed(1) : null,
+          insights: [
+            { label: "Resumo", value: analysis.summary || "" },
+            ...((analysis.optimization_opportunities || []).map((v: string) => ({ label: "Oportunidade", value: v })))
+          ],
+          raw: { ...data.analysisData, analysis }
+        });
+      } else {
+        // Gestion d'erreur OCR détaillée
+        let msg = data.error || 'Erreur lors de l\'analyse.';
+        if (msg.includes('E101')) {
+          msg = 'Le service OCR a mis trop de temps à répondre (timeout). Essayez avec un fichier plus simple ou plus petit.';
+        } else if (msg.toLowerCase().includes('ocr')) {
+          msg = 'Erreur lors de l\'extraction du texte du holerite. Vérifiez que le fichier est lisible et non protégé.';
+        }
+        toast({ title: "Erreur d'analyse", description: msg, variant: "destructive" });
+      }
+    } catch (err) {
+      setLoading(false);
+      toast({ title: "Erreur réseau ou serveur", description: String(err), variant: "destructive" });
+      console.error('Erreur dans onAnalyze:', err);
+    }
   };
+
+  // Helper global pour éviter les crashs JSON.parse
+  function safeJsonParse(str: string) {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return null;
+    }
+  }
 
   return (
     <div className="max-w-xl mx-auto p-4 md:p-6">
+      {/* Loader global */}
+      {loading && (
+        <div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center z-50 rounded-2xl">
+          <Loader2 className="w-10 h-10 text-emerald-400 animate-spin mb-2" />
+          <div className="text-emerald-700 font-medium">Analyse en cours…</div>
+        </div>
+      )}
       <Card className="rounded-2xl shadow-xl border-0 bg-[var(--offwhite)]" style={{ background: pastel.offwhite }}>
         <div className="p-6 md:p-8 flex flex-col gap-6">
           <div>

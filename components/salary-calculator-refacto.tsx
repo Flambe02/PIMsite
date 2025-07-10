@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { analyzeSalary } from "@/lib/diagnostics/analyzeSalary"
 import { brazilConfig } from "@/config/brazil"
 import { UserSalaryInput, SalaryInsightResult } from "@/lib/diagnostics/types"
+import { useToast } from "@/components/ui/use-toast";
 
 export function SalaryCalculatorRefacto() {
   // Form state
@@ -38,6 +39,8 @@ export function SalaryCalculatorRefacto() {
   const [results, setResults] = useState<SalaryInsightResult | null>(null)
   const [calculated, setCalculated] = useState(false)
   const [showRecommendations, setShowRecommendations] = useState(false)
+
+  const { toast } = useToast();
 
   // Handlers
   const handleCalculate = (e: React.FormEvent) => {
@@ -89,13 +92,13 @@ export function SalaryCalculatorRefacto() {
     // Check file type
     const validTypes = ["application/pdf", "image/jpeg", "image/png"]
     if (!validTypes.includes(file.type)) {
-      alert("Formato de arquivo inválido. Por favor, envie um PDF, JPG ou PNG.")
+      toast({ title: "Arquivo inválido", description: "Formato de arquivo inválido. Por favor, envie um PDF, JPG ou PNG.", variant: "destructive" });
       return
     }
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert("Arquivo muito grande. O tamanho máximo é 10MB.")
+      toast({ title: "Arquivo muito grande", description: "O tamanho máximo é 10MB.", variant: "destructive" });
       return
     }
 

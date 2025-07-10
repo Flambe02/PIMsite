@@ -9,7 +9,7 @@ interface SupabaseContextType {
   loading: boolean;
 }
 
-const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
+export const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
 
 export function SupabaseProvider({ initialSession, children }:{
   initialSession: Session | null; children: ReactNode

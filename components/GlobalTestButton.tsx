@@ -1,8 +1,10 @@
 "use client";
+import { useToast } from "@/components/ui/use-toast";
 export function GlobalTestButton() {
+  const { toast } = useToast();
   return (
     <button
-      onClick={() => alert('Global button clicked!')}
+      onClick={() => toast({ title: "Test global", description: "Global button clicked!", variant: "default" })}
       style={{
         position: 'fixed',
         bottom: 10,

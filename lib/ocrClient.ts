@@ -12,14 +12,27 @@ export async function extractText(buffer: Buffer, provider: OcrProvider = 'ocrsp
       form.append('file', buffer, { filename: 'payslip.pdf', contentType: 'application/pdf' });
       form.append('OCREngine', '2');
       form.append('isTable', 'true');
-      const response = await fetch('https://api.ocr.space/parse/image', {
-        method: 'POST',
-        headers: {
-          apikey: apiKey,
-          ...form.getHeaders(),
-        },
-        body: form,
-      });
+      // Ajout d'un timeout de 20s sur l'appel OCR
+      // On utilise Promise<any> pour compatibilité node-fetch/Response
+      const fetchWithTimeout = (url: string, options: any, timeout = 20000): Promise<any> => {
+        return Promise.race([
+          fetch(url, options),
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Le service OCR a mis trop de temps à répondre.')), timeout))
+        ]);
+      };
+      let response: any;
+      try {
+        response = await fetchWithTimeout('https://api.ocr.space/parse/image', {
+          method: 'POST',
+          headers: {
+            apikey: apiKey,
+            ...form.getHeaders(),
+          },
+          body: form,
+        });
+      } catch (err) {
+        throw new Error((err as Error).message || 'Le service OCR a mis trop de temps à répondre.');
+      }
       const res = await response.json();
       console.log('Réponse OCR.space:', res); // Pour debug
       if (!res) {

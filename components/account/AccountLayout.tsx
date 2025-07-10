@@ -1,3 +1,4 @@
+'use client';
 import { useState } from "react";
 import AccountSidebar from "./AccountSidebar";
 import AccountSectionCoreData from "./AccountSectionCoreData";

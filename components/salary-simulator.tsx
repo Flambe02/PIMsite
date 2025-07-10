@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useToast } from "@/components/ui/use-toast";
 
 export function SalarySimulator() {
   // Form state
@@ -114,13 +115,13 @@ export function SalarySimulator() {
     // Check file type
     const validTypes = ["application/pdf", "image/jpeg", "image/png"]
     if (!validTypes.includes(file.type)) {
-      alert("Formato de arquivo inválido. Por favor, envie um PDF, JPG ou PNG.")
+      toast({ title: "Arquivo inválido", description: "Formato de arquivo inválido. Por favor, envie um PDF, JPG ou PNG.", variant: "destructive" });
       return
     }
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert("Arquivo muito grande. O tamanho máximo é 10MB.")
+      toast({ title: "Arquivo muito grande", description: "O tamanho máximo é 10MB.", variant: "destructive" });
       return
     }
 
@@ -154,6 +155,8 @@ export function SalarySimulator() {
   const formatCurrency = (value: number): string => {
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
   }
+
+  const { toast } = useToast();
 
   return (
     <div className="w-full max-w-4xl mx-auto">
