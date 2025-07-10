@@ -24,7 +24,7 @@ export function OverviewTab({ onGoToUpload }: { onGoToUpload: () => void }) {
         setError("Impossible de charger les données d'analyse.");
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [getLatestPayrollAnalysis, setData, setError, setLoading]);
 
   if (loading) {
     return <div className="text-center p-8">Chargement des données...</div>
@@ -98,7 +98,7 @@ export function OverviewTab({ onGoToUpload }: { onGoToUpload: () => void }) {
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5}>
-                {chartData.map((entry, index) => (
+                {chartData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

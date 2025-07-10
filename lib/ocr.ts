@@ -77,7 +77,7 @@ export async function parseWithOCRSpaceEnhanced(file: File | Buffer) {
     method: "POST",
     headers: { apikey: key },
     body: form,
-  }).then(r => r.json() as any);
+  }).then(r => r.json() as Promise<{ ParsedResults: { ParsedText: string; TextOverlay: { Lines: unknown[] } }[]; ErrorMessage: string }>);
 
   if (!res.ParsedResults?.[0]?.ParsedText) throw new Error(res.ErrorMessage || "OCR failed");
   return res.ParsedResults[0]; // { ParsedText, TextOverlay, … }

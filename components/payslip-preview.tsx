@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 
 export default function PayslipPreview({ url }: { url: string }) {
   if (!url) return null;

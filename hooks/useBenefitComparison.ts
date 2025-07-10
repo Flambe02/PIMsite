@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { swileMarket2025, SwileMarketData, BenefitType } from "@/lib/comparator/swileData";
+import { swileMarket2025, BenefitType } from "@/lib/comparator/swileData";
 
 export interface UserProfile {
   contractType: "CLT" | "PJ" | "Estágio";

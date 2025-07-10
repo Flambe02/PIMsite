@@ -5,12 +5,12 @@ import { Upload, FileText, AlertCircle, CheckCircle, Loader2 } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { uploadPayslip } from "@/app/dashboard/actions"
 import { useToast } from "@/components/ui/use-toast"
 
 export function PayslipUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending] = useTransition()
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const { toast } = useToast();
@@ -45,13 +45,18 @@ export function PayslipUpload() {
     try {
       // ... upload logic ...
       toast({ title: "Upload concluído!", description: "Seu holerite foi enviado.", variant: "default" });
-    } catch (err: any) {
-      setError(err.message || "Erro ao enviar holerite");
-      toast({ title: "Erreur d'upload", description: err.message || "Erro ao enviar holerite", variant: "destructive" });
+    } catch (err: unknown) {
+      setError((err as Error).message || "Erro ao enviar holerite");
+      toast({ title: "Erreur d'upload", description: (err as Error).message || "Erro ao enviar holerite", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleUpload();
+  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'

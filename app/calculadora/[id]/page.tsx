@@ -41,7 +41,8 @@ export default function HoleriteDetailPage() {
     try {
       if (!session) throw new Error("Usuário não autenticado");
 
-      const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
         .from("holerites")
         .select("*")
         .eq("id", params.id)

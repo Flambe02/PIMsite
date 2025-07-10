@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, UploadCloud, FileText, Edit, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
@@ -24,7 +23,6 @@ export default function CalculadoraStepper() {
   const [fields, setFields] = useState(initialFields);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [manual, setManual] = useState(false);
 
   // Stepper header
   const Stepper = () => (
@@ -65,7 +63,7 @@ export default function CalculadoraStepper() {
         <Button className="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-bold rounded-xl py-3" disabled={!file || loading} onClick={handleOcr}>
           {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2 inline" /> : <ArrowRight className="w-5 h-5 mr-2 inline" />} Analisar holerite
         </Button>
-        <Button variant="ghost" className="w-full text-emerald-700 underline" onClick={()=>{setManual(true); setStep(2);}}>Pular OCR e preencher manualmente</Button>
+        <Button variant="ghost" className="w-full text-emerald-700 underline" onClick={()=>{setStep(2);}}>Pular OCR e preencher manualmente</Button>
       </div>
     </div>
   );
@@ -83,7 +81,7 @@ export default function CalculadoraStepper() {
         <InputField label="Salário líquido (R$)" value={fields.salario_liquido} onChange={v=>setFields(f=>({...f, salario_liquido:v}))} />
         <InputField label="Data de pagamento" value={fields.data_pagamento} onChange={v=>setFields(f=>({...f, data_pagamento:v}))} />
       </div>
-      <Button type="button" variant="outline" className="rounded-full px-4" onClick={()=>setManual(true)}>
+      <Button type="button" variant="outline" className="rounded-full px-4" onClick={()=>setStep(1)}>
         <Edit className="w-4 h-4 mr-1" /> Editar dados manualmente
       </Button>
       <div className="flex gap-4 mt-4">
@@ -155,7 +153,7 @@ export default function CalculadoraStepper() {
   }
 
   // Save handler (mock pour l'instant)
-  async function handleSave(e:any) {
+  async function handleSave(e:React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     // TODO: save to Supabase

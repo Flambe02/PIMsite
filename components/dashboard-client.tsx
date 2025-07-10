@@ -3,13 +3,18 @@
 import { FileText, Upload, FileEdit, BarChart2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Payslip } from "@/types";
 
 interface DashboardClientProps {
-  user: any;
-  payslips: any[];
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  payslips: Payslip[];
 }
 
-export default function DashboardClient({ user, payslips }: DashboardClientProps) {
+export default function DashboardClient({ payslips }: DashboardClientProps) {
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold text-indigo-900 mb-2">Dashboard de Holerites</h1>
@@ -41,7 +46,7 @@ export default function DashboardClient({ user, payslips }: DashboardClientProps
         <section className="mb-10">
           <h2 className="text-lg font-semibold mb-4">Seus Holerites</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {payslips.map((p: any) => (
+            {payslips.map((p: Payslip) => (
               <div key={p.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-indigo-700">
                   <FileText size={20} />

@@ -1,9 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Info, UploadCloud, FileText, Loader2, XCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const pastel = {
@@ -123,7 +121,7 @@ export default function UploadHolerite() {
           <div className="mt-4 bg-[var(--aqua)]/30 rounded-xl p-4 flex flex-col gap-2">
             <div className="font-semibold text-emerald-900 mb-1">Você receberá:</div>
             <ul className="space-y-1">
-              {checklist.map((item, i) => (
+              {checklist.map((item) => (
                 <li key={item} className="flex items-center gap-2 text-emerald-800 text-sm">
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
                   {item}

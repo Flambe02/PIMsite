@@ -113,3 +113,53 @@ export async function getUserPayslips() {
     return { success: false, error: 'Erreur inattendue', data: [] }
   }
 } 
+
+export async function getLatestPayrollAnalysis() {
+  try {
+    const supabase = await createClient()
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      throw new Error('Utilisateur non authentifié')
+    }
+
+    // Récupère le dernier holerite analysé
+    const { data: payslips, error } = await supabase
+      .from('holerites')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (error) {
+      console.error('Error fetching latest payslip:', error)
+      throw new Error('Erreur lors de la récupération des données')
+    }
+
+    if (!payslips || payslips.length === 0) {
+      return null
+    }
+
+    const latestPayslip = payslips[0]
+    
+    // Crée un objet PayrollAnalysisResult à partir des données du holerite
+    const analysisResult = {
+      id: latestPayslip.id,
+      user_id: latestPayslip.user_id,
+      period: latestPayslip.created_at ? new Date(latestPayslip.created_at).toLocaleDateString() : 'N/A',
+      gross_income: parseFloat(latestPayslip.salario_bruto || '0'),
+      net_income: parseFloat(latestPayslip.salario_liquido || '0'),
+      taxes: parseFloat(latestPayslip.impostos || latestPayslip.inss || '0'),
+      deductions: parseFloat(latestPayslip.impostos || '0'),
+      benefits: parseFloat(latestPayslip.beneficios || '0'),
+      benefits_utilization: 75, // Valeur par défaut
+      created_at: latestPayslip.created_at
+    }
+
+    return analysisResult
+  } catch (error) {
+    console.error('Error getting latest payroll analysis:', error)
+    throw error
+  }
+} 

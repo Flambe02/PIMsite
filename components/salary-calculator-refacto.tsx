@@ -3,16 +3,13 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import Image from "next/image"
-import { HelpCircle, Info, ArrowRight, CheckCircle, AlertTriangle } from "lucide-react"
+import { ArrowRight, CheckCircle, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { analyzeSalary } from "@/lib/diagnostics/analyzeSalary"
@@ -379,7 +376,7 @@ export function SalaryCalculatorRefacto() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-blue-500" />
+                    <ArrowRight className="h-5 w-5 text-blue-500" />
                     Recomendações
                   </CardTitle>
                 </CardHeader>

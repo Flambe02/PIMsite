@@ -1,65 +1,120 @@
+"use client";
+
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
-import { CalendarWidget } from "@/components/calendar/CalendarWidget";
 import { EducationWidget } from "@/components/education/EducationWidget";
 import { PimChatWidget } from "@/components/chatbot/PimChatWidget";
+import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
+import { PayslipAnalysisSection } from "@/components/dashboard/PayslipAnalysisSection";
+import { RecommendationsSection } from "@/components/dashboard/RecommendationsSection";
+import { PayslipHistory } from "@/components/dashboard/PayslipHistory";
+import { PayrollCharts } from "@/components/dashboard/PayrollCharts";
+import { usePayslips } from "@/hooks/usePayslips";
+import { useRouter } from "next/navigation";
+import { AlertCircle } from "lucide-react";
+import { useSupabase } from "@/components/supabase-provider";
 
-// Placeholder pour le graphique
-function GraficoPlaceholder() {
-  return (
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center justify-center min-h-[200px] mb-6">
-      <span className="text-gray-400">[Gráfico de evolução salarial e benefícios]</span>
-    </div>
-  );
+// Déclare le type Recommendation localement
+interface Recommendation {
+  type: "alert" | "tip" | "info";
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  icon?: React.ReactNode;
 }
 
 export default function Dashboard() {
-  // Données mockées pour l'exemple
-  const salarioLiquido = "R$ 4.500";
-  const beneficios = "R$ 1.200";
-  const proximaDeadline = "07/05/2025";
+  const { session, loading: authLoading } = useSupabase();
+  const userId = session?.user?.id;
+  const { payslips, loading } = usePayslips(userId);
+  const router = useRouter();
+
+  if (authLoading || loading) return <div>Carregando...</div>;
+  if (!userId) return <div>Você precisa estar autenticado para acessar o dashboard.</div>;
+  // SUPPRIME le bloc qui bloque l'accès si aucun holerite
+  // if (!payslips.length) return (
+  //   <div className="flex flex-col items-center justify-center min-h-[60vh]">
+  //     <div className="text-lg mb-4">Nenhum holerite enviado ainda.</div>
+  //     <button
+  //       className="bg-emerald-600 text-white px-4 py-2 rounded-lg shadow hover:bg-emerald-700 transition"
+  //       onClick={() => router.push("/calculadora?tab=upload")}
+  //     >
+  //       Enviar novo holerite
+  //     </button>
+  //   </div>
+  // );
+
+  const hasPayslip = payslips.length > 0;
+  const last = hasPayslip ? payslips[0] : null;
+
+  // Récupère les opportunités IA du dernier holerite (si présentes)
+  let iaRecommendations: Recommendation[] = [];
+  if (last?.recommendations && Array.isArray(last.recommendations)) {
+    iaRecommendations = last.recommendations;
+  } else if (last?.structured_data && typeof last.structured_data === 'object' && last.structured_data !== null) {
+    const structuredData = last.structured_data as { analysis?: { optimization_opportunities?: string[] } };
+    if (structuredData.analysis?.optimization_opportunities) {
+      iaRecommendations = structuredData.analysis.optimization_opportunities.map((msg: string) => ({
+        type: "tip",
+        message: msg,
+      }));
+    }
+  }
 
   return (
     <div className="flex">
       <SidebarNav />
       <main className="flex-1 p-6 bg-gray-50 min-h-screen">
-        <h1 className="text-2xl font-bold mb-4">Olá, João 👋</h1>
-        {/* Résumé visuel */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-emerald-50 rounded-xl p-4 flex flex-col items-center shadow">
-            <span className="text-xs text-emerald-700 font-bold uppercase">Salário Líquido</span>
-            <span className="text-2xl font-bold text-emerald-900">{salarioLiquido}</span>
+        {/* Message d'accueil + bouton d'upload si aucun holerite */}
+        {!hasPayslip && (
+          <div className="flex flex-col items-center justify-center min-h-[10vh] mb-8">
+            <div className="text-lg mb-4">Bem-vindo ao seu dashboard PIM!</div>
+            <div className="mb-2 text-gray-600 text-sm">Envie seu primeiro holerite para começar a análise personalizada.</div>
+            <button
+              className="bg-emerald-600 text-white px-4 py-2 rounded-lg shadow hover:bg-emerald-700 transition"
+              onClick={() => router.push("/calculadora?tab=upload")}
+            >
+              Enviar novo holerite
+            </button>
           </div>
-          <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center shadow">
-            <span className="text-xs text-blue-700 font-bold uppercase">Benefícios</span>
-            <span className="text-2xl font-bold text-blue-900">{beneficios}</span>
-          </div>
-          <div className="bg-yellow-50 rounded-xl p-4 flex flex-col items-center shadow">
-            <span className="text-xs text-yellow-700 font-bold uppercase">Próxima Deadline</span>
-            <span className="text-lg font-bold text-yellow-900">{proximaDeadline}</span>
-          </div>
-        </div>
-        {/* Graphique d'évolution */}
-        <GraficoPlaceholder />
-        {/* Actions rapides */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg shadow hover:bg-emerald-700 transition">Analisar novo holerite</button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition">Simular aumento</button>
-          <button className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 transition">Comparar benefícios</button>
-        </div>
-        {/* Alerte positive */}
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded">
-          <p className="font-bold">Parabéns!</p>
-          <p>Você está acima da média do mercado em benefícios.</p>
-        </div>
+        )}
+        <WelcomeHeader
+          userName={last?.nome || session?.user?.user_metadata?.name || "Usuário"}
+          netSalary={last?.salario_liquido ? `R$ ${last.salario_liquido}` : "-"}
+          nextPayrollDate={last?.data_pagamento || last?.proxima_data_pagamento || "-"}
+          nextPayrollAmount={last?.proximo_valor_liquido ? `R$ ${last.proximo_valor_liquido}` : "-"}
+        />
+        <PayslipAnalysisSection
+          lastUploadDate={last?.created_at ? new Date(last.created_at).toLocaleDateString() : "-"}
+          uploadMethod={last?.metodo as "manual" | "auto" | "entry" || "manual"}
+          status={last?.status as "analyzed" | "pending" | "error" || "analyzed"}
+          summary={{
+            net: last?.salario_liquido ? `R$ ${last.salario_liquido}` : "-",
+            gross: last?.salario_bruto ? `R$ ${last.salario_bruto}` : "-",
+            taxes: last?.impostos || last?.structured_data?.inss || last?.inss ? `R$ ${last.impostos || last.structured_data?.inss || last.inss}` : "-",
+            benefits: last?.beneficios || last?.structured_data?.beneficios ? `R$ ${last.beneficios || last.structured_data?.beneficios}` : "-",
+          }}
+          onUpload={() => router.push("/calculadora?tab=upload")}
+        />
+        {/* Section recommandations IA intégrée dans le dashboard */}
+        <RecommendationsSection
+          recommendations={iaRecommendations.length > 0 ? iaRecommendations : [
+            {
+              type: "alert",
+              message: "Envie um holerite para receber recomendações personalizadas!",
+              actionLabel: "Enviar holerite",
+              onAction: () => router.push("/calculadora?tab=upload"),
+              icon: <AlertCircle className="w-5 h-5 text-yellow-400" />,
+            },
+          ]}
+        />
+        <PayslipHistory payslips={payslips} />
+        <PayrollCharts />
         {/* Widgets dynamiques */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <CalendarWidget
-            vacations={[{ start: "2025-07-10", end: "2025-07-20", label: "Férias de julho" }]}
-            deadlines={[
-              { date: "2025-05-07", label: "Envio Holerite", type: "holerite" },
-              { date: "2025-04-30", label: "Imposto de Renda", type: "fiscal" },
-            ]}
-          />
+        <div className="mb-8">
+          <div className="font-bold text-lg mb-4 flex items-center gap-2">
+            <span className="inline-block bg-emerald-100 text-emerald-700 rounded-full px-2 py-1 text-xs font-bold">🎓</span>
+            Centro de Educação Financeira
+          </div>
           <EducationWidget />
         </div>
         <PimChatWidget />

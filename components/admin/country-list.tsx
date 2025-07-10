@@ -25,7 +25,6 @@ export function CountryList() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [toDelete, setToDelete] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
-  const [editCountry, setEditCountry] = useState<Country | null>(null)
   const [editForm, setEditForm] = useState<Country | null>(null)
 
   useEffect(() => {
@@ -61,7 +60,6 @@ export function CountryList() {
   }
 
   const handleEdit = (country: Country) => {
-    setEditCountry(country)
     setEditForm({ ...country })
     setEditOpen(true)
   }
@@ -85,7 +83,6 @@ export function CountryList() {
     }).eq('code', editForm.code)
     setCountries(countries.map(c => c.code === editForm.code ? { ...c, ...editForm } : c))
     setEditOpen(false)
-    setEditCountry(null)
     setEditForm(null)
   }
 

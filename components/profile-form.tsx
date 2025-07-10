@@ -67,9 +67,9 @@ export default function ProfileForm({
 
       setMsg("Profil mis à jour ✅");
       toast({ title: "Perfil atualizado!", description: "Seus dados foram salvos.", variant: "default" });
-    } catch (err: any) {
-      setMsg(err.message || "Erro ao atualizar perfil");
-      toast({ title: "Erreur de profil", description: err.message || "Erro ao atualizar perfil", variant: "destructive" });
+    } catch (err: unknown) {
+      setMsg((err as Error).message || "Erro ao atualizar perfil");
+      toast({ title: "Erreur de profil", description: (err as Error).message || "Erro ao atualizar perfil", variant: "destructive" });
     } finally {
       setLoading(false);
     }

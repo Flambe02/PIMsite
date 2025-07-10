@@ -23,7 +23,6 @@ import {
 import { CountryList } from '@/components/admin/country-list'
 import { ProviderList } from '@/components/admin/provider-list'
 import { BenefitList } from '@/components/admin/benefit-list'
-import fs from 'fs';
 
 interface AdminUser {
   name: string
@@ -70,23 +69,51 @@ export default function AdminPage() {
   const [prompt, setPrompt] = useState('');
   const [promptMessage, setPromptMessage] = useState('');
 
-  // Charger le prompt actuel au montage (uniquement côté serveur, donc ici simuler)
-  // En prod, il faudrait une API route pour lire PromptResult.md
-  // Ici, on simule la lecture initiale :
+  // Charger le prompt actuel au montage depuis Supabase
   useState(() => {
-    fetch('/PromptResult.md')
-      .then(res => res.text())
-      .then(text => {
-        // Extraire le contenu entre les balises ```
-        const match = text.match(/```([\s\S]*?)```/);
-        setPrompt(match ? match[1].trim() : text);
-      });
+    const loadPrompt = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('prompt_results')
+          .select('result')
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (error) {
+          console.error('Erro ao carregar prompt:', error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          setPrompt(data[0].result);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar prompt:', error);
+      }
+    };
+    
+    loadPrompt();
   });
 
   const handlePromptSave = async () => {
-    // En prod, il faudrait une API route POST pour sauvegarder PromptResult.md
-    // Ici, on simule juste le message de succès
-    setPromptMessage('Prompt salvo com sucesso! (Simulado)');
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('prompt_results')
+        .insert({ 
+          prompt: 'LLM Analysis Prompt', 
+          result: prompt 
+        });
+      
+      if (error) {
+        setPromptMessage('Erro ao salvar prompt: ' + error.message);
+      } else {
+        setPromptMessage('Prompt salvo com sucesso!');
+      }
+    } catch (error) {
+      setPromptMessage('Erro ao salvar prompt: ' + (error as Error).message);
+    }
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -109,7 +136,7 @@ export default function AdminPage() {
   const handleAddCountry = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage('')
-    const supabase = createClient()
+    const supabase = await createClient()
     const { error } = await supabase.from('countries').insert({
       code: country.code.toUpperCase(),
       name: country.name,
@@ -129,7 +156,7 @@ export default function AdminPage() {
   const handleAddBenefitProvider = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage('')
-    const supabase = createClient()
+    const supabase = await createClient()
     const { error } = await supabase.from('benefit_providers').insert({
       name: benefitProvider.name,
       description: benefitProvider.description,
@@ -154,12 +181,12 @@ export default function AdminPage() {
               <Shield className="h-6 w-6 text-emerald-600" />
             </div>
             <CardTitle className="text-2xl">Admin Panel</CardTitle>
-            <p className="text-gray-600">Connectez-vous pour accéder à l'administration</p>
+            <p className="text-gray-600">Connectez-vous pour accéder à l&apos;administration</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nom d'administrateur</Label>
+                <Label htmlFor="name">Nom d&apos;administrateur</Label>
                 <Input
                   id="name"
                   placeholder="Votre nom"

@@ -24,7 +24,7 @@ const CLTView: React.FC = () => {
     if (!allowed.includes(selectedItem)) {
       setSelectedItem('salario_base');
     }
-  }, [viewMode]);
+  }, [viewMode, selectedItem]);
 
   // Handler pour sélectionner un item du tableau (affiche l'explication à droite)
   const handleItemClick = (itemKey: string) => {

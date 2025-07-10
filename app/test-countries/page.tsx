@@ -42,7 +42,7 @@ export default async function TestCountriesPage() {
                 <div className="mt-4">
                   <h3 className="font-medium mb-2">Sample countries:</h3>
                   <ul className="list-disc list-inside space-y-1">
-                    {countries.slice(0, 5).map((country: any) => (
+                    {countries.slice(0, 5).map((country: { id: string; name: string; code: string; capital: string }) => (
                       <li key={country.id}>
                         {country.name} ({country.code}) - {country.capital}
                       </li>
@@ -70,7 +70,7 @@ export default async function TestCountriesPage() {
                 <div className="mt-4">
                   <h3 className="font-medium mb-2">Sample tax brackets:</h3>
                   <ul className="list-disc list-inside space-y-1">
-                    {taxBrackets.map((bracket: any) => (
+                    {taxBrackets.map((bracket: { id: string; tax_type: string; min_amount: string; max_amount: string; rate: string }) => (
                       <li key={bracket.id}>
                         {bracket.tax_type}: {bracket.min_amount} - {bracket.max_amount || 'No limit'} ({bracket.rate}%)
                       </li>
@@ -98,7 +98,7 @@ export default async function TestCountriesPage() {
                 <div className="mt-4">
                   <h3 className="font-medium mb-2">Sample benefits:</h3>
                   <ul className="list-disc list-inside space-y-1">
-                    {benefits.map((benefit: any) => (
+                    {benefits.map((benefit: { id: string; name: string; category: string; is_mandatory: boolean }) => (
                       <li key={benefit.id}>
                         {benefit.name} ({benefit.category}) - {benefit.is_mandatory ? 'Mandatory' : 'Optional'}
                       </li>

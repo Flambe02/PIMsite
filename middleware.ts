@@ -15,11 +15,12 @@ export async function middleware(req: NextRequest) {
         get(name: string) {
           return req.cookies.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: unknown) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           req.cookies.set({
             name,
             value,
-            ...options,
+            ...(options as Record<string, unknown>),
           })
           res = NextResponse.next({
             request: {
@@ -29,14 +30,15 @@ export async function middleware(req: NextRequest) {
           res.cookies.set({
             name,
             value,
-            ...options,
+            ...(options as Record<string, unknown>),
           })
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: unknown) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           req.cookies.set({
             name,
             value: '',
-            ...options,
+            ...(options as Record<string, unknown>),
           })
           res = NextResponse.next({
             request: {
@@ -46,7 +48,7 @@ export async function middleware(req: NextRequest) {
           res.cookies.set({
             name,
             value: '',
-            ...options,
+            ...(options as Record<string, unknown>),
           })
         },
       },

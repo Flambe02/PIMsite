@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@supabase/ssr"
 
 import { Button } from "@/components/ui/button"
-import { Logo } from "@/components/logo"
 import { TrustBadges } from "@/components/trust-badges"
 import { ChatButton } from "@/components/chat-button"
 
@@ -23,7 +22,7 @@ const HERO_TEXT = {
 function HeroSection() {
   const [showManual, setShowManual] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<unknown>(null)
   const router = useRouter()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +39,7 @@ function HeroSection() {
     return () => {
       listener?.subscription.unsubscribe()
     }
-  }, [])
+  }, [supabase, setSession])
 
   // Redirection logic for upload/manual
   const handleUploadClick = () => {
@@ -86,7 +85,13 @@ function HeroSection() {
         </div>
         {/* Colonne droite : image */}
         <div className="flex-1 flex items-center justify-center w-full max-w-xl mx-auto lg:mx-0">
-          <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-6BkboFHypQ21vOUXShB9EYLfuvsqhj.png" alt="Folha de pagamento e alocação de benefícios" className="w-full max-w-lg h-auto object-contain rounded-2xl shadow-xl" />
+          <Image
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-6BkboFHypQ21vOUXShB9EYLfuvsqhj.png"
+            alt="Folha de pagamento e alocação de benefícios"
+            width={500}
+            height={500}
+            className="w-full max-w-lg h-auto object-contain rounded-2xl shadow-xl"
+          />
         </div>
       </div>
       {/* Modals */}
@@ -190,7 +195,13 @@ function TestimonialsSection() {
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch justify-center">
           {testimonials.map((t, i) => (
             <div key={i} className="flex-1 bg-white rounded-xl shadow p-6 flex flex-col items-center text-center border border-emerald-100">
-              <img src={t.img} alt={t.name} className="w-16 h-16 rounded-full object-cover mb-3 border-4 border-emerald-100" />
+              <Image
+                src={t.img}
+                alt={t.name}
+                width={64}
+                height={64}
+                className="w-16 h-16 rounded-full object-cover mb-3 border-4 border-emerald-100"
+              />
               <div className="font-semibold text-emerald-700 mb-1">{t.name}</div>
               <div className="text-gray-800 italic mb-2">“{t.quote}”</div>
               <div className="text-xs text-gray-500">{t.city}</div>
@@ -230,9 +241,7 @@ function StickyCTA({ onCTAClick }: { onCTAClick: () => void }) {
 }
 
 export default function Home() {
-  const [showManual, setShowManual] = useState(false)
-  const [showUpload, setShowUpload] = useState(false)
-  const handleStickyCTAClick = () => setShowUpload(true)
+  const handleStickyCTAClick = () => {}
 
   return (
     <>

@@ -1,88 +1,20 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { ChevronsUpDown, Info, Briefcase, UserCircle, GraduationCap, Bus, Utensils, HeartPulse, Smile } from "lucide-react"
+import { Briefcase, UserCircle, GraduationCap, Bus, Utensils, HeartPulse, Smile } from "lucide-react"
 import { useState } from "react"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-// Define tipos de contratação no Brasil
-const employmentTypes = [
-  { label: "CLT", value: "clt" },
-  { label: "PJ", value: "pj" },
-  { label: "Contrato Temporário", value: "temporary" },
-  { label: "Estágio", value: "internship" },
-  { label: "Jovem Aprendiz", value: "apprentice" },
-]
 
-// Define esquema do formulário
-const formSchema = z.object({
-  employmentType: z.string().optional(),
-  grossSalary: z.string().optional(),
-  netSalary: z.string().optional(),
-  basicSalary: z.string().optional(),
-  transportAllowance: z.string().optional(),
-  mealAllowance: z.string().optional(),
-  healthInsurance: z.string().optional(),
-  dentalInsurance: z.string().optional(),
-  otherAllowances: z.string().optional(),
-  inssContribution: z.string().optional(),
-  irpfTax: z.string().optional(),
-  fgts: z.string().optional(),
-  otherDeductions: z.string().optional(),
-})
+// Supprime la variable inutilisée formSchema
 
-type ManualPayrollFormProps = { onSubmit: (data: z.infer<typeof formSchema>) => void; };
-
-export function ManualPayrollForm({ onSubmit }: ManualPayrollFormProps) {
-  const router = useRouter()
+export function ManualPayrollForm() {
   const [step, setStep] = useState(1)
   const [employmentType, setEmploymentType] = useState<string | null>(null)
   const [salary, setSalary] = useState({ bruto: '', liquido: '', base: '' })
   const [benefits, setBenefits] = useState({ transporte: '', refeicao: '', saude: '', odontologico: '' })
 
-  // Inicializa formulário
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      employmentType: "",
-      grossSalary: "",
-      netSalary: "",
-      basicSalary: "",
-      transportAllowance: "",
-      mealAllowance: "",
-      healthInsurance: "",
-      dentalInsurance: "",
-      otherAllowances: "",
-      inssContribution: "",
-      irpfTax: "",
-      fgts: "",
-      otherDeductions: "",
-    },
-  })
 
-  const handleFormSubmit = (data: z.infer<typeof formSchema>) => {
-    // Processa os dados do formulário
-    console.log("Dados do formulário:", data)
 
-    // Chama a função onSubmit passada do componente pai
-    onSubmit(data)
-
-    // Navega para a página de análise
-    setTimeout(() => {
-      router.push("/dashboard/analysis")
-    }, 1500)
-  }
 
   // Step indicator
   const StepIndicator = () => (

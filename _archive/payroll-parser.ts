@@ -4,7 +4,8 @@ import { PayslipParsed, PayslipLine } from "@/types";
  * Parse le texte OCR + les lignes overlay pour produire
  * une structure complète compatible avec la colonne JSONB `structured_data`.
  */
-export function parsePayslipV2(rawText: string, lines: any[]): PayslipParsed {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parsePayslipV2(rawText: string, lines: unknown[]): PayslipParsed {
   const norm = (s = "") => s.replace(/\r?\n/g, " ");
 
   // --- Helpers -------------------------------------------------------------
@@ -37,14 +38,15 @@ export function parsePayslipV2(rawText: string, lines: any[]): PayslipParsed {
       .exec(rawText)?.[0] ?? "";
 
   // --- TABLEAU LIGNES ------------------------------------------------------
-  const startIdx = lines.findIndex((l: any) =>
-    /descri[çc][aã]o/i.test(l.LineText)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const startIdx = lines.findIndex((l: unknown) =>
+    /descri[çc][aã]o/i.test((l as { LineText: string }).LineText)
   );
   const itens: PayslipLine[] = [];
 
   if (startIdx >= 0) {
     for (let i = startIdx + 1; i < lines.length; i++) {
-      const t = norm(lines[i].LineText).trim();
+      const t = norm((lines[i] as { LineText: string }).LineText).trim();
       if (/total de venc|valor l[íi]quido|base c[áa]lc/i.test(t)) break;
 
       // Match type : [codigo]  descricao   ref|venc   desc
@@ -99,8 +101,9 @@ export function parsePayslipV2(rawText: string, lines: any[]): PayslipParsed {
   };
 }
 
-export function parsePayslipV3(result: any): PayslipParsed {
-  const text = result.ParsedText.replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parsePayslipV3(result: unknown): PayslipParsed {
+  const text = (result as { ParsedText: string }).ParsedText.replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ");
   // TODO extraction avancée (CNPJ, salário líquido, etc.)
   return {
     empresa: { nome: "", cnpj: "", endereco: "" },
@@ -115,7 +118,7 @@ export function parsePayslipV3(result: any): PayslipParsed {
   };
 }
 
-export async function analyzePayslip(fileUrl: string) {
+export async function analyzePayslip() {
   await new Promise(res => setTimeout(res, 2000));
   return {
     period: "2025-07",

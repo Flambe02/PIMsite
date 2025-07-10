@@ -25,13 +25,15 @@ export async function extractText(buffer: Buffer, provider: OcrProvider = 'ocrsp
       if (!res) {
         throw new Error('OCR.space a retourné undefined. Vérifiez la clé API et le format du fichier.');
       }
-      if (res.IsErroredOnProcessing) {
-        throw new Error(`Erreur OCR.space: ${res.ErrorMessage || res.ErrorDetails || 'Erreur inconnue.'}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((res as any).IsErroredOnProcessing) {
+        throw new Error(`Erreur OCR.space: ${(res as any).ErrorMessage || (res as any).ErrorDetails || 'Erreur inconnue.'}`);
       }
-      if (!res.ParsedResults || !Array.isArray(res.ParsedResults) || !res.ParsedResults[0]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!(res as any).ParsedResults || !Array.isArray((res as any).ParsedResults) || !(res as any).ParsedResults[0]) {
         throw new Error(`OCR.space n’a pas retourné ParsedResults. Réponse brute: ${JSON.stringify(res)}`);
       }
-      return res.ParsedResults[0].ParsedText || '';
+      return (res as any).ParsedResults[0].ParsedText || '';
     }
     default:
       throw new Error(`Le fournisseur OCR '${provider}' n'est pas supporté.`);

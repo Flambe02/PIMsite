@@ -34,10 +34,10 @@ async function testInsertAction() {
 export default function TestInsertPage() {
   return (
     <div style={{ padding: '50px', textAlign: 'center' }}>
-      <h1>Page de Test d'Insertion</h1>
-      <p>Ce bouton appelle une action serveur qui tente d'insérer une ligne dans la table 'holerites' avec seulement votre user_id.</p>
+      <h1>Page de Test d&apos;Insertion</h1>
+      <p>Ce bouton appelle une action serveur qui tente d&apos;insérer une ligne dans la table &apos;holerites&apos; avec seulement votre user_id.</p>
       <form action={testInsertAction}>
-        <button type="submit">Lancer le Test d'Insertion</button>
+        <button type="submit">Lancer le Test d&apos;Insertion</button>
       </form>
     </div>
   );

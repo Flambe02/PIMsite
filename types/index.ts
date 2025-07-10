@@ -12,6 +12,39 @@ export interface PayrollAnalysisResult {
 }
 
 /**
+ * Type global pour les payslips/holerites utilisés dans tout le projet
+ */
+export interface Payslip {
+  id: string;
+  periodo: string;
+  salarioLiquido: number;
+  dataEnvio: string;
+  data_pagamento?: string;
+  proxima_data_pagamento?: string;
+  proximo_valor_liquido?: string;
+  nome?: string;
+  salario_liquido?: string;
+  salario_bruto?: string;
+  impostos?: string;
+  structured_data?: Record<string, unknown>;
+  beneficios?: string;
+  created_at?: string;
+  metodo?: string;
+  status?: string;
+  recommendations?: unknown;
+  inss?: string;
+  empresa?: string;
+  upload_id?: string;
+  user_id?: string;
+  preview_url?: string;
+  file_name?: string;
+  file_size?: number;
+  file_type?: string;
+  file_url?: string;
+  upload_date?: string;
+}
+
+/**
  * Ligne individuelle du bulletin (tableau Vencimentos / Descontos)
  */
 export interface PayslipLine {

@@ -24,7 +24,7 @@ export function Header() {
 }
 
 function HeaderClient() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<unknown>(null);
   const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,7 +41,7 @@ function HeaderClient() {
     return () => {
       listener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase, setSession]);
 
   async function handleLogout() {
     await supabase.auth.signOut();

@@ -3,13 +3,11 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Upload, ArrowLeft, Paperclip } from "lucide-react"
+import { Send, Upload, Paperclip } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
-import { Logo } from "@/components/logo"
 import { FloatingChatWidget } from "@/components/floating-chat-widget"
 
 type MessageType = {

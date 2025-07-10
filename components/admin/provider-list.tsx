@@ -24,7 +24,6 @@ export function ProviderList() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [toDelete, setToDelete] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
-  const [editProvider, setEditProvider] = useState<BenefitProvider | null>(null)
   const [editForm, setEditForm] = useState<BenefitProvider | null>(null)
 
   useEffect(() => {
@@ -60,7 +59,6 @@ export function ProviderList() {
   }
 
   const handleEdit = (provider: BenefitProvider) => {
-    setEditProvider(provider)
     setEditForm({ ...provider })
     setEditOpen(true)
   }
@@ -84,7 +82,6 @@ export function ProviderList() {
     }).eq('id', editForm.id)
     setProviders(providers.map(p => p.id === editForm.id ? { ...p, ...editForm } : p))
     setEditOpen(false)
-    setEditProvider(null)
     setEditForm(null)
   }
 

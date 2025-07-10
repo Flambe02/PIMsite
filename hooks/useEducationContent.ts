@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { educationContents, EducationContent } from "@/lib/education/content";
+import { educationContents } from "@/lib/education/content";
 
 export function useEducationContent() {
   const [category, setCategory] = useState<string | null>(null);

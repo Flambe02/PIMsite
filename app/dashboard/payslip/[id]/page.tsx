@@ -3,13 +3,15 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 // La page reçoit les "params" de l'URL, qui contiennent l'ID du bulletin.
-export default async function PayslipDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+export default async function PayslipDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     redirect('/login')
   }
+
+  const { id } = await params
 
   // On récupère le bulletin spécifique ET ses lignes de gains/déductions associées en une seule requête !
   const { data: payslip, error } = await supabase
@@ -23,7 +25,7 @@ export default async function PayslipDetailPage({ params }: { params: { id: stri
         amount
       )
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id) // Sécurité : on vérifie que le bulletin appartient bien à l'utilisateur connecté
     .single()
 
@@ -32,8 +34,8 @@ export default async function PayslipDetailPage({ params }: { params: { id: stri
     redirect('/dashboard') // Redirige si le bulletin n'existe pas ou n'est pas accessible
   }
 
-  const earnings = payslip.payslip_items.filter((item: any) => item.type === 'earning');
-  const deductions = payslip.payslip_items.filter((item: any) => item.type === 'deduction');
+  const earnings = payslip.payslip_items.filter((item: { type: string }) => item.type === 'earning');
+  const deductions = payslip.payslip_items.filter((item: { type: string }) => item.type === 'deduction');
 
   return (
     <div className="p-4 md:p-8">
@@ -55,7 +57,7 @@ export default async function PayslipDetailPage({ params }: { params: { id: stri
           <div>
             <h2 className="text-xl font-semibold mb-3 text-green-700">Gains</h2>
             <ul className="space-y-2">
-              {earnings.map((item: any) => (
+              {earnings.map((item: { id: string; description: string; amount: number }) => (
                 <li key={item.id} className="flex justify-between"><span>{item.description}</span><span>{item.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'BRL' })}</span></li>
               ))}
             </ul>
@@ -63,7 +65,7 @@ export default async function PayslipDetailPage({ params }: { params: { id: stri
           <div>
             <h2 className="text-xl font-semibold mb-3 text-red-700">Déductions</h2>
             <ul className="space-y-2">
-              {deductions.map((item: any) => (
+              {deductions.map((item: { id: string; description: string; amount: number }) => (
                 <li key={item.id} className="flex justify-between"><span>{item.description}</span><span>{item.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'BRL' })}</span></li>
               ))}
             </ul>

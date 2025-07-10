@@ -9,18 +9,6 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { getEmojiFlag } from "@/lib/utils"
 
-interface Country {
-  id: string
-  code: string
-  name: string
-  capital: string
-  currency: string
-  currency_code: string
-  language: string
-  population: number
-  flag_url?: string
-}
-
 interface TaxBracket {
   id: string
   country_id: string
@@ -374,7 +362,7 @@ export default async function CountryDetailPage({
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {(brackets as any[]).map((bracket: any) => (
+                                {(brackets as TaxBracket[]).map((bracket: TaxBracket) => (
                                   <TableRow key={bracket.id}>
                                     <TableCell className="font-medium">
                                       {bracket.min_amount.toLocaleString('en-US', {
@@ -437,7 +425,7 @@ export default async function CountryDetailPage({
                           </CardHeader>
                           <CardContent>
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                              {(categoryBenefits as any[]).map((benefit: any) => (
+                              {(categoryBenefits as BenefitType[]).map((benefit: BenefitType) => (
                                 <div
                                   key={benefit.id}
                                   className="p-4 border rounded-lg hover:shadow-md transition-shadow"

@@ -4,17 +4,17 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'; // Pour éviter les erreurs de cookies
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     return NextResponse.json({ error: 'Accès non autorisé' }, { status: 401 })
   }
 
-  const payslipId = params.id
+  const { id: payslipId } = await params
 
   const { data: payslip, error } = await supabase
     .from('payslips')

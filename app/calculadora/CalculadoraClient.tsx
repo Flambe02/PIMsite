@@ -3,10 +3,8 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
-import { Loader2, UploadCloud, FileText, Edit, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { Loader2, UploadCloud, FileText, Edit, CheckCircle, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { parseWithOCRSpaceEnhanced } from "@/lib/ocr";
 import PayslipPreview from "@/components/payslip-preview";
 import AnalysisDisplay from "@/components/AnalysisDisplay";
 import { useToast } from "@/components/ui/use-toast";
@@ -22,36 +20,9 @@ const initialFields = {
   raw_text: "",
 };
 
-async function parseWithOCRSpace(file: File) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("language", "por");
-  formData.append("isOverlayRequired", "false");
-  formData.append("OCREngine", "2");
-  const res = await fetch("https://api.ocr.space/parse/image", {
-    method: "POST",
-    headers: { apikey: "helloworld" },
-    body: formData,
-  });
-  const data = await res.json();
-  if (data.IsErroredOnProcessing) throw new Error(data.ErrorMessage?.[0] || "Erro de OCR");
-  return data.ParsedResults?.[0]?.ParsedText || "";
-}
 
-function extractFields(parsedText: string) {
-  return {
-    nome: /Nome[:\-]?\s*(.+)/i.exec(parsedText)?.[1] || "",
-    empresa: /Empresa[:\-]?\s*(.+)/i.exec(parsedText)?.[1] || "",
-    salario_bruto: /Sal[aá]rio Bruto[:\-]?\s*R?\$?\s*([\d.,]+)/i.exec(parsedText)?.[1] || "",
-    salario_liquido: /L[ií]quido[:\-]?\s*R?\$?\s*([\d.,]+)/i.exec(parsedText)?.[1] || "",
-    inss: /INSS[:\-]?\s*R?\$?\s*([\d.,]+)/i.exec(parsedText)?.[1] || "",
-    irrf: /IRRF[:\-]?\s*R?\$?\s*([\d.,]+)/i.exec(parsedText)?.[1] || "",
-    data_pagamento: /Data[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i.exec(parsedText)?.[1] || "",
-    raw_text: parsedText,
-  };
-}
 
-export default function CalculadoraClient({ user }: { user: any }) {
+export default function CalculadoraClient({ user }: { user: unknown }) {
   const supabase = createClient();
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
@@ -60,7 +31,7 @@ export default function CalculadoraClient({ user }: { user: any }) {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<unknown>(null);
   const { toast } = useToast();
 
   // Stepper header
@@ -155,7 +126,7 @@ export default function CalculadoraClient({ user }: { user: any }) {
     <div className="flex flex-col gap-6">
       {analysisResult ? (
         <>
-          <AnalysisDisplay data={analysisResult} />
+          <AnalysisDisplay data={analysisResult as { gross_salary: number; net_salary: number; earnings: { description: string; amount: number; }[]; deductions: { description: string; amount: number; }[]; analysis: { summary: string; optimization_opportunities: string[]; } }} />
           <div className="flex gap-4 mt-8 justify-center">
             <Button variant="outline" onClick={resetFlow}>Analisar outro holerite</Button>
             <Button className="bg-emerald-400 hover:bg-emerald-500 text-white font-bold rounded-xl px-8 py-3" onClick={()=>window.location.href='/dashboard'}>Ir para o dashboard</Button>
@@ -176,15 +147,6 @@ export default function CalculadoraClient({ user }: { user: any }) {
       <div className="flex flex-col gap-1">
         <label className="text-emerald-800 font-medium mb-1">{label}</label>
         <Input className="rounded-lg border border-emerald-200" value={value} onChange={e=>onChange(e.target.value)} disabled={disabled} />
-      </div>
-    );
-  }
-  // ResultField helper
-  function ResultField({label, value}: {label: string, value: string}) {
-    return (
-      <div className="flex flex-col gap-1">
-        <span className="text-xs text-gray-500">{label}</span>
-        <span className="font-semibold text-emerald-900 text-base">{value}</span>
       </div>
     );
   }
@@ -210,9 +172,10 @@ export default function CalculadoraClient({ user }: { user: any }) {
       setAnalysisResult(result.analysisData);
       setStep(3);
       toast({ title: "Análise concluída!", description: "Veja as oportunidades identificadas.", variant: "default" });
-    } catch (err: any) {
-      setError(err.message || "Erro ao processar holerite");
-      toast({ title: "Erreur d'analyse", description: err.message || "Erro ao processar holerite", variant: "destructive" });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Erro ao processar holerite";
+      setError(errorMessage);
+      toast({ title: "Erreur d'analyse", description: errorMessage, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -226,22 +189,25 @@ export default function CalculadoraClient({ user }: { user: any }) {
       await saveToSupabase(fields);
       toast({ title: "Dados salvos com sucesso!" });
       setStep(3);
-    } catch (err: any) {
-      setError(err.message || "Erro ao salvar no banco de dados");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Erro ao salvar no banco de données";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   }
 
-  async function saveToSupabase(data: any) {
+  async function saveToSupabase(data: unknown) {
     // Save legacy + structured_data
+    const typedData = data as { nome: string; empresa: string; salario_liquido: string };
     await supabase.from("holerites").insert({
       upload_id: "manual-upload", // or generate/uploadId if available
-      nome: data.nome,
-      empresa: data.empresa,
-      salario_liquido: data.salario_liquido,
+      nome: typedData.nome,
+      empresa: typedData.empresa,
+      salario_liquido: typedData.salario_liquido,
       structured_data: data, // or parsed if you want the full structure
       preview_url: previewUrl, // Add preview URL to database
+      user_id: (user as unknown as { id: string })?.id, // Ajout du user_id pour relier au bon utilisateur
     });
   }
 

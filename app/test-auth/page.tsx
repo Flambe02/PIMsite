@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 
 export default async function TestAuthPage() {
@@ -15,7 +14,7 @@ export default async function TestAuthPage() {
         TEMPORARILY DISABLED - Supabase client causing fatal errors
       </p>
       <p>This page is temporarily disabled due to Supabase client issues.</p>
-      <p>The error was: <code>Cannot read properties of undefined (reading 'getUser')</code></p>
+      <p>The error was: <code>Cannot read properties of undefined (reading &apos;getUser&apos;)</code></p>
       
       {/* Original code commented out:
       {user ? (

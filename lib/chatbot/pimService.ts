@@ -1,4 +1,4 @@
-export async function sendPimMessage(message: string, context: any = {}) {
+export async function sendPimMessage(message: string, context: unknown = {}) {
   // Appel à OpenAI ou API interne avec contexte RAG
   const response = await fetch("/api/pim-chat", {
     method: "POST",

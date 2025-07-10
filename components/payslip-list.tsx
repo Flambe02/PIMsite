@@ -6,16 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getUserPayslips } from "@/app/dashboard/actions"
-
-interface Payslip {
-  id: string
-  user_id: string
-  file_name: string
-  file_size: number
-  file_type: string
-  file_url: string
-  upload_date: string
-}
+import { Payslip } from "@/types";
 
 export function PayslipList() {
   const [payslips, setPayslips] = useState<Payslip[]>([])
@@ -123,16 +114,16 @@ export function PayslipList() {
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <span className="text-2xl">{getFileIcon(payslip.file_type)}</span>
+                <span className="text-2xl">{getFileIcon(payslip.file_type || 'unknown')}</span>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 truncate">
                     {payslip.file_name}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span>{formatFileSize(payslip.file_size)}</span>
+                    <span>{payslip.file_size ? formatFileSize(payslip.file_size) : 'Taille inconnue'}</span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {formatDate(payslip.upload_date)}
+                      {payslip.upload_date ? formatDate(payslip.upload_date) : 'Date inconnue'}
                     </span>
                   </div>
                 </div>
@@ -142,7 +133,7 @@ export function PayslipList() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(payslip.file_url, '_blank')}
+                  onClick={() => window.open(payslip.file_url || '#', '_blank')}
                 >
                   <Eye className="h-4 w-4 mr-1" />
                   Voir
@@ -152,8 +143,8 @@ export function PayslipList() {
                   size="sm"
                   onClick={() => {
                     const link = document.createElement('a')
-                    link.href = payslip.file_url
-                    link.download = payslip.file_name
+                    link.href = payslip.file_url || '#'
+                    link.download = payslip.file_name || 'download'
                     link.click()
                   }}
                 >
