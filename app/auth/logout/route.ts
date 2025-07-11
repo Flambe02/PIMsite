@@ -10,16 +10,16 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Logout error:", error.message)
       return NextResponse.redirect(
-        new URL("/dashboard?message=Error signing out", request.url)
+        new URL("/dashboard?message=Error signing out", request.nextUrl.origin)
       )
     }
 
     // Successful logout - redirect to home page
-    return NextResponse.redirect(new URL("/", request.url))
+    return NextResponse.redirect(new URL("/", request.nextUrl.origin))
   } catch (error) {
     console.error("Logout route error:", error)
     return NextResponse.redirect(
-      new URL("/dashboard?message=An unexpected error occurred", request.url)
+      new URL("/dashboard?message=An unexpected error occurred", request.nextUrl.origin)
     )
   }
 } 

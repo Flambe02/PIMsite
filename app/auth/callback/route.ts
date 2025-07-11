@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const origin = request.nextUrl.origin
+  const searchParams = request.nextUrl.searchParams
   const code = searchParams.get("code")
   const next = searchParams.get("next") ?? "/dashboard"
 

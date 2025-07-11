@@ -5,6 +5,8 @@ import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, Ar
 import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import DashboardPerfilView from "@/components/dashboard/DashboardPerfilView";
+import FinancialHealthScore from "@/components/dashboard/FinancialHealthScore";
+import PersonalizedRecommendations from "@/components/dashboard/PersonalizedRecommendations";
 const UploadHolerite = dynamic(() => import("@/app/calculadora/upload-holerite"), { ssr: false });
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
@@ -86,21 +88,77 @@ const recommendations = [
   },
 ];
 
-function SaudeFinanceiraIndicator() {
-  // 75% example
+function SaudeFinanceiraIndicator({ 
+  financialHealthScore, 
+  setFinancialHealthScore, 
+  quizAnswers, 
+  setQuizAnswers, 
+  employmentStatus, 
+  setEmploymentStatus 
+}: {
+  financialHealthScore: number;
+  setFinancialHealthScore: (score: number) => void;
+  quizAnswers: Record<string, string>;
+  setQuizAnswers: (answers: Record<string, string>) => void;
+  employmentStatus: string;
+  setEmploymentStatus: (status: string) => void;
+}) {
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('financial_health_score, quiz_answers, tipo_profissional')
+          .eq('id', user.id)
+          .single()
+
+        if (profile) {
+          setFinancialHealthScore(profile.financial_health_score || 75)
+          setQuizAnswers(profile.quiz_answers || {})
+          setEmploymentStatus(profile.tipo_profissional || "")
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+
+    fetchUserData()
+  }, [supabase, setFinancialHealthScore, setQuizAnswers, setEmploymentStatus])
+
   return (
     <div className="flex items-center gap-2 mb-8">
       <svg width="56" height="56" viewBox="0 0 56 56">
         <circle cx="28" cy="28" r="25" fill="#f3f4f6" />
-        <circle cx="28" cy="28" r="25" fill="none" stroke="#10b981" strokeWidth="5" strokeDasharray={2*Math.PI*25} strokeDashoffset={2*Math.PI*25*0.25} style={{transition: 'stroke-dashoffset 1s'}} />
-        <text x="28" y="34" textAnchor="middle" fontSize="18" fill="#10b981" fontWeight="bold">75</text>
+        <circle 
+          cx="28" 
+          cy="28" 
+          r="25" 
+          fill="none" 
+          stroke="#10b981" 
+          strokeWidth="5" 
+          strokeDasharray={2*Math.PI*25} 
+          strokeDashoffset={2*Math.PI*25*(1 - financialHealthScore/100)} 
+          style={{transition: 'stroke-dashoffset 1s'}} 
+        />
+        <text x="28" y="34" textAnchor="middle" fontSize="18" fill="#10b981" fontWeight="bold">
+          {financialHealthScore}
+        </text>
       </svg>
       <div className="flex flex-col ml-1">
         <span className="text-[13px] font-semibold text-gray-800 leading-tight">Saúde Financeira</span>
-        <span className="text-[13px] font-bold text-emerald-600 leading-tight">Boa</span>
+        <span className="text-[13px] font-bold text-emerald-600 leading-tight">
+          {financialHealthScore >= 80 ? "Excelente" : 
+           financialHealthScore >= 60 ? "Boa" : 
+           financialHealthScore >= 40 ? "Regular" : "Precisa Melhorar"}
+        </span>
       </div>
     </div>
-  );
+  )
 }
 
 function formatPeriod(period?: string): string | null {
@@ -234,11 +292,14 @@ export default function DashboardFullWidth() {
   const [holeriteResult, setHoleriteResult] = useState<HoleriteResult | null>(null);
   const [showAnalysisDetail, setShowAnalysisDetail] = useState(false);
   const [activeTab, setActiveTab] = useState("Compensação");
+  const [financialHealthScore, setFinancialHealthScore] = useState(75);
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
+  const [employmentStatus, setEmploymentStatus] = useState("");
   const perfilRef = useRef<HTMLDivElement>(null);
   const SALARIO_MINIMO = 1320;
   const supabase = createClientComponentClient();
 
-  // Persistance : au chargement, relit la dernière analyse si rien n'est chargé
+  // Persistance : au chargement, relit la dernière analyse si rien n'est chargé
   useEffect(() => {
     if (holeriteResult) return;
     // 1. Essaye de relire depuis localStorage
@@ -267,6 +328,23 @@ export default function DashboardFullWidth() {
     }
     fetchLastAnalysis();
     // eslint-disable-next-line
+  }, []);
+
+  // Récupération des données du profil utilisateur depuis localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userProfile = localStorage.getItem('userProfile');
+      if (userProfile) {
+        try {
+          const profile = JSON.parse(userProfile);
+          setFinancialHealthScore(profile.financialHealthScore || 75);
+          setQuizAnswers(profile.quizAnswers || {});
+          setEmploymentStatus(profile.employmentStatus || "");
+        } catch (error) {
+          console.error('Erreur lors du parsing du profil utilisateur:', error);
+        }
+      }
+    }
   }, []);
 
   // À chaque update, sauvegarde dans localStorage
@@ -329,7 +407,14 @@ export default function DashboardFullWidth() {
         {/* Sidebar Desktop */}
         <aside className="hidden lg:block col-span-3 xl:col-span-2 mb-8 lg:mb-0">
           <div className="sticky top-8">
-            <SaudeFinanceiraIndicator />
+            <SaudeFinanceiraIndicator 
+              financialHealthScore={financialHealthScore}
+              setFinancialHealthScore={setFinancialHealthScore}
+              quizAnswers={quizAnswers}
+              setQuizAnswers={setQuizAnswers}
+              employmentStatus={employmentStatus}
+              setEmploymentStatus={setEmploymentStatus}
+            />
             {holeriteResult && holeriteResult.raw?.period ? (
               <div className="w-full bg-blue-50 text-blue-700 font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow text-base mb-8 border border-blue-200">
                 <FileText className="w-4 h-4 text-blue-400" />
@@ -363,7 +448,14 @@ export default function DashboardFullWidth() {
           <div className="fixed inset-0 z-50 bg-black/40 flex">
             <div className="w-64 bg-white h-full p-6 flex flex-col gap-6 animate-fadeIn">
               <button className="self-end mb-4 text-gray-500" onClick={() => setMobileMenuOpen(false)}>&times;</button>
-              <SaudeFinanceiraIndicator />
+              <SaudeFinanceiraIndicator 
+                financialHealthScore={financialHealthScore}
+                setFinancialHealthScore={setFinancialHealthScore}
+                quizAnswers={quizAnswers}
+                setQuizAnswers={setQuizAnswers}
+                employmentStatus={employmentStatus}
+                setEmploymentStatus={setEmploymentStatus}
+              />
               <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow text-base mb-8 focus:ring-2 focus:ring-emerald-400 transition-all duration-200" onClick={() => setShowUploadModal(true)}>
                 <Upload className="w-4 h-4" /> Upload Holerite
               </button>
@@ -449,8 +541,14 @@ export default function DashboardFullWidth() {
                   </div>
                 ))}
               </div>
-              {/* Graphiques supprimés ici */}
-              {/* Recommandations */}
+              {/* Recommandations personnalisées basées sur le quiz */}
+              <PersonalizedRecommendations 
+                quizAnswers={quizAnswers}
+                employmentStatus={employmentStatus}
+                financialHealthScore={financialHealthScore}
+              />
+              
+              {/* Recommandations générales */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {recommendations.map((rec, i) => (
                   <div key={i} className={`flex flex-col w-full min-h-[100px] p-6 rounded-2xl border shadow bg-white ${rec.color} transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>

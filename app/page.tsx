@@ -80,6 +80,13 @@ function HeroSection() {
             >
               {HERO_TEXT.manual}
             </button>
+            <Link
+              href="/onboarding"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2 transition flex items-center gap-2"
+            >
+              Começar Onboarding
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
           <span className="text-xs text-gray-500 mt-2">{HERO_TEXT.security}</span>
         </div>

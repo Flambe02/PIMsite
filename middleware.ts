@@ -68,7 +68,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (session && pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
 
   return res;

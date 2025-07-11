@@ -17,7 +17,7 @@ export function Header() {
         </button>
         {/* Logo aligné avec la sidebar */}
         <div className="col-span-3 xl:col-span-2 flex items-center">
-          <Logo />
+        <Logo />
         </div>
         {/* Espace central vide (pour centrer le logo) */}
         <div className="hidden lg:block col-span-6 xl:col-span-7"></div>
@@ -41,7 +41,7 @@ export function Header() {
                 <div className="mt-6 flex flex-col gap-3">
                   <HeaderClient />
                 </div>
-              </nav>
+        </nav>
             </div>
             <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
           </div>
