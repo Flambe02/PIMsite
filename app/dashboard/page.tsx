@@ -1,14 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle } from "lucide-react";
+import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import DashboardPerfilView from "@/components/dashboard/DashboardPerfilView";
 import FinancialHealthScore from "@/components/dashboard/FinancialHealthScore";
 import PersonalizedRecommendations from "@/components/dashboard/PersonalizedRecommendations";
-const UploadHolerite = dynamic(() => import("@/app/calculadora/upload-holerite"), { ssr: false });
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+
+// Import dynamique avec fallback
+const UploadHolerite = dynamic(() => import("@/app/calculadora/upload-holerite"), { 
+  ssr: false,
+  loading: () => <div className="p-8 text-center">Carregando...</div>
+});
 
 const navItems = [
   { label: "Compensação", icon: <BarChart3 className="w-6 h-6" /> },
@@ -25,24 +30,32 @@ const summaryCards = [
     value: "R$ 10.500",
     color: "border-blue-100 bg-white text-blue-700",
     icon: <BarChart3 className="w-5 h-5 text-blue-400" />,
+    source: "Dados de exemplo",
+    isMinSalary: false
   },
   {
     title: "Salário Líquido",
     value: "R$ 8.450",
     color: "border-green-100 bg-white text-green-700",
     icon: <FileText className="w-5 h-5 text-green-400" />,
+    source: "Dados de exemplo",
+    isMinSalary: false
   },
   {
     title: "Descontos",
     value: "R$ 2.050",
     color: "border-orange-100 bg-white text-orange-700",
     icon: <ArrowDownUp className="w-5 h-5 text-orange-400" />,
+    source: "Dados de exemplo",
+    isMinSalary: false
   },
   {
     title: "Eficiência",
     value: "80.5%",
     color: "border-purple-100 bg-white text-purple-700",
     icon: <PercentCircle className="w-5 h-5 text-purple-400" />,
+    source: "Dados de exemplo",
+    isMinSalary: false
   },
 ];
 
@@ -302,18 +315,30 @@ export default function DashboardFullWidth() {
   // Persistance : au chargement, relit la dernière analyse si rien n'est chargé
   useEffect(() => {
     if (holeriteResult) return;
+    console.log('🔍 Dashboard: Recherche des données holerite...');
+    
     // 1. Essaye de relire depuis localStorage
     const local = typeof window !== 'undefined' ? localStorage.getItem('holeriteResult') : null;
     if (local) {
       try {
-        setHoleriteResult(JSON.parse(local));
+        const parsed = JSON.parse(local);
+        console.log('✅ Dashboard: Données trouvées dans localStorage:', parsed);
+        setHoleriteResult(parsed);
         return;
-      } catch {}
+      } catch (error) {
+        console.error('❌ Dashboard: Erreur parsing localStorage:', error);
+      }
     }
+    
     // 2. Sinon, fetch depuis Supabase
     async function fetchLastAnalysis() {
+      console.log('🔍 Dashboard: Recherche dans Supabase...');
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log('❌ Dashboard: Aucun utilisateur connecté');
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('analyses')
         .select('*')
@@ -321,9 +346,14 @@ export default function DashboardFullWidth() {
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+        
       if (data && !error) {
-        setHoleriteResult(data.result || data);
-        if (typeof window !== 'undefined') localStorage.setItem('holeriteResult', JSON.stringify(data.result || data));
+        console.log('✅ Dashboard: Données trouvées dans Supabase:', data);
+        const result = data.result || data;
+        setHoleriteResult(result);
+        if (typeof window !== 'undefined') localStorage.setItem('holeriteResult', JSON.stringify(result));
+      } else {
+        console.log('❌ Dashboard: Aucune analyse trouvée dans Supabase:', error);
       }
     }
     fetchLastAnalysis();
@@ -337,12 +367,15 @@ export default function DashboardFullWidth() {
       if (userProfile) {
         try {
           const profile = JSON.parse(userProfile);
+          console.log('✅ Dashboard: Profil utilisateur trouvé:', profile);
           setFinancialHealthScore(profile.financialHealthScore || 75);
           setQuizAnswers(profile.quizAnswers || {});
           setEmploymentStatus(profile.employmentStatus || "");
         } catch (error) {
-          console.error('Erreur lors du parsing du profil utilisateur:', error);
+          console.error('❌ Dashboard: Erreur lors du parsing du profil utilisateur:', error);
         }
+      } else {
+        console.log('❌ Dashboard: Aucun profil utilisateur trouvé dans localStorage');
       }
     }
   }, []);
@@ -350,6 +383,7 @@ export default function DashboardFullWidth() {
   // À chaque update, sauvegarde dans localStorage
   useEffect(() => {
     if (holeriteResult && typeof window !== 'undefined') {
+      console.log('💾 Dashboard: Sauvegarde holeriteResult dans localStorage:', holeriteResult);
       localStorage.setItem('holeriteResult', JSON.stringify(holeriteResult));
     }
   }, [holeriteResult]);
@@ -361,31 +395,35 @@ export default function DashboardFullWidth() {
       value: `R$ ${holeriteResult.salarioBruto?.toLocaleString()}`,
       color: "border-blue-100 bg-white text-blue-700",
       icon: <BarChart3 className="w-5 h-5 text-blue-400" />,
-      source: holeriteResult.raw?.period ? `Holerite mês ${holeriteResult.raw.period}` : undefined,
+      source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
       isMinSalary: holeriteResult.salarioBruto && Math.abs(holeriteResult.salarioBruto - SALARIO_MINIMO) < 0.01
     },
     {
       title: "Salário Líquido",
-      value: `R$ ${holeriteResult.salarioLiquido.toLocaleString()}`,
+      value: `R$ ${holeriteResult.salarioLiquido?.toLocaleString()}`,
       color: "border-green-100 bg-white text-green-700",
       icon: <FileText className="w-5 h-5 text-green-400" />,
+      source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
     },
     {
       title: "Descontos",
-      value: `R$ ${holeriteResult.descontos.toLocaleString()}`,
+      value: `R$ ${holeriteResult.descontos?.toLocaleString()}`,
       color: "border-orange-100 bg-white text-orange-700",
       icon: <ArrowDownUp className="w-5 h-5 text-orange-400" />,
+      source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
     },
     {
       title: "Eficiência",
       value: `${holeriteResult.eficiencia}%`,
       color: "border-purple-100 bg-white text-purple-700",
       icon: <PercentCircle className="w-5 h-5 text-purple-400" />,
+      source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
     },
   ] : summaryCards;
 
   // Affiche automatiquement le détail après analyse
   const handleHoleriteResult = (result: HoleriteResult) => {
+    console.log('🎯 Dashboard: Nouveau résultat holerite reçu:', result);
     setHoleriteResult(result);
     if (typeof window !== 'undefined') localStorage.setItem('holeriteResult', JSON.stringify(result));
     setShowUploadModal(false);
@@ -416,9 +454,26 @@ export default function DashboardFullWidth() {
               setEmploymentStatus={setEmploymentStatus}
             />
             {holeriteResult && holeriteResult.raw?.period ? (
-              <div className="w-full bg-blue-50 text-blue-700 font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow text-base mb-8 border border-blue-200">
-                <FileText className="w-4 h-4 text-blue-400" />
-                Referência holerite: {formatPeriod(holeriteResult.raw.period)}
+              <div className="w-full bg-blue-50 text-blue-700 font-semibold px-4 py-2 rounded-lg flex flex-col gap-2 shadow text-base mb-8 border border-blue-200">
+                <div className="flex items-center justify-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-400" />
+                  <span>Holerite Analisado</span>
+                </div>
+                <div className="text-center text-sm">
+                  <div className="font-bold">{formatPeriod(holeriteResult.raw.period)}</div>
+                  {holeriteResult.raw.employee_name && (
+                    <div className="text-xs opacity-75">{holeriteResult.raw.employee_name}</div>
+                  )}
+                  {holeriteResult.raw.company_name && (
+                    <div className="text-xs opacity-75">{holeriteResult.raw.company_name}</div>
+                  )}
+                </div>
+                <button 
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded mt-2 transition-all duration-200" 
+                  onClick={() => setShowUploadModal(true)}
+                >
+                  Novo Upload
+                </button>
               </div>
             ) : (
               <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow text-base mb-8 focus:ring-2 focus:ring-emerald-400 transition-all duration-200" onClick={() => setShowUploadModal(true)}>
@@ -535,8 +590,20 @@ export default function DashboardFullWidth() {
                         <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">Salário Mínimo</span>
                       )}
                     </span>
-                    {card.title === "Salário Bruto" && card.source && (
-                      <span className="text-xs text-gray-400 mt-1">{card.source}</span>
+                    {card.source && (
+                      <span className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                        {holeriteResult ? (
+                          <>
+                            <FileText className="w-3 h-3" />
+                            {card.source}
+                          </>
+                        ) : (
+                          <>
+                            <Info className="w-3 h-3" />
+                            {card.source}
+                          </>
+                        )}
+                      </span>
                     )}
                   </div>
                 ))}
