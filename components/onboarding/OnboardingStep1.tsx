@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { User, Mail, Building2, Briefcase, Baby } from "lucide-react"
+import { createBrowserClient } from "@supabase/ssr"
 
 interface OnboardingStep1Props {
   userData: any
@@ -25,14 +26,32 @@ export default function OnboardingStep1({ userData, updateUserData, onNext }: On
     hasChildren: userData.hasChildren || false
   })
 
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    updateUserData(formData)
-    onNext()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    updateUserData(formData);
+    // Mise à jour Supabase : user_onboarding.profile_completed = true
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('user_onboarding')
+          .update({ profile_completed: true })
+          .eq('user_id', user.id);
+        if (error) console.log('Erreur update user_onboarding:', error.message);
+      }
+    } catch (err) {
+      console.log('Erreur Supabase:', err);
+    }
+    onNext();
   }
 
   const isFormValid = formData.firstName && formData.lastName && formData.email && formData.employmentStatus

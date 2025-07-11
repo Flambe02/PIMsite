@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -8,6 +8,7 @@ import OnboardingStep1 from "@/components/onboarding/OnboardingStep1"
 import OnboardingStep2 from "@/components/onboarding/OnboardingStep2"
 import OnboardingStep3 from "@/components/onboarding/OnboardingStep3"
 import Image from "next/image"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -41,6 +42,34 @@ export default function OnboardingPage() {
   const updateUserData = (newData: any) => {
     setUserData(prev => ({ ...prev, ...newData }))
   }
+
+  useEffect(() => {
+    const supabase = createClientComponentClient();
+    async function ensureOnboardingRecord(userId: string) {
+      const { data, error } = await supabase
+        .from('user_onboarding')
+        .select('user_id')
+        .eq('user_id', userId)
+        .single();
+      if (!data) {
+        const { error: insertError } = await supabase
+          .from('user_onboarding')
+          .upsert({
+            user_id: userId,
+            profile_completed: false,
+            checkup_completed: false,
+            holerite_uploaded: false
+          });
+        if (insertError) console.log('Erreur insert user_onboarding:', insertError.message);
+      }
+      if (error && error.code !== 'PGRST116') console.log('Erreur select user_onboarding:', error.message);
+    }
+    async function checkAndInit() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await ensureOnboardingRecord(user.id);
+    }
+    checkAndInit();
+  }, []);
 
   const renderStep = () => {
     switch (currentStep) {

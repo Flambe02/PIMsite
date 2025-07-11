@@ -8,6 +8,8 @@ import DashboardPerfilView from "@/components/dashboard/DashboardPerfilView";
 import FinancialHealthScore from "@/components/dashboard/FinancialHealthScore";
 import PersonalizedRecommendations from "@/components/dashboard/PersonalizedRecommendations";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useUserOnboarding } from "@/hooks/useUserOnboarding";
+import { GettingStarted } from "@/components/GettingStarted";
 
 // Import dynamique avec fallback
 const UploadHolerite = dynamic(() => import("@/app/calculadora/upload-holerite"), { 
@@ -310,73 +312,77 @@ export default function DashboardFullWidth() {
   const [employmentStatus, setEmploymentStatus] = useState("");
   const perfilRef = useRef<HTMLDivElement>(null);
   const SALARIO_MINIMO = 1320;
+  const [userId, setUserId] = useState<string | null>(null);
   const supabase = createClientComponentClient();
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Persistance : au chargement, relit la dernière analyse si rien n'est chargé
+  // Correction : déclaration de onboarding
+  const onboarding = useUserOnboarding(userId || undefined);
+
+  // 1. Lecture initiale du cache local
   useEffect(() => {
-    if (holeriteResult) return;
-    console.log('🔍 Dashboard: Recherche des données holerite...');
-    
-    // 1. Essaye de relire depuis localStorage
-    const local = typeof window !== 'undefined' ? localStorage.getItem('holeriteResult') : null;
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        console.log('✅ Dashboard: Données trouvées dans localStorage:', parsed);
-        setHoleriteResult(parsed);
-        return;
-      } catch (error) {
-        console.error('❌ Dashboard: Erreur parsing localStorage:', error);
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('holeriteResult');
+      if (cached) {
+        try {
+          setHoleriteResult(JSON.parse(cached));
+        } catch {}
       }
     }
-    
-    // 2. Sinon, fetch depuis Supabase
-    async function fetchLastAnalysis() {
-      console.log('🔍 Dashboard: Recherche dans Supabase...');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('❌ Dashboard: Aucun utilisateur connecté');
-        return;
-      }
-      
+  }, []);
+
+  // 2. Synchronisation avec Supabase (en arrière-plan ou sur demande)
+  const syncWithSupabase = async () => {
+    if (!userId) return;
+    setIsSyncing(true);
+    try {
       const { data, error } = await supabase
-        .from('analyses')
+        .from('holerites')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
-        
       if (data && !error) {
-        console.log('✅ Dashboard: Données trouvées dans Supabase:', data);
-        const result = data.result || data;
-        setHoleriteResult(result);
-        if (typeof window !== 'undefined') localStorage.setItem('holeriteResult', JSON.stringify(result));
-      } else {
-        console.log('❌ Dashboard: Aucune analyse trouvée dans Supabase:', error);
+        setHoleriteResult({
+          salarioBruto: Number(data.structured_data?.gross_salary ?? data.salario_bruto ?? 0),
+          salarioLiquido: Number(data.structured_data?.net_salary ?? data.salario_liquido ?? 0),
+          descontos: Number((data.structured_data?.gross_salary ?? data.salario_bruto ?? 0) - (data.structured_data?.net_salary ?? data.salario_liquido ?? 0)),
+          eficiencia: data.structured_data?.gross_salary && data.structured_data?.net_salary ? Number(((data.structured_data.net_salary / data.structured_data.gross_salary) * 100).toFixed(1)) : 0,
+          raw: {
+            ...data.structured_data,
+            employee_name: data.structured_data?.employee_name ?? data.nome ?? '',
+            company_name: data.structured_data?.company_name ?? data.empresa ?? '',
+            position: data.structured_data?.position ?? data.cargo ?? '',
+            profile_type: data.structured_data?.profile_type ?? data.perfil ?? '',
+          },
+          insights: [],
+        });
+        if (typeof window !== 'undefined') localStorage.setItem('holeriteResult', JSON.stringify(data));
       }
+    } finally {
+      setIsSyncing(false);
     }
-    fetchLastAnalysis();
-    // eslint-disable-next-line
-  }, []);
+  };
 
-  // Récupération des données du profil utilisateur depuis localStorage
+  // Synchronisation automatique à chaque changement de userId
+  useEffect(() => {
+    if (userId) {
+      syncWithSupabase();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // Ajoute ce useEffect pour vider le localStorage après login/logout
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const userProfile = localStorage.getItem('userProfile');
-      if (userProfile) {
-        try {
-          const profile = JSON.parse(userProfile);
-          console.log('✅ Dashboard: Profil utilisateur trouvé:', profile);
-          setFinancialHealthScore(profile.financialHealthScore || 75);
-          setQuizAnswers(profile.quizAnswers || {});
-          setEmploymentStatus(profile.employmentStatus || "");
-        } catch (error) {
-          console.error('❌ Dashboard: Erreur lors du parsing du profil utilisateur:', error);
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'supabase.auth.token' && !event.newValue) {
+          // Déconnexion détectée
+          localStorage.removeItem('holeriteResult');
+          localStorage.removeItem('userProfile');
         }
-      } else {
-        console.log('❌ Dashboard: Aucun profil utilisateur trouvé dans localStorage');
-      }
+      });
     }
   }, []);
 
@@ -441,18 +447,17 @@ export default function DashboardFullWidth() {
 
   return (
     <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+      {/* GettingStarted en haut si onboarding non complet */}
+      {onboarding && !onboarding.onboarding_complete && userId && (
+        <div className="mb-8">
+          <GettingStarted userId={userId} />
+        </div>
+      )}
+      {/* Bouton Rafraîchir supprimé ici */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Sidebar Desktop */}
         <aside className="hidden lg:block col-span-3 xl:col-span-2 mb-8 lg:mb-0">
           <div className="sticky top-8">
-            <SaudeFinanceiraIndicator 
-              financialHealthScore={financialHealthScore}
-              setFinancialHealthScore={setFinancialHealthScore}
-              quizAnswers={quizAnswers}
-              setQuizAnswers={setQuizAnswers}
-              employmentStatus={employmentStatus}
-              setEmploymentStatus={setEmploymentStatus}
-            />
             {holeriteResult && holeriteResult.raw?.period ? (
               <div className="w-full bg-blue-50 text-blue-700 font-semibold px-4 py-2 rounded-lg flex flex-col gap-2 shadow text-base mb-8 border border-blue-200">
                 <div className="flex items-center justify-center gap-2">
@@ -503,27 +508,43 @@ export default function DashboardFullWidth() {
           <div className="fixed inset-0 z-50 bg-black/40 flex">
             <div className="w-64 bg-white h-full p-6 flex flex-col gap-6 animate-fadeIn">
               <button className="self-end mb-4 text-gray-500" onClick={() => setMobileMenuOpen(false)}>&times;</button>
-              <SaudeFinanceiraIndicator 
-                financialHealthScore={financialHealthScore}
-                setFinancialHealthScore={setFinancialHealthScore}
-                quizAnswers={quizAnswers}
-                setQuizAnswers={setQuizAnswers}
-                employmentStatus={employmentStatus}
-                setEmploymentStatus={setEmploymentStatus}
-              />
-              <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow text-base mb-8 focus:ring-2 focus:ring-emerald-400 transition-all duration-200" onClick={() => setShowUploadModal(true)}>
-                <Upload className="w-4 h-4" /> Upload Holerite
-              </button>
+              {holeriteResult && holeriteResult.raw?.period ? (
+                <div className="w-full bg-blue-50 text-blue-700 font-semibold px-4 py-2 rounded-lg flex flex-col gap-2 shadow text-base mb-8 border border-blue-200">
+                  <div className="flex items-center justify-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-400" />
+                    <span>Holerite Analisado</span>
+                  </div>
+                  <div className="text-center text-sm">
+                    <div className="font-bold">{formatPeriod(holeriteResult.raw.period)}</div>
+                    {holeriteResult.raw.employee_name && (
+                      <div className="text-xs opacity-75">{holeriteResult.raw.employee_name}</div>
+                    )}
+                    {holeriteResult.raw.company_name && (
+                      <div className="text-xs opacity-75">{holeriteResult.raw.company_name}</div>
+                    )}
+                  </div>
+                  <button 
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded mt-2 transition-all duration-200" 
+                    onClick={() => setShowUploadModal(true)}
+                  >
+                    Novo Upload
+                  </button>
+                </div>
+              ) : (
+                <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow text-base mb-8 focus:ring-2 focus:ring-emerald-400 transition-all duration-200" onClick={() => setShowUploadModal(true)}>
+                  <Upload className="w-4 h-4" /> Upload Holerite
+                </button>
+              )}
               <nav className="flex flex-col gap-2 w-full">
                 {navItems.map((item, i) => (
-                  <button
+            <button
                     key={i}
                     className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg font-semibold text-base transition-all duration-200 ${activeTab === item.label ? "bg-emerald-100 text-emerald-700 shadow border-l-4 border-emerald-500" : "text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"}`}
                     onClick={() => { handleSidebarNav(item.label); setMobileMenuOpen(false); }}
-                  >
+            >
                     {item.icon}
                     <span className="ml-2 truncate">{item.label}</span>
-                  </button>
+            </button>
                 ))}
               </nav>
             </div>
@@ -541,11 +562,47 @@ export default function DashboardFullWidth() {
         )}
         {/* Main content dynamique */}
         <section className="col-span-12 lg:col-span-6 xl:col-span-7 flex flex-col gap-8">
-          {activeTab === "Dados" ? (
-            <DashboardPerfilView holeriteResult={holeriteResult} />
-          ) : (
+          {/* Retiré : Section Saúde Financeira */}
+          {/* GettingStarted juste après Saúde Financeira */}
+          {onboarding && !onboarding.onboarding_complete && userId && (
+            <div className="mb-6 rounded-xl">
+              <GettingStarted userId={userId} />
+            </div>
+          )}
+          
+          {/* Contenu selon l'onglet actif */}
+          {activeTab === "Dados" && (
             <>
               {/* Section Perfil */}
+              <div ref={perfilRef} className="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-6">
+                <div className="font-semibold text-lg mb-2 text-emerald-900 flex items-center gap-2">
+                  <UserCircle className="w-6 h-6 text-emerald-600" /> Perfil do Colaborador
+                  {holeriteResult?.raw?.profile_type && (
+                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200`}>
+                      {holeriteResult.raw.profile_type}
+                    </span>
+                  )}
+                </div>
+                {holeriteResult && holeriteResult.raw && (
+                  <div className="flex flex-col gap-2 text-base">
+                    <div><span className="font-semibold">Nome:</span> {holeriteResult.raw.employee_name || <span className="text-gray-400">(não identificado)</span>}</div>
+                    <div><span className="font-semibold">Empresa:</span> {holeriteResult.raw.company_name || <span className="text-gray-400">(não identificado)</span>}</div>
+                    <div><span className="font-semibold">Cargo:</span> {holeriteResult.raw.position || <span className="text-gray-400">(não identificado)</span>}</div>
+                    <div><span className="font-semibold">Perfil:</span> {holeriteResult.raw.profile_type || <span className="text-gray-400">(não identificado)</span>}</div>
+                  </div>
+                )}
+                {(!holeriteResult || !holeriteResult.raw) && (
+                  <div className="text-gray-400">Aucune donnée extraite d'un holerite pour le moment.</div>
+                )}
+              </div>
+              {/* Composant DashboardPerfilView pour l'édition des données */}
+              <DashboardPerfilView holeriteResult={holeriteResult} user={null} />
+            </>
+          )}
+          
+          {activeTab === "Compensação" && (
+            <>
+              {/* Section Perfil (version résumée) */}
               <div ref={perfilRef} className="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-6">
                 <div className="font-semibold text-lg mb-2 text-emerald-900 flex items-center gap-2">
                   <UserCircle className="w-6 h-6 text-emerald-600" /> Perfil do Colaborador
@@ -627,6 +684,14 @@ export default function DashboardFullWidth() {
                 ))}
               </div>
             </>
+          )}
+          
+          {/* Pour les autres onglets, afficher un message temporaire */}
+          {activeTab !== "Dados" && activeTab !== "Compensação" && (
+            <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 text-center">
+              <div className="text-2xl font-bold text-gray-800 mb-4">{activeTab}</div>
+              <p className="text-gray-600">Cette section sera bientôt disponible.</p>
+            </div>
           )}
         </section>
         {/* Colonne droite */}

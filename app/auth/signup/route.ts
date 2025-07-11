@@ -15,24 +15,31 @@ export async function POST(request: NextRequest) {
 
     console.log('Form data received:', { email: email ? 'present' : 'missing', password: password ? 'present' : 'missing', confirmPassword: confirmPassword ? 'present' : 'missing' })
 
+    const isJson = request.headers.get('accept')?.includes('application/json');
     if (!email || !password || !confirmPassword) {
-      const redirectUrl = new URL('/cadastro', origin)
+      if (isJson) {
+        return new Response(JSON.stringify({ error: 'All fields are required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const redirectUrl = new URL('/login', origin)
       redirectUrl.searchParams.set('message', 'All fields are required')
-      console.log('Redirecting to:', redirectUrl.toString())
       return NextResponse.redirect(redirectUrl)
     }
 
     if (password !== confirmPassword) {
-      const redirectUrl = new URL('/cadastro', origin)
+      if (isJson) {
+        return new Response(JSON.stringify({ error: 'Passwords do not match' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const redirectUrl = new URL('/login', origin)
       redirectUrl.searchParams.set('message', 'Passwords do not match')
-      console.log('Redirecting to:', redirectUrl.toString())
       return NextResponse.redirect(redirectUrl)
     }
 
     if (password.length < 6) {
-      const redirectUrl = new URL('/cadastro', origin)
+      if (isJson) {
+        return new Response(JSON.stringify({ error: 'Password must be at least 6 characters long' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const redirectUrl = new URL('/login', origin)
       redirectUrl.searchParams.set('message', 'Password must be at least 6 characters long')
-      console.log('Redirecting to:', redirectUrl.toString())
       return NextResponse.redirect(redirectUrl)
     }
 
@@ -47,10 +54,18 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error("Signup error:", error.message)
-      const redirectUrl = new URL('/cadastro', origin)
+      if (isJson) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      // Si l'email existe déjà, redirige vers /login avec message
+      if (error.message && error.message.toLowerCase().includes('already registered')) {
+        const redirectUrl = new URL('/login', origin)
+        redirectUrl.searchParams.set('message', 'Este email já possui uma conta. Faça login ou recupere sua senha.')
+        redirectUrl.searchParams.set('email', email)
+        return NextResponse.redirect(redirectUrl)
+      }
+      const redirectUrl = new URL('/login', origin)
       redirectUrl.searchParams.set('message', error.message)
-      console.log('Redirecting to:', redirectUrl.toString())
       return NextResponse.redirect(redirectUrl)
     }
 
@@ -60,9 +75,12 @@ export async function POST(request: NextRequest) {
     console.log('Redirecting to:', redirectUrl.toString())
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
+    if (request.headers.get('accept')?.includes('application/json')) {
+      return new Response(JSON.stringify({ error: 'An unexpected error occurred' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
     console.error("Signup route error:", error)
     const origin = request.nextUrl.origin || 'http://localhost:3000'
-    const redirectUrl = new URL('/cadastro', origin)
+    const redirectUrl = new URL('/login', origin)
     redirectUrl.searchParams.set('message', 'An unexpected error occurred')
     console.log('Redirecting to:', redirectUrl.toString())
     return NextResponse.redirect(redirectUrl)

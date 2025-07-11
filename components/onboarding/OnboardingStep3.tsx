@@ -2,7 +2,7 @@
 
 import UploadHolerite from "@/app/calculadora/upload-holerite"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
 import { useEffect, useState } from "react"
 
 interface OnboardingStep3Props {
@@ -13,7 +13,10 @@ interface OnboardingStep3Props {
 
 export default function OnboardingStep3({ userData, updateUserData, onBack }: OnboardingStep3Props) {
   const [isSaving, setIsSaving] = useState(false)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const saveUserData = async (result: any) => {
     setIsSaving(true)
@@ -48,6 +51,7 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
             tem_filhos: userData.hasChildren,
             financial_health_score: userData.financialHealthScore,
             quiz_answers: userData.quizAnswers,
+            onboarding_completed: true,
             updated_at: new Date().toISOString()
           })
 
@@ -61,14 +65,32 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
               created_at: new Date().toISOString()
             })
         }
+        // Mise à jour user_onboarding : toutes les étapes à true
+        try {
+          const { error } = await supabase
+            .from('user_onboarding')
+            .update({
+              profile_completed: true,
+              checkup_completed: true,
+              holerite_uploaded: true
+            })
+            .eq('user_id', user.id);
+          if (error) console.log('Erreur update user_onboarding:', error.message);
+        } catch (err) {
+          console.log('Erreur Supabase:', err);
+        }
       }
 
       // 3. Redirection vers le dashboard
-      window.location.href = "/dashboard"
+      setTimeout(() => {
+        window.location.href = "/dashboard"
+      }, 500)
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error)
       // En cas d'erreur, on redirige quand même avec les données du localStorage
-      window.location.href = "/dashboard"
+      setTimeout(() => {
+        window.location.href = "/dashboard"
+      }, 500)
     } finally {
       setIsSaving(false)
     }

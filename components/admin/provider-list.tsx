@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClient } from "../../lib/supabase/client"
+import { createBrowserClient } from "@supabase/ssr"
 import { ConfirmDialog } from './confirm-dialog'
 import { EditModal } from './edit-modal'
 import { Input } from '@/components/ui/input'
@@ -30,7 +30,10 @@ export function ProviderList() {
     const fetchProviders = async () => {
       setLoading(true)
       setError(null)
-      const supabase = createClient()
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
       const { data, error } = await supabase.from('benefit_providers').select('*')
       if (error) setError(error.message)
       else if (data) setProviders(data)
@@ -46,7 +49,10 @@ export function ProviderList() {
 
   const confirmDelete = async () => {
     if (!toDelete) return
-    const supabase = createClient()
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     await supabase.from('benefit_providers').delete().eq('id', toDelete)
     setProviders(providers.filter(p => p.id !== toDelete))
     setConfirmOpen(false)
@@ -71,7 +77,10 @@ export function ProviderList() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editForm || !editForm.id) return
-    const supabase = createClient()
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     await supabase.from('benefit_providers').update({
       name: editForm.name,
       description: editForm.description,

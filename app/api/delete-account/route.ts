@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient({ serviceRole: true });
+  const supabase = await createClient();
   const { userId } = await req.json();
   if (!userId) return NextResponse.json({ error: 'userId manquant' }, { status: 400 });
   // Supprime les données associées

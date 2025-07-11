@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useContext } from "react";
 import { User, Mail, Heart, Home, Users, UserPlus, UserMinus, Share2, Briefcase, Lock, Building2 } from "lucide-react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserClient } from "@supabase/ssr";
 import { SupabaseContext } from "@/components/supabase-provider";
 import { useToast } from "@/components/ui/use-toast";
 import AccountSectionAccount from "@/components/account/AccountSectionAccount";
@@ -17,7 +17,10 @@ const tamanhosList = [
 ];
 
 export default function DashboardPerfilView({ holeriteResult, user }: { holeriteResult: any, user?: any }) {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const supabaseCtx = useContext(SupabaseContext);
   const sessionUser = user || supabaseCtx?.session?.user || null;
   const raw = holeriteResult?.raw || {};
@@ -89,7 +92,7 @@ export default function DashboardPerfilView({ holeriteResult, user }: { holerite
           tamanho: data.empresa_tamanho || "",
         });
         setComunicacao({
-          email: data.comunicacao_email || "",
+          email: authUser.email || data.comunicacao_email || "",
           telefone: data.comunicacao_telefone || "",
           tipoEmail: data.comunicacao_tipo_email || "Pessoal",
           tipoTelefone: data.comunicacao_tipo_telefone || "Pessoal",

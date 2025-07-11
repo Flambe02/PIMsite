@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClient } from "../../lib/supabase/client"
+import { createBrowserClient } from "@supabase/ssr"
 import { ConfirmDialog } from './confirm-dialog'
 import { EditModal } from './edit-modal'
 import { Input } from '@/components/ui/input'
@@ -31,7 +31,10 @@ export function CountryList() {
     const fetchCountries = async () => {
       setLoading(true)
       setError(null)
-      const supabase = createClient()
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
       const { data, error } = await supabase.from('countries').select('*')
       if (error) setError(error.message)
       else if (data) setCountries(data)
@@ -47,7 +50,10 @@ export function CountryList() {
 
   const confirmDelete = async () => {
     if (!toDelete) return
-    const supabase = createClient()
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     await supabase.from('countries').delete().eq('code', toDelete)
     setCountries(countries.filter(c => c.code !== toDelete))
     setConfirmOpen(false)
@@ -72,7 +78,10 @@ export function CountryList() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editForm) return
-    const supabase = createClient()
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     await supabase.from('countries').update({
       name: editForm.name,
       capital: editForm.capital,
@@ -111,7 +120,7 @@ export function CountryList() {
               <td className="p-2 border">{c.name}</td>
               <td className="p-2 border">{c.capital}</td>
               <td className="p-2 border">{c.currency} ({c.currency_code})</td>
-              <td className="p-2 border">{c.population.toLocaleString()}</td>
+              <td className="p-2 border">{c.population ? c.population.toLocaleString() : '–'}</td>
               <td className="p-2 border">
                 <button className="text-blue-600 hover:underline mr-2" onClick={() => handleEdit(c)}>Éditer</button>
                 <button className="text-red-600 hover:underline" onClick={() => handleDelete(c.code)}>Supprimer</button>

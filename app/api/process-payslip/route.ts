@@ -35,8 +35,14 @@ export async function POST(req: NextRequest) {
 
     console.log('🔍 Début de l\'extraction OCR...');
     // Passe le nom de fichier à extractText
-    const payslipText = await extractText(fileBuffer, 'ocrspace', file.name);
+    const ocrResult = await extractText(fileBuffer, 'tesseract', file.name);
+    const payslipText = ocrResult.text;
     console.log('✅ OCR terminé, longueur du texte:', payslipText.length);
+    console.log('📊 Métriques OCR:', {
+      provider: ocrResult.provider,
+      confidence: ocrResult.confidence,
+      duration_ms: ocrResult.duration_ms
+    });
     
     if (!payslipText || payslipText.trim().length < 50) {
       throw new Error("L'OCR n'a pas pu extraire suffisamment de texte. Le fichier pourrait être illisible ou protégé.");
@@ -63,6 +69,7 @@ export async function POST(req: NextRequest) {
     console.log('✅ Données parsées avec succès');
     
     console.log('💾 Sauvegarde dans Supabase...');
+    // Enregistrement dans la table analyses (historique)
     const { data: analysisRecord, error } = await supabase
       .from('analyses')
       .insert({ 
@@ -75,10 +82,51 @@ export async function POST(req: NextRequest) {
       })
       .select('id')
       .single();
-      
     if (error) {
       console.error('❌ Erreur Supabase:', error);
       throw error;
+    }
+
+    // Log du JSON analysé avant insertion dans holerites
+    console.log('🔎 JSON analysé à insérer dans holerites:', JSON.stringify(parsedData, null, 2));
+    // Enregistrement dans la table holerites (pour dashboard)
+    const { data: holeriteData, error: holeriteError } = await supabase
+      .from('holerites')
+      .insert({
+        user_id: session.user.id,
+        structured_data: parsedData,
+        nome: parsedData.employee_name || '',
+        empresa: parsedData.company_name || '',
+        perfil: parsedData.profile_type || '',
+        salario_bruto: parsedData.gross_salary || null,
+        salario_liquido: parsedData.net_salary || null,
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+    if (holeriteError) {
+      console.error('❌ Erreur insertion holerites:', holeriteError);
+      // On ne bloque pas la réponse, mais on peut l'indiquer côté client si besoin
+    }
+
+    // Insertion des résultats OCR dans la table ocr_results
+    if (holeriteData?.id) {
+      const { error: ocrError } = await supabase
+        .from('ocr_results')
+        .insert({
+          holerite_id: holeriteData.id,
+          provider: ocrResult.provider,
+          raw_text: ocrResult.text,
+          confidence: ocrResult.confidence,
+          duration_ms: ocrResult.duration_ms,
+        });
+      
+      if (ocrError) {
+        console.error('❌ Erreur insertion ocr_results:', ocrError);
+        // On ne bloque pas la réponse, mais on log l'erreur
+      } else {
+        console.log('✅ Résultats OCR sauvegardés avec succès');
+      }
     }
     
     console.log('✅ Analyse complète avec succès, ID:', analysisRecord.id);

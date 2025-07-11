@@ -12,7 +12,7 @@ export default function RecursosPage() {
         <div className="w-full max-w-2xl bg-white rounded-3xl shadow-lg border border-gray-100 px-8 py-10 flex flex-col items-center mb-2">
           <div className="flex items-center gap-2 mb-2">
             <User className="w-7 h-7 text-emerald-500" />
-            <span className="text-2xl font-bold text-emerald-900">Salariado (CLT)</span>
+            <span className="text-2xl font-bold text-emerald-900">Assalariado (CLT)</span>
           </div>
           <div className="text-gray-700 text-center mb-6">Para quem trabalha com carteira assinada e recebe holerite mensal.</div>
           <Link href="/recursos/clt">

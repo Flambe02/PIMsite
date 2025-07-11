@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
+import { createBrowserClient } from "@supabase/ssr"
 
 interface OnboardingStep2Props {
   userData: any
@@ -131,14 +132,18 @@ const quizQuestions = [
 export default function OnboardingStep2({ userData, updateUserData, onNext, onBack }: OnboardingStep2Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>(userData.quizAnswers || {})
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const totalQuestions = quizQuestions.length
   const progress = ((currentIndex) / totalQuestions) * 100
   const current = quizQuestions[currentIndex]
 
-  const handleSelect = (option: string) => {
+  const handleSelect = async (option: string) => {
     setAnswers(prev => ({ ...prev, [current.id]: option }))
-    setTimeout(() => {
+    setTimeout(async () => {
       if (currentIndex < totalQuestions - 1) {
         setCurrentIndex(currentIndex + 1)
       } else {
@@ -150,6 +155,19 @@ export default function OnboardingStep2({ userData, updateUserData, onNext, onBa
         })
         const finalScore = Math.round((score / (totalQuestions * 5)) * 100)
         updateUserData({ quizAnswers: { ...answers, [current.id]: option }, financialHealthScore: finalScore })
+        // Mise à jour Supabase : user_onboarding.checkup_completed = true
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { error } = await supabase
+              .from('user_onboarding')
+              .update({ checkup_completed: true })
+              .eq('user_id', user.id);
+            if (error) console.log('Erreur update user_onboarding:', error.message);
+          }
+        } catch (err) {
+          console.log('Erreur Supabase:', err);
+        }
         onNext()
       }
     }, 200)
