@@ -1,5 +1,5 @@
+/** @type {import('next-intl').NextIntlConfig} */
 module.exports = {
   locales: ['br', 'fr', 'en'],
-  defaultLocale: 'br',
-  localePrefix: 'as-needed'
+  defaultLocale: 'br'
 }; 
