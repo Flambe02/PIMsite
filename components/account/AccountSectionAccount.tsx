@@ -14,6 +14,7 @@ export default function AccountSectionAccount({ user }: { user?: any }) {
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const assinatura = user?.plan || "Basic";
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -46,6 +47,30 @@ export default function AccountSectionAccount({ user }: { user?: any }) {
     }, 1000);
     return () => { cancelled = true; clearTimeout(timeout); };
   }, [supabase]);
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("Tem certeza de que deseja excluir sua conta? Esta ação é irreversível.")) return;
+    setDeleting(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Sessão não encontrada.");
+      setDeleting(false);
+      return;
+    }
+    // Appel à l'API de suppression via Edge Function
+    const res = await fetch('/api/delete-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: user.id }),
+    });
+    if (res.ok) {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } else {
+      alert("Erreur lors de la suppression du compte.");
+    }
+    setDeleting(false);
+  };
 
   if (!mounted) {
     return null;
@@ -88,7 +113,9 @@ export default function AccountSectionAccount({ user }: { user?: any }) {
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
             <p className="mb-2 text-red-700 font-semibold">Tem certeza de que deseja excluir sua conta? Esta ação é irreversível.</p>
             <div className="flex gap-4">
-              <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded">Sim, excluir</button>
+              <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded" onClick={handleDeleteAccount} disabled={deleting}>
+                {deleting ? "Excluindo..." : "Sim, excluir"}
+              </button>
               <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded" onClick={() => setShowDelete(false)}>Cancelar</button>
             </div>
           </div>

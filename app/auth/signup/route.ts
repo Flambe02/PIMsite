@@ -69,9 +69,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Successful signup - redirect to login with success message
-    const redirectUrl = new URL('/login', origin)
-    redirectUrl.searchParams.set('message', 'Check your email to confirm your account')
+    // Successful signup - redirect to verify page with email
+    const redirectUrl = new URL('/signup/verify', origin)
+    redirectUrl.searchParams.set('email', email)
     console.log('Redirecting to:', redirectUrl.toString())
     return NextResponse.redirect(redirectUrl)
   } catch (error) {

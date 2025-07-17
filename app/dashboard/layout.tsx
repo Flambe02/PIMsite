@@ -6,8 +6,6 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <OnboardingRedirect>
-      {children}
-    </OnboardingRedirect>
+    <>{children}</>
   )
 } 

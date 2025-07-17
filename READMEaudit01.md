@@ -6,29 +6,31 @@ Votre projet PIM est une plateforme d'éducation financière brésilienne bien s
 
 ---
 
-## 🧹 1. NETTOYAGE ET ALLÈGEMENT
+## 🧹 1. NETTOYAGE ET ALLÈGEMENT ✅ **TERMINÉ**
 
-### ❌ **FICHIERS OBSOLÈTES À SUPPRIMER**
+### ❌ **FICHIERS OBSOLÈTES SUPPRIMÉS** ✅
 
-- [x] `test-fetch.js` - Script de test obsolète (**FAIT**)
-- [x] `test-env.js` - Test d'environnement (**FAIT**)
-- [x] `test-supabase.js` - Test Supabase (**FAIT**)
-- [x] `tmp/` - Dossier vide (**FAIT**)
-- [x] `_archive/` - Code archivé non utilisé (**FAIT**)
-- [x] `add-admin-role.sql` (**FAIT**)
-- [x] `cleanup-old-tables.sql` (**FAIT**)
-- [x] `fix-all-rls.sql` (**FAIT**)
-- [x] `fix-holerites-rls.sql` (**FAIT**)
-- [x] `fix-rls-final.sql` (**FAIT**)
-- [x] `fix-rls-policies.sql` (**FAIT**)
-- [x] `fix-supabase-setup.sql` (**FAIT**)
-- [x] `check_db_structure.sql` (**FAIT**)
-- [x] `check-table-structure.sql` (**FAIT**)
-- [x] `migration-preview-url.sql` (**FAIT**)
-- [x] `AuditSite0307.txt` - Audit ancien (**FAIT**)
-- [x] `CORRECOES-REALIZADAS.md` (**FAIT**)
-- [x] `GUIDE-CORRECTION.md` (**FAIT**)
-- [x] `OCR-issue-README.md` (**FAIT**)
+- [x] `test-fetch.js` - Script de test obsolète (**SUPPRIMÉ**)
+- [x] `test-env.js` - Test d'environnement (**SUPPRIMÉ**)
+- [x] `test-supabase.js` - Test Supabase (**SUPPRIMÉ**)
+- [x] `_archive/` - Code archivé non utilisé (**SUPPRIMÉ**)
+- [x] `add-admin-role.sql` (**SUPPRIMÉ**)
+- [x] `cleanup-old-tables.sql` (**SUPPRIMÉ**)
+- [x] `fix-all-rls.sql` (**SUPPRIMÉ**)
+- [x] `fix-holerites-rls.sql` (**SUPPRIMÉ**)
+- [x] `fix-rls-final.sql` (**SUPPRIMÉ**)
+- [x] `fix-rls-policies.sql` (**SUPPRIMÉ**)
+- [x] `fix-supabase-setup.sql` (**SUPPRIMÉ**)
+- [x] `check_db_structure.sql` (**SUPPRIMÉ**)
+- [x] `check-table-structure.sql` (**SUPPRIMÉ**)
+- [x] `migration-preview-url.sql` (**SUPPRIMÉ**)
+- [x] `AuditSite0307.txt` - Audit ancien (**SUPPRIMÉ**)
+- [x] `CORRECOES-REALIZADAS.md` (**SUPPRIMÉ**)
+- [x] `GUIDE-CORRECTION.md` (**SUPPRIMÉ**)
+- [x] `OCR-issue-README.md` (**SUPPRIMÉ**)
+- [x] `bfg-1.15.0.jar` - Fichier binaire inutile (**SUPPRIMÉ - 14MB libéré**)
+
+**🎉 RÉSULTAT : ~14MB d'espace libéré et structure nettoyée**
 
 ### 🔄 **COMPOSANTS DUPLIQUÉS À CONSOLIDER**
 
@@ -36,7 +38,8 @@ Votre projet PIM est une plateforme d'éducation financière brésilienne bien s
 
 ### 📦 **DÉPENDANCES À VÉRIFIER**
 
-- [ ] Vérifier/supprimer les dépendances inutilisées (`bfg-1.15.0.jar`, `ocr-space-api-wrapper`, `node-fetch`, `form-data`) (**À FAIRE**)
+- [x] Vérifier/supprimer les dépendances inutilisées (`bfg-1.15.0.jar` supprimé) (**FAIT**)
+- [ ] Vérifier les dépendances JS (`ocr-space-api-wrapper`, `node-fetch`, `form-data`) (**À FAIRE**)
 
 ---
 
@@ -44,7 +47,7 @@ Votre projet PIM est une plateforme d'éducation financière brésilienne bien s
 
 ### 🖼️ **IMAGES ET MÉDIA**
 
-- [ ] Activer l’optimisation des images dans `next.config.mjs` (**À FAIRE**)
+- [ ] Activer l'optimisation des images dans `next.config.mjs` (**À FAIRE**)
 - [ ] Mettre en place le lazy loading sur toutes les images (**À FAIRE**)
 - [ ] Utiliser les formats modernes (WebP/AVIF) (**À FAIRE**)
 
@@ -83,6 +86,6 @@ Votre projet PIM est une plateforme d'éducation financière brésilienne bien s
 
 ---
 
-**Résumé :**
-- ✅ Déjà fait : Suppression des fichiers obsolètes, création des fichiers de traduction.
-- ⬜️ À faire : Fusion calculateurs, optimisation images, i18n, refonte structure, UI, dark mode, etc. 
+**Résumé :**
+- ✅ **Terminé** : Nettoyage complet des fichiers obsolètes (~14MB libéré), création des fichiers de traduction
+- ⬜️ **À faire** : Fusion calculateurs, optimisation images, i18n, refonte structure, UI, dark mode, etc. 

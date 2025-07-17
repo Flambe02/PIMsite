@@ -7,9 +7,10 @@ import dynamic from "next/dynamic";
 import DashboardPerfilView from "@/components/dashboard/DashboardPerfilView";
 import FinancialHealthScore from "@/components/dashboard/FinancialHealthScore";
 import PersonalizedRecommendations from "@/components/dashboard/PersonalizedRecommendations";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useSupabase } from "@/components/supabase-provider";
 import { useUserOnboarding } from "@/hooks/useUserOnboarding";
 import { GettingStarted } from "@/components/GettingStarted";
+import { useRouter } from "next/navigation"
 
 // Import dynamique avec fallback
 const UploadHolerite = dynamic(() => import("@/app/calculadora/upload-holerite"), { 
@@ -118,7 +119,7 @@ function SaudeFinanceiraIndicator({
   employmentStatus: string;
   setEmploymentStatus: (status: string) => void;
 }) {
-  const supabase = createClientComponentClient()
+  const { supabase } = useSupabase();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -313,8 +314,9 @@ export default function DashboardFullWidth() {
   const perfilRef = useRef<HTMLDivElement>(null);
   const SALARIO_MINIMO = 1320;
   const [userId, setUserId] = useState<string | null>(null);
-  const supabase = createClientComponentClient();
+  const { supabase } = useSupabase();
   const [isSyncing, setIsSyncing] = useState(false);
+  const router = useRouter();
 
   // Correction : déclaration de onboarding
   const onboarding = useUserOnboarding(userId || undefined);
@@ -450,7 +452,13 @@ export default function DashboardFullWidth() {
       {/* GettingStarted en haut si onboarding non complet */}
       {onboarding && !onboarding.onboarding_complete && userId && (
         <div className="mb-8">
-          <GettingStarted userId={userId} />
+          <GettingStarted userId={userId} onStepClick={(step) => {
+            // Map step key to step number
+            const stepMap = { profile: 1, checkup: 2, holerite: 3 };
+            const stepNum = stepMap[step] || 1;
+            // On n'utilise plus router.push ici, juste un lien ou une info
+            window.location.href = `/onboarding?step=${stepNum}`;
+          }} />
         </div>
       )}
       {/* Bouton Rafraîchir supprimé ici */}

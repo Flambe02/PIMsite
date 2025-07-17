@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+
+// Ce route handler ne gère plus l'échange de code Supabase (fait côté client dans page.tsx)
+// Il peut servir à afficher une page d'erreur ou à d'autres callbacks API si besoin.
 
 export async function GET(request: NextRequest) {
   const origin = request.nextUrl.origin
-  const searchParams = request.nextUrl.searchParams
-  const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/dashboard"
-
-  if (code) {
-    const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
-  }
-
-  // Return the user to an error page with instructions
+  // Redirige vers une page d'erreur explicite
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 } 

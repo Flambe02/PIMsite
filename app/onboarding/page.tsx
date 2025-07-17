@@ -1,17 +1,46 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import OnboardingStep1 from "@/components/onboarding/OnboardingStep1"
 import OnboardingStep2 from "@/components/onboarding/OnboardingStep2"
 import OnboardingStep3 from "@/components/onboarding/OnboardingStep3"
 import Image from "next/image"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useSupabase } from "@/components/supabase-provider";
+import { CheckCircle2, User, ClipboardCheck, FileText } from "lucide-react"
+import { LoginModal } from "@/components/LoginModal"
+
+const steps = [
+  {
+    key: 1,
+    label: "Perfil",
+    description: "Preencha suas informações pessoais",
+    icon: <User className="w-5 h-5 mr-2" />,
+  },
+  {
+    key: 2,
+    label: "Check-up financeiro",
+    description: "Responda ao quiz para avaliar sua saúde financeira",
+    icon: <ClipboardCheck className="w-5 h-5 mr-2" />,
+  },
+  {
+    key: 3,
+    label: "Enviar holerite",
+    description: "Faça upload do seu holerite para análise",
+    icon: <FileText className="w-5 h-5 mr-2" />,
+  },
+]
 
 export default function OnboardingPage() {
-  const [currentStep, setCurrentStep] = useState(1)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const error = searchParams.get("error")
+  const errorDescription = searchParams.get("error_description")
+  const stepParam = searchParams.get("step")
+  const initialStep = stepParam ? parseInt(stepParam, 10) : 1
+  const [currentStep, setCurrentStep] = useState(initialStep)
   const [userData, setUserData] = useState({
     firstName: "",
     lastName: "",
@@ -23,28 +52,28 @@ export default function OnboardingPage() {
     quizAnswers: {},
     payslipData: null
   })
+  const [showLogin, setShowLogin] = useState(false)
+  const [session, setSession] = useState<any>(null)
+  const [loadingSession, setLoadingSession] = useState(true)
+  const { supabase } = useSupabase();
 
-  const totalSteps = 3
-  const progress = (currentStep / totalSteps) * 100
-
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-
-  const updateUserData = (newData: any) => {
-    setUserData(prev => ({ ...prev, ...newData }))
-  }
-
+  // Charger la session dès le début
   useEffect(() => {
-    const supabase = createClientComponentClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoadingSession(false)
+    })
+  }, [supabase])
+
+  // Redirection automatique si pas de session
+  useEffect(() => {
+    if (!loadingSession && !session) {
+      router.replace('/login?message=Veuillez vous connecter pour continuer l\'onboarding')
+    }
+  }, [loadingSession, session, router])
+
+  // Initialisation de l'onboarding record
+  useEffect(() => {
     async function ensureOnboardingRecord(userId: string) {
       const { data, error } = await supabase
         .from('user_onboarding')
@@ -68,66 +97,53 @@ export default function OnboardingPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) await ensureOnboardingRecord(user.id);
     }
-    checkAndInit();
-  }, []);
+    if (session) checkAndInit();
+  }, [session, supabase])
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return <OnboardingStep1 userData={userData} updateUserData={updateUserData} onNext={handleNext} />
-      case 2:
-        return <OnboardingStep2 userData={userData} updateUserData={updateUserData} onNext={handleNext} onBack={handleBack} />
-      case 3:
-        return <OnboardingStep3 userData={userData} updateUserData={updateUserData} onBack={handleBack} />
-      default:
-        return <OnboardingStep1 userData={userData} updateUserData={updateUserData} onNext={handleNext} />
-    }
+  if (loadingSession) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-blue-50">
+        <div className="text-emerald-700 text-lg font-semibold animate-pulse">Chargement de la session...</div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-blue-50">
+        <div className="text-red-700 text-lg font-semibold">Auth session missing! Redirection...</div>
+      </div>
+    )
+  }
+
+  // Handler pour passer à la suite (redirige vers dashboard)
+  const handleNext = () => {
+    window.location.href = "/dashboard";
+  };
+
+  if (error) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-blue-50">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Erro de autenticação</h2>
+          <p className="mb-4 text-gray-700">{errorDescription || "O link de acesso expirou ou é inválido. Por favor, solicite um novo link para continuar."}</p>
+          <button
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-full mt-2"
+            onClick={() => setShowLogin(true)}
+          >
+            Voltar para o Login
+          </button>
+        </div>
+        {showLogin && <LoginModal open={showLogin} onOpenChange={setShowLogin} />}
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
-      {/* Header */}
-      <header className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-md border-b">
-        <div className="flex items-center space-x-3">
-          <Image src="/images/pimentao-logo.png" alt="PIM Logo" width={40} height={40} className="h-10 w-auto" />
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">PIM</h1>
-            <p className="text-sm text-gray-600">Otimização de Folha de Pagamento</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-medium text-gray-900">Etapa {currentStep} de {totalSteps}</p>
-          <p className="text-xs text-gray-500">Configuração da sua conta</p>
-        </div>
-      </header>
-
-      {/* Progress Bar */}
-      <div className="px-6 py-4 bg-white/60 backdrop-blur-sm border-b">
-        <Progress value={progress} className="h-2" />
+    <div className="flex min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 items-center justify-center">
+      <div className="w-full max-w-2xl transition-all duration-500 animate-fade-in-slide">
+        <OnboardingStep1 onNext={handleNext} />
       </div>
-
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-2xl">
-          {renderStep()}
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t px-4 md:px-6 bg-white/80 backdrop-blur-md">
-        <div className="flex items-center">
-          <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={32} height={32} className="h-8 w-auto mr-2" />
-          <p className="text-xs text-gray-500">© 2025 The Pimentão Rouge Company. Todos os direitos reservados.</p>
-        </div>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <a className="text-xs hover:underline underline-offset-4" href="#">
-            Termos de Serviço
-          </a>
-          <a className="text-xs hover:underline underline-offset-4" href="#">
-            Privacidade
-          </a>
-        </nav>
-      </footer>
     </div>
   )
 } 

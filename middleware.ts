@@ -91,6 +91,26 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Vérification onboarding obligatoire pour les routes protégées
+  if (session && needsAuth) {
+    // On ne bloque plus l'accès à /dashboard même si l'onboarding n'est pas complet
+    if (pathname.startsWith("/calculadora")) {
+      const { data: onboarding, error } = await supabase
+        .from('user_onboarding')
+        .select('profile_completed, checkup_completed, holerite_uploaded')
+        .eq('user_id', session.user.id)
+        .single();
+      if (!error && onboarding) {
+        const onboardingComplete = onboarding.profile_completed && onboarding.checkup_completed && onboarding.holerite_uploaded;
+        if (!onboardingComplete) {
+          const redirectUrl = req.nextUrl.clone();
+          redirectUrl.pathname = "/onboarding";
+          return NextResponse.redirect(redirectUrl);
+        }
+      }
+    }
+  }
+
   if (session && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }

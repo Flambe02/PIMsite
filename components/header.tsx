@@ -7,6 +7,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { Menu, UserCircle, Shield } from "lucide-react";
 import { LoginModal } from "@/components/LoginModal";
 import { useAdmin } from "@/hooks/useAdmin";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,10 +15,10 @@ export function Header() {
   
   return (
     <>
-      <header className="w-full border-b bg-white sticky top-0 z-30">
+      <header className="w-full border-b bg-[#1a2e22] shadow-md sticky top-0 z-30">
         <div className="max-w-[1280px] mx-auto grid grid-cols-12 items-center h-16 px-4 sm:px-6 lg:px-8 relative">
           {/* Hamburger mobile */}
-          <button className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-40 bg-white border rounded-full p-2 shadow-md" onClick={() => setMobileMenuOpen(true)}>
+          <button className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-40 bg-[#223c2c] border border-[#3a5c47] rounded-full p-2 shadow-md text-white hover:bg-[#2e4a38] transition" onClick={() => setMobileMenuOpen(true)}>
             <Menu className="w-7 h-7" />
           </button>
           {/* Logo aligné avec la sidebar */}
@@ -29,9 +30,9 @@ export function Header() {
           <div className="hidden lg:block col-span-6 xl:col-span-7"></div>
           {/* Actions alignées à droite (desktop only) */}
           <div className="hidden lg:flex col-span-3 xl:col-span-3 items-center justify-end gap-4">
-            <Link href="/recursos" className="text-sm px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-gray-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Recursos</Link>
-            <Link href="/guia-paises" className="text-sm px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-gray-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Guia dos Países</Link>
-            <Link href="/dashboard" className="text-sm px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-gray-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Dashboard</Link>
+            <Link href="/recursos" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Recursos</Link>
+            <Link href="/guia-paises" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Guia dos Países</Link>
+            <Link href="/dashboard" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Dashboard</Link>
             <HeaderClient />
           </div>
           {/* Mobile drawer */}
@@ -68,6 +69,7 @@ function HeaderClient() {
   const [session, setSession] = useState<unknown>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { isAdmin } = useAdmin();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -77,11 +79,9 @@ function HeaderClient() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (!session) setLoginOpen(true); // Ouvre le modal si pas de session
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (!session) setLoginOpen(true); // Ouvre le modal après logout
     });
     return () => {
       listener?.subscription.unsubscribe();
@@ -90,7 +90,7 @@ function HeaderClient() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/");
   }
 
   if (session) {
@@ -100,13 +100,13 @@ function HeaderClient() {
         {isAdmin && (
           <Link 
             href="/admin" 
-            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 hover:bg-emerald-50 transition-colors" 
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#eaf6f0] hover:bg-emerald-50 transition-colors" 
             title="Admin Panel"
           >
             <Shield className="w-6 h-6 text-emerald-700" />
           </Link>
         )}
-        <Link href="/profile" className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 hover:bg-emerald-50 transition-colors" title="Perfil">
+        <Link href="/profile" className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#1a2e22] hover:bg-emerald-50 transition-colors" title="Perfil">
           <UserCircle className="w-6 h-6 text-emerald-700" />
         </Link>
         <button onClick={handleLogout} className="text-sm px-3 py-1 border rounded bg-red-500 text-white">Sair</button>
@@ -115,7 +115,16 @@ function HeaderClient() {
   }
   return (
     <>
-      <button onClick={() => setLoginOpen(true)} className="text-sm px-3 py-1 border rounded bg-emerald-600 text-white hover:bg-emerald-700">Entrar</button>
+      <button
+        onClick={() => {
+          if (pathname === "/login") {
+            router.push("/login");
+          } else {
+            setLoginOpen(true);
+          }
+        }}
+        className="text-sm px-3 py-1 border rounded bg-emerald-600 text-white hover:bg-emerald-700"
+      >Entrar</button>
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
     </>
   );

@@ -1,202 +1,168 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
-import { User, Mail, Building2, Briefcase, Baby } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
+import { useSupabase } from "@/components/supabase-provider";
 
-interface OnboardingStep1Props {
-  userData: any
-  updateUserData: (data: any) => void
-  onNext: () => void
-}
+export default function OnboardingStep1({ onNext }: { onNext: () => void }) {
+  const { supabase } = useSupabase();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [form, setForm] = useState({
+    nome: "",
+    nomePreferido: "",
+    nascimento: "",
+    genero: "",
+    cidade: "",
+    email: "",
+    telefone: "",
+    empresa: "",
+    setor: "",
+    localizacao: "",
+    tamanho: "",
+    profissao: "",
+  });
 
-export default function OnboardingStep1({ userData, updateUserData, onNext }: OnboardingStep1Props) {
-  const [formData, setFormData] = useState({
-    firstName: userData.firstName || "",
-    lastName: userData.lastName || "",
-    email: userData.email || "",
-    company: userData.company || "",
-    employmentStatus: userData.employmentStatus || "",
-    hasChildren: userData.hasChildren || false
-  })
+  // Pré-remplir avec les données existantes du profil
+  useEffect(() => {
+    async function fetchProfile() {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (data) {
+        setForm(f => ({
+          ...f,
+          nome: data.nome || "",
+          nomePreferido: data.nome_preferido || "",
+          nascimento: data.data_nascimento || "",
+          genero: data.genero || "",
+          cidade: data.cidade || "",
+          email: user.email || data.comunicacao_email || "",
+          telefone: data.comunicacao_telefone || "",
+          empresa: data.empresa_nome || "",
+          setor: data.empresa_setor || "",
+          localizacao: data.empresa_localizacao || "",
+          tamanho: data.empresa_tamanho || "",
+          profissao: data.profissao || "",
+        }));
+      }
+      setLoading(false);
+    }
+    fetchProfile();
+  }, []);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm(f => ({ ...f, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateUserData(formData);
-    // Mise à jour Supabase : user_onboarding.profile_completed = true
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase
-          .from('user_onboarding')
-          .update({ profile_completed: true })
-          .eq('user_id', user.id);
-        if (error) console.log('Erreur update user_onboarding:', error.message);
-      }
-    } catch (err) {
-      console.log('Erreur Supabase:', err);
+    setError("");
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setError("Session expirée, reconnecte-toi."); setSaving(false); return; }
+    // Mise à jour du profil
+    const { error: upsertError } = await supabase.from("profiles").upsert({
+      id: user.id,
+      email: form.email,
+      nome: form.nome,
+      nome_preferido: form.nomePreferido,
+      data_nascimento: form.nascimento,
+      genero: form.genero,
+      cidade: form.cidade,
+      comunicacao_email: form.email,
+      comunicacao_telefone: form.telefone,
+      empresa_nome: form.empresa,
+      empresa_setor: form.setor,
+      empresa_localizacao: form.localizacao,
+      empresa_tamanho: form.tamanho,
+      profissao: form.profissao,
+    });
+    setSaving(false);
+    if (upsertError) {
+      setError("Erreur lors de la sauvegarde : " + upsertError.message);
+    } else {
+      setSuccess(true);
+      onNext();
     }
-    onNext();
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-[300px] w-full text-emerald-700">Chargement...</div>;
   }
 
-  const isFormValid = formData.firstName && formData.lastName && formData.email && formData.employmentStatus
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl rounded-3xl shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="text-center pb-8">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
-            <span className="text-3xl">👋</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-2 md:p-4">
+      <Card className="w-full max-w-lg rounded-3xl shadow-2xl border-0 bg-white/80 backdrop-blur-xl flex flex-col justify-center items-center min-h-[520px] h-auto py-8 px-8 animate-fade-in">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+          <h2 className="text-2xl font-bold mb-2 text-emerald-900 text-center">Données personnelles</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="nome">Nom</Label>
+              <Input id="nome" name="nome" value={form.nome} onChange={handleChange} required />
+            </div>
+            <div>
+              <Label htmlFor="nomePreferido">Nom préféré</Label>
+              <Input id="nomePreferido" name="nomePreferido" value={form.nomePreferido} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="nascimento">Date de naissance</Label>
+              <Input id="nascimento" name="nascimento" type="date" value={form.nascimento} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="genero">Genre</Label>
+              <select id="genero" name="genero" className="input" value={form.genero} onChange={handleChange}>
+                <option value="">Sélectionner</option>
+                <option value="Féminin">Féminin</option>
+                <option value="Masculin">Masculin</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="cidade">Ville</Label>
+              <Input id="cidade" name="cidade" value={form.cidade} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
+            </div>
+            <div>
+              <Label htmlFor="telefone">Téléphone</Label>
+              <Input id="telefone" name="telefone" value={form.telefone} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="empresa">Entreprise</Label>
+              <Input id="empresa" name="empresa" value={form.empresa} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="setor">Secteur</Label>
+              <Input id="setor" name="setor" value={form.setor} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="localizacao">Localisation entreprise</Label>
+              <Input id="localizacao" name="localizacao" value={form.localizacao} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="tamanho">Taille entreprise</Label>
+              <Input id="tamanho" name="tamanho" value={form.tamanho} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="profissao">Profession</Label>
+              <Input id="profissao" name="profissao" value={form.profissao} onChange={handleChange} />
+            </div>
           </div>
-          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-            Bem-vindo ao PIM!
-          </CardTitle>
-          <CardDescription className="text-xl text-gray-600 mt-3">
-            Vamos começar criando sua conta e conhecendo seu perfil profissional
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="px-8 pb-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Nome e Sobrenome */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Nome
-                </Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange("firstName", e.target.value)}
-                  placeholder="Seu nome"
-                  className="h-12 text-lg border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
-                  required
-                />
-              </div>
-              <div className="space-y-3">
-                <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Sobrenome
-                </Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange("lastName", e.target.value)}
-                  placeholder="Seu sobrenome"
-                  className="h-12 text-lg border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Email Profissional
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="seu.email@empresa.com"
-                className="h-12 text-lg border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
-                required
-              />
-            </div>
-
-            {/* Empresa */}
-            <div className="space-y-3">
-              <Label htmlFor="company" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                Empresa
-              </Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => handleInputChange("company", e.target.value)}
-                placeholder="Nome da sua empresa"
-                className="h-12 text-lg border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
-              />
-            </div>
-
-            {/* Status Profissional */}
-            <div className="space-y-4">
-              <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Briefcase className="w-4 h-4" />
-                Status Profissional
-              </Label>
-              <RadioGroup
-                value={formData.employmentStatus}
-                onValueChange={(value) => handleInputChange("employmentStatus", value)}
-                className="grid grid-cols-2 gap-4"
-              >
-                {[
-                  { value: "CLT", label: "CLT", icon: "💼" },
-                  { value: "PJ", label: "PJ", icon: "🏢" },
-                  { value: "Intern", label: "Estagiário", icon: "🎓" },
-                  { value: "Other", label: "Outro", icon: "🔧" }
-                ].map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
-                      formData.employmentStatus === option.value
-                        ? "border-emerald-500 bg-emerald-50 shadow-md"
-                        : "border-gray-200 hover:border-emerald-300"
-                    }`}
-                    onClick={() => handleInputChange("employmentStatus", option.value)}
-                  >
-                    <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
-                    <span className="text-2xl">{option.icon}</span>
-                    <Label htmlFor={option.value} className="cursor-pointer font-semibold text-gray-700">
-                      {option.label}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-
-            {/* Filhos */}
-            <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 rounded-xl hover:border-emerald-300 transition-all">
-              <Checkbox
-                id="hasChildren"
-                checked={formData.hasChildren}
-                onCheckedChange={(checked) => handleInputChange("hasChildren", checked)}
-                className="w-5 h-5"
-              />
-              <Label htmlFor="hasChildren" className="cursor-pointer font-semibold text-gray-700 flex items-center gap-2">
-                <Baby className="w-4 h-4" />
-                Você tem filhos?
-              </Label>
-            </div>
-
-            {/* CTA Button */}
-            <Button
-              type="submit"
-              disabled={!isFormValid}
-              className="w-full h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
-            >
-              Continuar →
-            </Button>
-          </form>
-        </CardContent>
+          {error && <div className="text-red-600 text-sm text-center mt-2">{error}</div>}
+          <Button type="submit" className="w-full h-12 rounded-2xl text-base font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 mt-4" disabled={saving}>
+            {saving ? "Sauvegarde..." : "OK"}
+          </Button>
+        </form>
       </Card>
     </div>
   )

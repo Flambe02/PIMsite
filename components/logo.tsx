@@ -14,10 +14,14 @@ export function Logo({ size = "default" }: LogoProps) {
 
   return (
     <Link href="/" className="flex items-center gap-2">
-      <div className="relative" style={{ height, width }}>
-        <Image src="/images/pimentao-logo.png" alt="Logo PIM" fill className="object-contain" priority />
+      <div className="relative rounded-full overflow-hidden" style={{ height, width }}>
+        <div className="absolute inset-0 rounded-full" style={{
+          background: "radial-gradient(circle, #fff 60%, #eaf6f0 80%, #1a2e22 100%)",
+          zIndex: 1
+        }} />
+        <Image src="/images/pimentao-logo.png" alt="Logo PIM" fill className="object-contain relative z-10" priority />
       </div>
-      <span className="font-bold text-xl">PIM</span>
+      <span className="font-bold text-xl text-white">PIM</span>
     </Link>
   )
 }

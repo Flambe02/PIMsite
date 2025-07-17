@@ -10,6 +10,8 @@ import { createBrowserClient } from "@supabase/ssr"
 import { Button } from "@/components/ui/button"
 import { TrustBadges } from "@/components/trust-badges"
 import { ChatButton } from "@/components/chat-button"
+import { LoginModal } from "@/components/LoginModal"
+import { useUserOnboarding } from "@/hooks/useUserOnboarding"
 
 const HERO_TEXT = {
   title: "Entenda seu Holerite e Economize Otimizando seus Benefícios",
@@ -20,9 +22,9 @@ const HERO_TEXT = {
 }
 
 function HeroSection() {
-  const [showManual, setShowManual] = useState(false)
-  const [showUpload, setShowUpload] = useState(false)
-  const [session, setSession] = useState<unknown>(null)
+  const [session, setSession] = useState<any>(null)
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,98 +32,78 @@ function HeroSection() {
   )
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let mounted = true
+    async function fetchSession() {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!mounted) return
       setSession(session)
-    })
+      setLoading(false)
+    }
+    fetchSession()
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     return () => {
+      mounted = false
       listener?.subscription.unsubscribe()
     }
-  }, [supabase, setSession])
+  }, [supabase])
 
-  // Redirection logic for upload/manual
-  const handleUploadClick = () => {
-    if (session) {
-      router.push("/calculadora")
+  const handleSignUp = () => {
+    router.push("/signup")
+  }
+  const handleLogin = () => {
+    setLoginOpen(true)
+  }
+  const handleSimule = () => {
+    if (!session) {
+      setLoginOpen(true)
     } else {
-      router.push("/login?redirectTo=/calculadora")
+      router.push("/dashboard")
     }
   }
-  const handleManualClick = () => {
-    if (session) {
-      router.push("/calculadora?manual=1")
-    } else {
-      router.push("/login?redirectTo=/calculadora?manual=1")
-    }
-  }
+
+  // Afficher un loader uniquement pendant le chargement initial
+  const isLoading = loading
 
   return (
-    <section id="hero-section" className="w-full py-12 md:py-20 lg:py-24 bg-gradient-to-br from-emerald-50 to-white flex items-center justify-center">
-      <div className="container mx-auto px-4 md:px-6 flex flex-col lg:flex-row items-center justify-center gap-4 md:gap-8 space-x-0 md:space-x-8">
-        {/* Colonne gauche : texte */}
-        <div className="flex-1 flex flex-col items-start justify-center space-y-6 max-w-xl w-full">
-          <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium mb-2">Para CLT, PJ ou Estagiários</span>
-          <h1 className="font-bold text-4xl md:text-5xl leading-tight">{HERO_TEXT.title}</h1>
-          <p className="text-lg md:text-xl text-gray-600 mt-2">{HERO_TEXT.subtitle}</p>
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-start mt-2">
+    <section id="hero-section" className="relative w-full min-h-[70vh] flex flex-col items-center justify-center bg-gradient-to-br from-[#1a2e22] to-[#16251b] text-white overflow-hidden py-24">
+      {/* Motif grille SVG */}
+      <svg className="absolute inset-0 w-full h-full opacity-10" style={{zIndex:0}} xmlns="http://www.w3.org/2000/svg" fill="none"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#fff" strokeWidth="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid)"/></svg>
+      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl mx-auto text-center gap-8">
+        <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl leading-tight drop-shadow-lg mb-4">
+          Entenda seu Holerite e Economize Otimizando seus Benefícios
+        </h1>
+        <p className="text-lg md:text-2xl text-emerald-100 mb-8">
+          Faça upload do seu holerite ou preencha os dados manualmente para ver os resultados
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6">
             <button
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition"
-              onClick={handleUploadClick}
+            className="bg-emerald-500 hover:bg-emerald-400 text-white font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition text-lg"
+            onClick={handleSignUp}
               type="button"
+            disabled={isLoading}
             >
-              {HERO_TEXT.upload}
+            Sign up
             </button>
             <button
-              className="bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition"
-              onClick={handleManualClick}
+            className="bg-[#223c2c] hover:bg-[#2e4a38] text-emerald-200 font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition text-lg border border-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
+            onClick={handleSimule}
               type="button"
+            disabled={isLoading}
             >
-              {HERO_TEXT.manual}
+            {isLoading ? "Carregando..." : "Simule"}
             </button>
-            <Link
-              href="/onboarding"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2 transition flex items-center gap-2"
-            >
-              Começar Onboarding
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <span className="text-xs text-gray-500 mt-2">{HERO_TEXT.security}</span>
         </div>
-        {/* Colonne droite : image */}
-        <div className="flex-1 flex items-center justify-center w-full max-w-md mx-auto lg:mx-0">
-          <Image
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-6BkboFHypQ21vOUXShB9EYLfuvsqhj.png"
-            alt="Folha de pagamento e alocação de benefícios"
-            width={500}
-            height={500}
-            className="w-full max-w-lg h-auto object-contain rounded-2xl shadow-xl"
-          />
+        {/* USP line */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mt-2">
+          <span className="flex items-center gap-2 text-emerald-200 text-base"><span className="inline-block bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center"><svg width="14" height="14" fill="none" viewBox="0 0 20 20"><path d="M7 10.5l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>Tarificação transparente</span>
+          <span className="flex items-center gap-2 text-emerald-200 text-base"><span className="inline-block bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center"><svg width="14" height="14" fill="none" viewBox="0 0 20 20"><path d="M7 10.5l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>Onboarding rápido</span>
+          <span className="flex items-center gap-2 text-emerald-200 text-base"><span className="inline-block bg-emerald-500 rounded-full w-5 h-5 flex items-center justify-center"><svg width="14" height="14" fill="none" viewBox="0 0 20 20"><path d="M7 10.5l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>Suporte dedicado</span>
         </div>
+        <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
       </div>
-      {/* Modals */}
-      {showManual && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full relative">
-            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => setShowManual(false)} aria-label="Fechar">✕</button>
-            <h2 className="text-lg font-bold mb-4">Preencher manualmente</h2>
-            <p className="text-sm text-gray-600 mb-4">(Aqui irá o formulário passo a passo...)</p>
-            <button className="bg-emerald-600 text-white px-4 py-2 rounded" onClick={() => setShowManual(false)}>Fechar</button>
-          </div>
-        </div>
-      )}
-      {showUpload && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full relative">
-            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => setShowUpload(false)} aria-label="Fechar">✕</button>
-            <h2 className="text-lg font-bold mb-4">Fazer upload do holerite</h2>
-            <p className="text-sm text-gray-600 mb-4">(Aqui irá o workflow de upload...)</p>
-            <button className="bg-emerald-600 text-white px-4 py-2 rounded" onClick={() => setShowUpload(false)}>Fechar</button>
-          </div>
-        </div>
-      )}
     </section>
   )
 }
@@ -145,19 +127,19 @@ function ProcessSection() {
     },
   ];
   return (
-    <section className="w-full py-4 md:py-6 bg-white">
+    <section className="w-full py-12 bg-[#223c2c] text-white">
       <div className="max-w-4xl mx-auto px-4 md:px-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-2">Como funciona</h2>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 relative">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-6">Como funciona</h2>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative">
           {/* Ligne de progression */}
-          <div className="hidden md:block absolute left-0 right-0 top-1/2 h-1 bg-gradient-to-r from-emerald-200 via-yellow-200 to-blue-200 z-0" style={{transform: 'translateY(-50%)'}} />
+          <div className="hidden md:block absolute left-0 right-0 top-1/2 h-1 bg-gradient-to-r from-emerald-400 via-yellow-400 to-blue-400 z-0 opacity-30" style={{transform: 'translateY(-50%)'}} />
           {steps.map((step, i) => (
-            <div key={i} className="flex flex-col items-center text-center bg-white z-10 w-full md:w-1/3">
+            <div key={i} className="flex flex-col items-center text-center bg-[#1a2e22] rounded-2xl shadow-lg border border-[#2e4a38] z-10 w-full md:w-1/3 p-6">
               <div className="mb-4 relative">
                 {step.icon}
               </div>
-              <h3 className="font-semibold text-lg mb-1">{step.title}</h3>
-              <p className="text-gray-500 text-sm mb-2">{step.desc}</p>
+              <h3 className="font-semibold text-lg mb-1 text-emerald-200">{step.title}</h3>
+              <p className="text-emerald-100 text-sm mb-2">{step.desc}</p>
             </div>
           ))}
         </div>
@@ -188,30 +170,30 @@ function TestimonialsSection() {
     },
   ];
   return (
-    <section className="w-full py-8 md:py-14 bg-emerald-50">
+    <section className="w-full py-12 bg-[#16251b] text-white">
       <div className="max-w-4xl mx-auto px-4 md:px-6">
         <div className="flex items-center justify-center mb-6">
-          <span className="text-emerald-700 font-bold text-xl mr-2">4.8/5</span>
+          <span className="text-emerald-300 font-bold text-xl mr-2">4.8/5</span>
           <div className="flex text-yellow-400 mr-2">
             {[1,2,3,4,5].map(i => (
-              <svg key={i} className={`h-5 w-5 ${i===5 ? 'text-gray-300' : ''}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              <svg key={i} className={`h-5 w-5 ${i===5 ? 'text-gray-700' : ''}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
             ))}
           </div>
-          <span className="text-gray-600 text-sm">(2.143 avaliações)</span>
+          <span className="text-emerald-200 text-sm">(2.143 avaliações)</span>
         </div>
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch justify-center">
           {testimonials.map((t, i) => (
-            <div key={i} className="flex-1 bg-white rounded-xl shadow p-6 flex flex-col items-center text-center border border-emerald-100">
+            <div key={i} className="flex-1 bg-[#223c2c] rounded-xl shadow-lg p-6 flex flex-col items-center text-center border border-[#2e4a38]">
               <Image
                 src={t.img}
                 alt={t.name}
                 width={64}
                 height={64}
-                className="w-16 h-16 rounded-full object-cover mb-3 border-4 border-emerald-100"
+                className="w-16 h-16 rounded-full object-cover mb-3 border-4 border-emerald-900"
               />
-              <div className="font-semibold text-emerald-700 mb-1">{t.name}</div>
-              <div className="text-gray-800 italic mb-2">“{t.quote}”</div>
-              <div className="text-xs text-gray-500">{t.city}</div>
+              <div className="font-semibold text-emerald-300 mb-1">{t.name}</div>
+              <div className="text-emerald-100 italic mb-2">“{t.quote}”</div>
+              <div className="text-xs text-emerald-200">{t.city}</div>
             </div>
           ))}
         </div>
@@ -220,35 +202,8 @@ function TestimonialsSection() {
   );
 }
 
-function StickyCTA({ onCTAClick }: { onCTAClick: () => void }) {
-  const [visible, setVisible] = useState(false)
-  useEffect(() => {
-    const onScroll = () => {
-      const hero = document.getElementById('hero-section')
-      if (!hero) return
-      const rect = hero.getBoundingClientRect()
-      setVisible(rect.bottom < 0)
-    }
-    window.addEventListener('scroll', onScroll)
-    onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-  if (!visible) return null
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-emerald-700 text-white flex items-center justify-between px-4 py-3 shadow-lg gap-4">
-      <span className="font-semibold text-base">Otimize seus benefícios agora</span>
-      <button
-        className="bg-white text-emerald-700 font-bold px-6 py-2 rounded-full shadow hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 transition"
-        onClick={onCTAClick}
-      >
-        Começar Grátis
-      </button>
-    </div>
-  )
-}
-
 export default function Home() {
-  const handleStickyCTAClick = () => {}
+  const handleStickyCTAClick = () => {};
 
   return (
     <>
@@ -288,29 +243,27 @@ export default function Home() {
               {/* Recomendações Personalizadas */}
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 mx-auto md:mx-0">
-                  <Search className="h-6 w-6 text-emerald-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-1">Recomendações Personalizadas</h3>
-                  <p className="text-gray-600 text-base">Sugestões adaptadas ao seu perfil, empresa e objetivos financeiros específicos.</p>
-                </div>
-              </div>
-              {/* Biblioteca de Recursos */}
-              <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 mx-auto md:mx-0">
                   <FileText className="h-6 w-6 text-emerald-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold mb-1">Biblioteca de Recursos</h3>
-                  <p className="text-gray-600 text-base">Guias práticos sobre benefícios, impostos e finanças pessoais para decisões informadas.</p>
+                  <h3 className="text-lg font-bold mb-1">Recomendações Personalizadas</h3>
+                  <p className="text-gray-600 text-base">Dicas práticas e personalizadas para otimizar seus benefícios e salário.</p>
+                </div>
+              </div>
+              {/* Busca Inteligente */}
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 mx-auto md:mx-0">
+                  <Search className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-1">Busca Inteligente</h3>
+                  <p className="text-gray-600 text-base">Encontre rapidamente informações sobre benefícios, impostos e direitos trabalhistas.</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
-
         <TestimonialsSection />
-
         <section className="w-full py-12 md:py-20 bg-emerald-50">
           <div className="max-w-4xl mx-auto px-4 md:px-6 flex flex-col items-center text-center">
             <div className="space-y-2 mb-6">
@@ -332,8 +285,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-      {/* Sticky CTA Button */}
-      <StickyCTA onCTAClick={handleStickyCTAClick} />
       {/* Back to Top Button - Shows after scrolling */}
       <div className="fixed bottom-6 left-6 z-50 hidden" id="back-to-top">
         <Button

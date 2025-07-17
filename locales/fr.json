@@ -1,0 +1,10 @@
+{
+  "homepage": {
+    "hero": {
+      "badge": "Bienvenue",
+      "title": "Titre principal",
+      "subtitle": "Sous-titre de la page d'accueil",
+      "cta": "Commencer"
+    }
+  }
+} 
