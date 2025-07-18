@@ -7,10 +7,9 @@ import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
   dsn: "https://5292e285d655546df0fbabd9d978df9f@o4509595092189184.ingest.us.sentry.io/4509595093696512",
-
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
-
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
+  // En production, on réduit le sampling pour limiter la charge et la taille du bundle
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
   debug: false,
+  // Désactivez les intégrations inutiles pour alléger le bundle (ajustez si besoin)
+  integrations: [],
 });
