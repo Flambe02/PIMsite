@@ -92,3 +92,82 @@ Estrutura exata:
     ]
   }
 }`; 
+
+/**
+ * PROMPT IA – Recomendações Personalizadas
+ * Ce prompt est utilisé par le modèle d'IA pour générer dynamiquement le contenu
+ * du bloc existant "Recomendações Personalizadas" dans l’interface utilisateur.
+ * 
+ * ⚠️ Ce prompt est stocké séparément et modifiable depuis la section ADMIN du site.
+ * L’équipe peut l’ajuster sans déployer de code.
+ * 
+ * Le contenu généré :
+ * - Ne change que lorsqu’un nouveau holerite est uploadé OU qu’un changement significatif
+ *   est détecté dans le check-up financier (ex: variation de revenus, efficacité, statut)
+ * - Est intégré dans la structure existante (aucune nouvelle carte ni logique UI)
+ * - Oriente chaque bullet point vers un tag fonctionnel déjà visible (ex: Previdência, Economia Fiscal)
+ * 
+ * Le texte est ensuite affiché tel quel dans le bloc, sans reformatage dynamique.
+ */
+export const strategicRecommendationsPrompt = ({ userProfile, holerite, checkup }: {
+  userProfile: { name: string; status: string; cargo: string; segmento: string };
+  holerite: { eficiencia: number; salarioBruto: number; salarioLiquido: number; descontos: number };
+  checkup: {
+    temPrevidencia: boolean;
+    temPlanoSaude: boolean;
+    temReserva: boolean;
+    cargaTributaria: number;
+    usoBeneficios: boolean;
+  };
+}) => `
+Você é um consultor financeiro virtual integrado em uma plataforma digital de bem-estar financeiro no Brasil.
+
+Sua função é gerar um conteúdo textual conciso e confiável para preencher o bloco já existente
+"Recomendações Personalizadas", visível na área de compensação do usuário.
+
+⚠️ Esse conteúdo será estável (não muda a cada login), e só será reprocessado quando:
+• Um novo holerite for enviado
+• Ou houver mudanças relevantes no check-up financeiro
+
+Gere:
+1. Uma frase de abertura com nome do usuário e eficiência atual
+2. Três recomendações práticas, de no máximo 2 linhas, com chamadas diretas à ação
+3. Cada recomendação deve apontar para um dos seguintes tags funcionais já utilizados na UI:
+   - Economia Fiscal
+   - Previdência
+   - Salary Sacrifice
+   - Reserva
+   - Seguros
+   - Saúde
+   - Bem-estar
+
+Use tom humano, de consultoria pessoal, sem jargões técnicos desnecessários.
+
+---
+
+Dados do usuário:
+Nome: ${userProfile.name}
+Status: ${userProfile.status} (Ex: PJ, CLT, Autônomo, Estagiário, Aposentado)
+Cargo: ${userProfile.cargo}
+Segmento: ${userProfile.segmento}
+Eficiência: ${holerite.eficiencia}%
+Salário Bruto: R$ ${holerite.salarioBruto}
+Salário Líquido: R$ ${holerite.salarioLiquido}
+Descontos: R$ ${holerite.descontos}
+
+Check-up:
+Previdência: ${checkup.temPrevidencia ? "Sim" : "Não"}
+Plano de Saúde: ${checkup.temPlanoSaude ? "Sim" : "Não"}
+Reserva Financeira: ${checkup.temReserva ? "Sim" : "Não"}
+Carga Tributária Elevada: ${checkup.cargaTributaria > 25 ? "Sim" : "Não"}
+Benefícios Ativos: ${checkup.usoBeneficios ? "Sim" : "Não"}
+
+---
+
+Exemplo de saída esperada:
+
+"Parabéns, ${userProfile.name}. Sua eficiência está em ${holerite.eficiencia}%.
+
+• Considere migrar parte do seu pró-labore para lucros distribuídos – [Economia Fiscal]  
+• Ative um plano de previdência privada PGBL para reduzir IR – [Previdência]  
+• Crie uma reserva de emergência de pelo menos R$ ${Math.round(holerite.salarioLiquido * 0.3)} – [Reserva]"`; 

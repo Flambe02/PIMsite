@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { payslipAnalysisPrompt } from '@/lib/prompts';
 import { extractText } from '@/lib/ocrClient';
+import { extractBenefitsFromParsedData } from '@/lib/benefits';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 export const dynamic = 'force-dynamic';
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Log du JSON analysé avant insertion dans holerites
-    console.log('🔎 JSON analysé à insérer dans holerites:', JSON.stringify(parsedData, null, 2));
+    console.log('�� JSON analysé à insérer dans holerites:', JSON.stringify(parsedData, null, 2));
     // Enregistrement dans la table holerites (pour dashboard)
     const { data: holeriteData, error: holeriteError } = await supabase
       .from('holerites')
@@ -107,6 +108,21 @@ export async function POST(req: NextRequest) {
     if (holeriteError) {
       console.error('❌ Erreur insertion holerites:', holeriteError);
       // On ne bloque pas la réponse, mais on peut l'indiquer côté client si besoin
+    }
+
+    try {
+      const detectedBenefits = extractBenefitsFromParsedData(parsedData);
+      if (detectedBenefits.length > 0) {
+        const rows = detectedBenefits.map((b) => ({
+          user_id: session.user.id,
+          tipo: b.tipo,
+          ativo: true,
+          origem: 'holerite',
+        }));
+        await supabase.from('beneficios_usuario').upsert(rows, { onConflict: 'user_id,tipo,origem' });
+      }
+    } catch (err) {
+      console.error('Erro ao processar benefícios:', err);
     }
 
     // Insertion des résultats OCR dans la table ocr_results

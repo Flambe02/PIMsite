@@ -13,6 +13,7 @@ interface OnboardingStep3Props {
 
 export default function OnboardingStep3({ userData, updateUserData, onBack }: OnboardingStep3Props) {
   const [isSaving, setIsSaving] = useState(false)
+  const [modo, setModo] = useState<null | 'upload' | 'manual'>(null)
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -21,7 +22,6 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
   const saveUserData = async (result: any) => {
     setIsSaving(true)
     try {
-      // 1. Sauvegarde dans le localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem('holeriteResult', JSON.stringify(result))
         localStorage.setItem('userProfile', JSON.stringify({
@@ -35,11 +35,8 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
           quizAnswers: userData.quizAnswers
         }))
       }
-
-      // 2. Sauvegarde dans Supabase
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Mise à jour du profil utilisateur
         await supabase
           .from('profiles')
           .upsert({
@@ -54,8 +51,6 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
             onboarding_completed: true,
             updated_at: new Date().toISOString()
           })
-
-        // Sauvegarde de l'analyse du holerite
         if (result) {
           await supabase
             .from('analyses')
@@ -65,7 +60,6 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
               created_at: new Date().toISOString()
             })
         }
-        // Mise à jour user_onboarding : toutes les étapes à true
         try {
           const { error } = await supabase
             .from('user_onboarding')
@@ -75,19 +69,16 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
               holerite_uploaded: true
             })
             .eq('user_id', user.id);
-          if (error) console.log('Erreur update user_onboarding:', error.message);
+          if (error) console.log('Erro ao atualizar user_onboarding:', error.message);
         } catch (err) {
-          console.log('Erreur Supabase:', err);
+          console.log('Erro Supabase:', err);
         }
       }
-
-      // 3. Redirection vers le dashboard
       setTimeout(() => {
         window.location.href = "/dashboard"
       }, 500)
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error)
-      // En cas d'erreur, on redirige quand même avec les données du localStorage
+      console.error('Erro ao salvar:', error)
       setTimeout(() => {
         window.location.href = "/dashboard"
       }, 500)
@@ -97,35 +88,96 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
   }
 
   const handleResult = (result: any) => {
-    // Met à jour les données utilisateur
     updateUserData({ payslipData: result })
-    
-    // Sauvegarde toutes les données
     saveUserData(result)
   }
 
+  // UI moderne : choix du mode
   return (
-    <Card className="rounded-2xl shadow-xl border-emerald-100 bg-white/90 backdrop-blur-sm max-w-xl mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Upload do Holerite</CardTitle>
-        <CardDescription className="text-lg text-gray-600">
-          Faça upload do seu holerite para análise automática
+    <Card className="rounded-2xl shadow-xl border-emerald-100 bg-white max-w-2xl w-full mx-auto">
+      <CardHeader className="text-center pb-0">
+        <CardTitle className="text-xl font-semibold text-gray-900 mb-1">Parabéns, seu cadastro está quase completo!</CardTitle>
+        <CardDescription className="text-sm text-gray-600">
+          Escolha como deseja fornecer seus dados salariais:
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <UploadHolerite onResult={handleResult} />
-        <div className="flex justify-between pt-6">
-          <button
-            onClick={onBack}
-            className="rounded-full px-6 py-3 border border-emerald-200 bg-white text-emerald-700 font-semibold hover:bg-emerald-50 transition"
-            disabled={isSaving}
-          >
-            ← Voltar
-          </button>
-        </div>
-        {isSaving && (
-          <div className="mt-4 text-center text-sm text-gray-600">
-            Salvando dados...
+      <CardContent className="pt-4 pb-6 px-6">
+        {!modo && (
+          <div className="flex flex-col gap-3 items-center">
+            <button
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 rounded-full transition"
+              onClick={() => setModo('upload')}
+            >
+              Fazer upload do holerite
+            </button>
+            <span className="text-gray-500 font-semibold">ou</span>
+            <button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-full transition"
+              onClick={() => setModo('manual')}
+            >
+              Inserir dados manualmente
+            </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full mt-3">
+              <button
+                onClick={onBack}
+                className="flex-1 rounded-full px-6 py-3 border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition"
+                disabled={isSaving}
+              >
+                ← Voltar
+              </button>
+              <button
+                onClick={() => window.location.href = "/dashboard"}
+                className="flex-1 rounded-full px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition"
+              >
+                Ir para o Dashboard
+              </button>
+            </div>
+          </div>
+        )}
+        {modo === 'upload' && (
+          <div>
+            <div className="mb-4 text-lg font-semibold text-emerald-700">Upload do Holerite</div>
+            <UploadHolerite onResult={handleResult} />
+            <button
+              onClick={() => setModo(null)}
+              className="mt-4 text-emerald-600 underline"
+              disabled={isSaving}
+            >
+              ← Voltar para as opções
+            </button>
+            <button
+              onClick={() => window.location.href = "/dashboard"}
+              className="mt-4 w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3"
+              disabled={isSaving}
+            >
+              Ir para o Dashboard
+            </button>
+            {isSaving && (
+              <div className="mt-4 text-center text-sm text-gray-600">
+                Salvando dados...
+              </div>
+            )}
+          </div>
+        )}
+        {modo === 'manual' && (
+          <div className="flex flex-col items-center gap-4">
+            <div className="mb-4 text-lg font-semibold text-blue-700">Inserir dados manualmente</div>
+            {/* TODO: Adicionar aqui o formulário manual de dados salariais */}
+            <div className="text-gray-500">Funcionalidade em breve!</div>
+            <button
+              onClick={() => setModo(null)}
+              className="mt-4 text-blue-600 underline"
+              disabled={isSaving}
+            >
+              ← Voltar para as opções
+            </button>
+            <button
+              onClick={() => window.location.href = "/dashboard"}
+              className="mt-2 w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3"
+              disabled={isSaving}
+            >
+              Ir para o Dashboard
+            </button>
           </div>
         )}
       </CardContent>

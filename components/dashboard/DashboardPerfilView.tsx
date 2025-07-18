@@ -16,7 +16,7 @@ const tamanhosList = [
   "1-10", "11-50", "51-200", "201-1000", "1000+"
 ];
 
-export default function DashboardPerfilView({ holeriteResult, user }: { holeriteResult: any, user?: any }) {
+export default function DashboardPerfilView({ holeriteResult, user, onShowHolerite }: { holeriteResult: any, user?: any, onShowHolerite?: () => void }) {
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -253,14 +253,8 @@ export default function DashboardPerfilView({ holeriteResult, user }: { holerite
             <label className="font-semibold block mb-1">Cidade/Estado</label>
             <input type="text" className="input" value={core.cidade} onChange={e => setCore(c => ({ ...c, cidade: e.target.value }))} placeholder="Onde mora" />
           </div>
-          <div>
-            <label className="font-semibold block mb-1">Salário</label>
-            <input type="number" className="input" value={core.salario} onChange={e => setCore(c => ({ ...c, salario: e.target.value }))} placeholder="R$" />
-          </div>
-          <div>
-            <label className="font-semibold block mb-1">Profissão</label>
-            <input type="text" className="input" value={core.profissao} onChange={e => setCore(c => ({ ...c, profissao: e.target.value }))} placeholder="Sua profissão" />
-          </div>
+          {/* Campo Salário retirado */}
+          {/* Campo Profissão retirado */}
         </div>
       </div>
       {/* Section Status profissional */}

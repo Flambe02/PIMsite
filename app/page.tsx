@@ -11,15 +11,7 @@ import { Button } from "@/components/ui/button"
 import { TrustBadges } from "@/components/trust-badges"
 import { ChatButton } from "@/components/chat-button"
 import { LoginModal } from "@/components/LoginModal"
-import { useUserOnboarding } from "@/hooks/useUserOnboarding"
-
-const HERO_TEXT = {
-  title: "Entenda seu Holerite e Economize Otimizando seus Benefícios",
-  subtitle: "Faça upload do seu holerite ou preencha os dados manualmente para ver os resultados",
-  upload: "Fazer upload do holerite",
-  manual: "Preencher manualmente",
-  security: "100% seguro. Seus dados nunca serão compartilhados."
-}
+// import { useUserOnboarding } from "@/hooks/useUserOnboarding" // Removed: unused
 
 function HeroSection() {
   const [session, setSession] = useState<any>(null)
@@ -53,9 +45,7 @@ function HeroSection() {
   const handleSignUp = () => {
     router.push("/signup")
   }
-  const handleLogin = () => {
-    setLoginOpen(true)
-  }
+  // Removed unused handleLogin
   const handleSimule = () => {
     if (!session) {
       setLoginOpen(true)
@@ -93,7 +83,7 @@ function HeroSection() {
               type="button"
             disabled={isLoading}
             >
-            {isLoading ? "Carregando..." : "Simule"}
+            Simular
             </button>
         </div>
         {/* USP line */}
@@ -203,7 +193,7 @@ function TestimonialsSection() {
 }
 
 export default function Home() {
-  const handleStickyCTAClick = () => {};
+  // Removed unused handleStickyCTAClick
 
   return (
     <>

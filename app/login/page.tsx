@@ -84,6 +84,24 @@ export default function LoginPage() {
     setLoading(false);
   };
 
+  const textos = {
+    login: "Entrar",
+    criarConta: "Criar Conta",
+    esqueceuSenha: "Esqueceu sua senha?",
+    email: "Email",
+    senha: "Senha",
+    digiteEmail: "Digite seu email",
+    digiteSenha: "Digite sua senha",
+    ou: "ou",
+    proximaConquista: "Sua próxima conquista começa aqui",
+    descricao: "Descubra o melhor da gestão de carreira, benefícios e oportunidades para sua vida profissional.",
+    rhDigital: "RH Digital",
+    beneficios: "Benefícios",
+    carreira: "Carreira",
+    bemEstar: "Bem-estar",
+    carregando: "Entrando...",
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-emerald-50 py-6 px-2">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border border-gray-100">
@@ -101,8 +119,8 @@ export default function LoginPage() {
             <p className="text-gray-500 text-sm">O primeiro passo para otimizar sua carreira.</p>
           </div>
           <div className="flex justify-center mb-6 gap-2 bg-gray-100 rounded-full p-1 w-full max-w-xs mx-auto">
-            <button onClick={() => setTab('register')} className={`flex-1 py-2 rounded-full font-semibold transition ${tab==='register' ? 'bg-black text-white shadow' : 'text-gray-700'}`}>Criar Conta</button>
-            <button onClick={() => setTab('login')} className={`flex-1 py-2 rounded-full font-semibold transition ${tab==='login' ? 'bg-black text-white shadow' : 'text-gray-700'}`}>Entrar</button>
+            <button onClick={() => setTab('register')} className={`flex-1 py-2 rounded-full font-semibold transition ${tab==='register' ? 'bg-black text-white shadow' : 'text-gray-700'}`}>{textos.criarConta}</button>
+            <button onClick={() => setTab('login')} className={`flex-1 py-2 rounded-full font-semibold transition ${tab==='login' ? 'bg-black text-white shadow' : 'text-gray-700'}`}>{textos.login}</button>
           </div>
           <div className="flex justify-center gap-4 mb-6">
             <Button variant="outline" size="icon" className="rounded-full border-gray-300"><Facebook className="w-5 h-5 text-blue-600" /></Button>
@@ -114,7 +132,7 @@ export default function LoginPage() {
           </div>
           <div className="flex items-center gap-2 mb-6">
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">ou</span>
+            <span className="text-xs text-gray-400">{textos.ou}</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
           {tab === 'register' ? (
@@ -133,12 +151,12 @@ export default function LoginPage() {
                 <input type="hidden" name="redirectTo" value={redirectTo} />
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" autoComplete="email" required placeholder="Digite seu email" />
+                <Label htmlFor="email">{textos.email}</Label>
+                <Input id="email" name="email" type="email" autoComplete="email" required placeholder={textos.digiteEmail} />
               </div>
               <div className="space-y-2 relative">
-                <Label htmlFor="password">Senha</Label>
-                <Input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" required placeholder="Digite sua senha" />
+                <Label htmlFor="password">{textos.senha}</Label>
+                <Input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" required placeholder={textos.digiteSenha} />
                 <button type="button" className="absolute right-3 top-8 text-gray-400 hover:text-gray-700" tabIndex={-1} onClick={() => setShowPassword(v => !v)}>{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
               </div>
               {loginError && (
@@ -148,14 +166,14 @@ export default function LoginPage() {
                 </Alert>
               )}
               <Button type="submit" className="w-full rounded-full px-6 py-3 font-semibold text-lg mt-2" disabled={loading}>
-                {loading ? "Connexion..." : "Entrar"}
+                {loading ? textos.carregando : textos.login}
               </Button>
             </form>
           )}
           <div className="mt-4 text-center">
             {tab==='login' ? (
               <Link href="/forgot-password" className="text-sm text-emerald-600 hover:text-emerald-500">
-                Esqueceu sua senha?
+                {textos.esqueceuSenha}
               </Link>
             ) : null}
           </div>
@@ -165,13 +183,13 @@ export default function LoginPage() {
           {/* Illustration locale ou fond dégradé à la place des médias manquants */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10">
             <span className="text-6xl mb-4">🌶️</span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">Votre prochaine conquête<br />commence <span className="bg-white/80 text-emerald-700 px-2 rounded">ici</span></h2>
-            <p className="text-lg text-white/80 mb-6">Découvrez le meilleur de la gestion de carrière, des bénéfices et des opportunités pour votre vie professionnelle.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-2">{textos.proximaConquista}</h2>
+            <p className="text-lg text-white/80 mb-6">{textos.descricao}</p>
             <div className="flex gap-2 flex-wrap">
-              <span className="bg-emerald-600 text-white text-xs px-3 py-1 rounded-full font-semibold">RH Digital</span>
-              <span className="bg-yellow-400 text-gray-900 text-xs px-3 py-1 rounded-full font-semibold">Bénéfices</span>
-              <span className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-semibold">Carrière</span>
-              <span className="bg-pink-600 text-white text-xs px-3 py-1 rounded-full font-semibold">Bien-être</span>
+              <span className="bg-emerald-600 text-white text-xs px-3 py-1 rounded-full font-semibold">{textos.rhDigital}</span>
+              <span className="bg-yellow-400 text-gray-900 text-xs px-3 py-1 rounded-full font-semibold">{textos.beneficios}</span>
+              <span className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-semibold">{textos.carreira}</span>
+              <span className="bg-pink-600 text-white text-xs px-3 py-1 rounded-full font-semibold">{textos.bemEstar}</span>
             </div>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-0 rounded-tr-3xl rounded-br-3xl" />

@@ -130,97 +130,139 @@ const quizQuestions = [
 ]
 
 export default function OnboardingStep2({ userData, updateUserData, onNext, onBack }: OnboardingStep2Props) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>(userData.quizAnswers || {})
+  const [stage, setStage] = useState<'intro' | 'quiz'>("intro");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>(userData.quizAnswers || {});
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const totalQuestions = quizQuestions.length
-  const progress = ((currentIndex) / totalQuestions) * 100
-  const current = quizQuestions[currentIndex]
+  const totalQuestions = quizQuestions.length;
+  const progress = (currentIndex / totalQuestions) * 100;
+  const current = quizQuestions[currentIndex];
+
+  async function handleSkip() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Optionnel: s'assurer que checkup_completed reste false
+        await supabase.from('user_onboarding').update({ checkup_completed: false }).eq('user_id', user.id);
+      }
+    } catch (err) {
+      console.log('Erreur Supabase skip:', err);
+    }
+    window.location.href = "/dashboard";
+  }
 
   const handleSelect = async (option: string) => {
-    setAnswers(prev => ({ ...prev, [current.id]: option }))
+    setAnswers(prev => ({ ...prev, [current.id]: option }));
     setTimeout(async () => {
       if (currentIndex < totalQuestions - 1) {
-        setCurrentIndex(currentIndex + 1)
+        setCurrentIndex(currentIndex + 1);
       } else {
-        // Calcul du score (simple, pondéré par la position de la réponse)
-        let score = 0
+        // Calcul du score
+        let score = 0;
         Object.values({ ...answers, [current.id]: option }).forEach((val, i) => {
-          const idx = quizQuestions[i].options.indexOf(val as string)
-          score += 5 - idx // 5 pour la meilleure réponse, 1 pour la pire
-        })
-        const finalScore = Math.round((score / (totalQuestions * 5)) * 100)
-        updateUserData({ quizAnswers: { ...answers, [current.id]: option }, financialHealthScore: finalScore })
-        // Mise à jour Supabase : user_onboarding.checkup_completed = true
+          const idx = quizQuestions[i].options.indexOf(val as string);
+          score += 5 - idx;
+        });
+        const finalScore = Math.round((score / (totalQuestions * 5)) * 100);
+        updateUserData({ quizAnswers: { ...answers, [current.id]: option }, financialHealthScore: finalScore });
+        // Marquer checkup_completed = true
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { error } = await supabase
-              .from('user_onboarding')
-              .update({ checkup_completed: true })
-              .eq('user_id', user.id);
-            if (error) console.log('Erreur update user_onboarding:', error.message);
+            await supabase.from('user_onboarding').update({ checkup_completed: true }).eq('user_id', user.id);
           }
-        } catch (err) {
-          console.log('Erreur Supabase:', err);
-        }
-        onNext()
+        } catch (err) { console.log('Erreur Supabase:', err); }
+        onNext();
       }
-    }, 200)
-  }
+    }, 200);
+  };
 
   const handleBack = () => {
-    if (currentIndex > 0) setCurrentIndex(currentIndex - 1)
-    else onBack()
+    if (stage === 'quiz' && currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    } else if (stage === 'quiz' && currentIndex === 0) {
+      // Retour à l'intro
+      setStage('intro');
+    } else {
+      onBack();
+    }
+  };
+
+  // ---------- RENDER ----------
+  if (stage === 'intro') {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <Card className="rounded-2xl shadow-lg border-0 bg-white max-w-xl w-full">
+          <CardHeader className="text-center pb-0">
+            <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Check-up financeiro</CardTitle>
+            <CardDescription className="text-gray-600 text-base mb-4 px-6">
+              Responda a um rápido questionário para avaliarmos sua saúde financeira e oferecer recomendações personalizadas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-6 pb-8 flex flex-col gap-4">
+            <Button className="w-full rounded-full py-3 bg-emerald-600 hover:bg-emerald-700 text-lg font-semibold" onClick={() => setStage('quiz')}>
+              Continuar check-up
+            </Button>
+            <Button variant="outline" className="w-full rounded-full py-3" onClick={handleSkip}>
+              Pular por agora
+            </Button>
+            <p className="text-xs text-gray-400 text-center mt-2">Você pode fazer o check-up depois no painel.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
+  // stage === 'quiz'
   return (
-    <Card className="rounded-2xl shadow-xl border-emerald-100 bg-white/90 backdrop-blur-sm max-w-lg mx-auto">
-      <CardHeader className="text-center">
-        <div className="mx-auto w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mb-4 text-3xl">
-          {current.icon}
-        </div>
-        <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{current.category}</CardTitle>
-        <CardDescription className="text-lg text-gray-600">
-          {currentIndex + 1} / {totalQuestions}
-        </CardDescription>
-        <div className="mt-4">
-          <Progress value={progress} className="h-2" />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-8">
-        <div className="text-center">
-          <Label className="text-xl font-semibold text-gray-900 mb-6 block">{current.question}</Label>
-          <div className="flex flex-col gap-4 mt-6">
-            {current.options.map(option => (
-              <Button
-                key={option}
-                type="button"
-                size="lg"
-                variant={answers[current.id] === option ? "default" : "outline"}
-                className={`w-full py-4 rounded-full text-lg font-semibold transition-all duration-150 ${answers[current.id] === option ? "bg-emerald-600 text-white" : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"}`}
-                onClick={() => handleSelect(option)}
-              >
-                {option}
-              </Button>
-            ))}
+    <div className="w-full flex items-center justify-center">
+      <Card className="rounded-2xl shadow-xl border-emerald-100 bg-white/90 backdrop-blur-sm max-w-2xl w-full">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-3 text-2xl">
+            {current.icon}
           </div>
-        </div>
-        <div className="flex justify-between pt-6">
-          <Button
-            onClick={handleBack}
-            variant="outline"
-            className="rounded-full px-6 py-3"
-          >
-            ← Voltar
-          </Button>
-          <div className="text-gray-400 text-sm pt-3">{currentIndex + 1} / {totalQuestions}</div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+          <CardTitle className="text-xl font-semibold text-gray-900 mb-1">{current.category}</CardTitle>
+          <CardDescription className="text-sm text-gray-500">
+            {currentIndex + 1} / {totalQuestions}
+          </CardDescription>
+          <div className="mt-3">
+            <Progress value={progress} className="h-1.5" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6 pb-6">
+          <div className="text-center">
+            <Label className="text-lg font-semibold text-gray-900 mb-4 block leading-snug px-4">{current.question}</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 px-2">
+              {current.options.map(option => (
+                <Button
+                  key={option}
+                  type="button"
+                  size="sm"
+                  variant={answers[current.id] === option ? "default" : "outline"}
+                  className={`w-full py-3 rounded-full text-sm font-medium transition-all duration-150 ${answers[current.id] === option ? "bg-emerald-600 text-white" : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"}`}
+                  onClick={() => handleSelect(option)}
+                >
+                  {option}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-between pt-4 px-2">
+            <Button
+              onClick={handleBack}
+              variant="outline"
+              className="rounded-full px-5 py-2 text-sm"
+            >
+              ← Voltar
+            </Button>
+            <div className="text-gray-400 text-xs pt-2">{currentIndex + 1} / {totalQuestions}</div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 } 

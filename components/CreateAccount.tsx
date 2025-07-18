@@ -31,7 +31,7 @@ export default function CreateAccount() {
       return
     }
     setLoading(true)
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError, data: signUpData } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -39,13 +39,20 @@ export default function CreateAccount() {
       }
     })
     setLoading(false)
+    // Cas 1 : erreur renvoyée (email déjà confirmé)
     if (signUpError) {
       if (signUpError.message && signUpError.message.toLowerCase().includes("already registered")) {
-        setError("Email déjà utilisé, connecte-toi !")
+        setError("Este email já possui conta. Faça login ou recupere sua senha.")
       } else {
         setError(signUpError.message)
       }
+      return
     } else {
+      // Cas 2 : pas d'erreur MAIS user.identities est vide → email existe mas não confirmado
+      if (signUpData?.user && (signUpData.user as any).identities?.length === 0) {
+        setError("Este email já foi cadastrado. Verifique sua caixa de entrada para confirmar ou faça login.")
+        return
+      }
       setSent(true)
       router.push(`/signup/verify?email=${encodeURIComponent(email)}`)
     }
@@ -61,6 +68,23 @@ export default function CreateAccount() {
       }
     });
     setLoading(false);
+  };
+
+  // Textos centralizados para facilitar tradução futura
+  const textos = {
+    email: "Email",
+    senha: "Senha",
+    confirmarSenha: "Confirme sua senha",
+    criarConta: "Criar minha conta",
+    criando: "Criando...",
+    placeholderEmail: "Digite seu email",
+    placeholderSenha: "Crie uma senha",
+    placeholderConfirmarSenha: "Repita a senha",
+    avisoEmail: "Você receberá um e-mail de confirmação para ativar sua conta.",
+    erroEmail: "Este email já está em uso. Faça login ou use o Google.",
+    loginGoogle: "Entrar com Google",
+    loginExistente: "Entrar",
+    verificaEmail: "Verifique sua caixa de entrada: um e-mail de confirmação foi enviado.",
   };
 
   return (
@@ -82,36 +106,36 @@ export default function CreateAccount() {
       {!sent ? (
         <>
           <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="font-medium">Email</label>
+            <label htmlFor="email" className="font-medium">{textos.email}</label>
             <input
               id="email"
               type="email"
               required
-              placeholder="Digite seu email"
+              placeholder={textos.placeholderEmail}
               className="border rounded px-4 py-2"
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="password" className="font-medium">Mot de passe</label>
+            <label htmlFor="password" className="font-medium">{textos.senha}</label>
             <input
               id="password"
               type="password"
               required
-              placeholder="Créez un mot de passe"
+              placeholder={textos.placeholderSenha}
               className="border rounded px-4 py-2"
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="passwordConfirm" className="font-medium">Confirmez le mot de passe</label>
+            <label htmlFor="passwordConfirm" className="font-medium">{textos.confirmarSenha}</label>
             <input
               id="passwordConfirm"
               type="password"
               required
-              placeholder="Répétez le mot de passe"
+              placeholder={textos.placeholderConfirmarSenha}
               className="border rounded px-4 py-2"
               value={passwordConfirm}
               onChange={e => setPasswordConfirm(e.target.value)}
@@ -122,15 +146,14 @@ export default function CreateAccount() {
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-full mt-2"
             disabled={loading}
           >
-            {loading ? "Envoi..." : "Créer mon compte"}
+            {loading ? textos.criando : textos.criarConta}
           </button>
           <p className="text-xs text-gray-500 text-center mt-2">
-            Un email de confirmation vous sera envoyé pour activer votre compte.
+            {textos.avisoEmail}
           </p>
           {error && (
             <div className="text-red-600 text-sm text-center">
-              {error}
-              {/* Si l'email existe déjà, proposer Google */}
+              {error.includes("utilisé") ? textos.erroEmail : error}
               {error.includes("utilisé") && (
                 <Button
                   type="button"
@@ -139,7 +162,7 @@ export default function CreateAccount() {
                   onClick={handleGoogleLogin}
                   disabled={loading}
                 >
-                  Se connecter avec Google
+                  {textos.loginGoogle}
                 </Button>
               )}
               {error.includes("utilisé") && (
@@ -148,16 +171,16 @@ export default function CreateAccount() {
                   className="ml-2 underline text-emerald-700 hover:text-emerald-900"
                   onClick={() => setShowLogin(true)}
                 >
-                  Se connecter
+                  {textos.loginExistente}
                 </button>
               )}
             </div>
           )}
-          {showLogin && <LoginModal open={showLogin} onOpenChange={setShowLogin} message={"Connecte-toi avec ton email existant."} />}
+          {showLogin && <LoginModal open={showLogin} onOpenChange={setShowLogin} message={"Entre com seu email existente."} />}
         </>
       ) : (
         <div className="text-center">
-          <p className="text-emerald-700 font-semibold mb-2">Vérifie ta boîte mail : un email de confirmation a été envoyé.</p>
+          <p className="text-emerald-700 font-semibold mb-2">{textos.verificaEmail}</p>
         </div>
       )}
     </form>

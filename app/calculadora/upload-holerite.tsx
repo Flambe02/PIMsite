@@ -80,13 +80,27 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
         // 2. Analyse pro-labore, INSS, autres prélèvements
         if (raw.profile_type === 'PJ') {
           analysis.optimization_opportunities = analysis.optimization_opportunities || [];
-          // Honorário pro-labore
-          const hasProLabore = (raw.earnings || []).some((e:any) => String(e.description).toLowerCase().includes('pro-labore')) || false;
+          // Normalização helper (remove acentos e pontuações)
+          const normalize = (txt: string) =>
+            txt
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '') // remove diacríticos
+              .replace(/[\s\-]/g, ''); // remove espaços e hífens
+
+          // Honorário pro-labore (detecção mais robusta, insensível a acentos/hífens)
+          const hasProLabore = (raw.earnings || []).some((e: any) => {
+            const desc = normalize(String(e.description || ''));
+            return desc.includes('prolabore');
+          });
           if (!hasProLabore) {
             analysis.optimization_opportunities.push('Atenção: Não foi identificado honorário pro-labore. Verifique se está corretamente declarado.');
           }
-          // INSS pro-labore
-          const hasINSS = (raw.deductions || []).some((d:any) => String(d.description).toLowerCase().includes('inss')) || false;
+          // INSS sobre pro-labore (busca genérica por "inss")
+          const hasINSS = (raw.deductions || []).some((d: any) => {
+            const desc = normalize(String(d.description || ''));
+            return desc.includes('inss');
+          });
           if (!hasINSS) {
             analysis.optimization_opportunities.push('Atenção: Não foi identificado desconto de INSS sobre o pro-labore. Confirme se a contribuição está correta.');
           }

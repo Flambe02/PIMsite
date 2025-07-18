@@ -2,15 +2,21 @@
 
 import Image from "next/image";
 import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import BemEstar from "@/components/bemEstar/BemEstar";
+import Seguros from "@/components/seguros/Seguros"; // Importer Seguros
+import React, { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import DashboardPerfilView from "@/components/dashboard/DashboardPerfilView";
 import FinancialHealthScore from "@/components/dashboard/FinancialHealthScore";
 import PersonalizedRecommendations from "@/components/dashboard/PersonalizedRecommendations";
+import Beneficios, { Beneficio } from "@/components/beneficios/Beneficios";
 import { useSupabase } from "@/components/supabase-provider";
 import { useUserOnboarding } from "@/hooks/useUserOnboarding";
 import { GettingStarted } from "@/components/GettingStarted";
 import { useRouter } from "next/navigation"
+import { createBrowserClient } from "@supabase/ssr";
+import InvestimentosComp from "@/components/investimentos/Investimentos";
+import useInvestimentos from "@/hooks/useInvestimentos";
 
 // Import dynamique avec fallback
 const UploadHolerite = dynamic(() => import("@/app/calculadora/upload-holerite"), { 
@@ -27,40 +33,7 @@ const navItems = [
   { label: "Dados", icon: <UserCircle className="w-6 h-6" /> },
 ];
 
-const summaryCards = [
-  {
-    title: "Salário Bruto",
-    value: "R$ 10.500",
-    color: "border-blue-100 bg-white text-blue-700",
-    icon: <BarChart3 className="w-5 h-5 text-blue-400" />,
-    source: "Dados de exemplo",
-    isMinSalary: false
-  },
-  {
-    title: "Salário Líquido",
-    value: "R$ 8.450",
-    color: "border-green-100 bg-white text-green-700",
-    icon: <FileText className="w-5 h-5 text-green-400" />,
-    source: "Dados de exemplo",
-    isMinSalary: false
-  },
-  {
-    title: "Descontos",
-    value: "R$ 2.050",
-    color: "border-orange-100 bg-white text-orange-700",
-    icon: <ArrowDownUp className="w-5 h-5 text-orange-400" />,
-    source: "Dados de exemplo",
-    isMinSalary: false
-  },
-  {
-    title: "Eficiência",
-    value: "80.5%",
-    color: "border-purple-100 bg-white text-purple-700",
-    icon: <PercentCircle className="w-5 h-5 text-purple-400" />,
-    source: "Dados de exemplo",
-    isMinSalary: false
-  },
-];
+const summaryCards: any[] = [];
 
 const quickActions = [
   {
@@ -251,14 +224,20 @@ function PayslipAnalysisDetail({ result, onClose }: { result: HoleriteResult, on
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base mt-4">
               <div className="text-gray-700">Salário Base:</div>
               <div className="font-bold text-gray-900 text-right">R$ {raw.gross_salary?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-              {raw.earnings?.map((e: any, i: number) => [
-                <div key={"e-label-"+i} className="text-gray-700">{e.description}:</div>,
-                <div key={"e-val-"+i} className="text-green-700 text-right">R$ {e.amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-              ])}
-              {raw.deductions?.map((d: any, i: number) => [
-                <div key={"d-label-"+i} className="text-gray-700">{d.description}:</div>,
-                <div key={"d-val-"+i} className="text-red-600 text-right">-R$ {d.amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-              ])}
+              {raw.earnings?.map((e: any, i: number) => {
+                const val = e.amount ?? e.value ?? e.valor ?? 0;
+                return [
+                  <div key={"e-label-"+i} className="text-gray-700">{e.description || e.tipo || 'Provento'}:</div>,
+                  <div key={"e-val-"+i} className="text-green-700 text-right">R$ {Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                ];
+              })}
+              {raw.deductions?.map((d: any, i: number) => {
+                const val = d.amount ?? d.value ?? d.valor ?? 0;
+                return [
+                  <div key={"d-label-"+i} className="text-gray-700">{d.description || d.tipo || 'Desconto'}:</div>,
+                  <div key={"d-val-"+i} className="text-red-600 text-right">-R$ {Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                ];
+              })}
               <div className="col-span-2 border-t border-blue-200 my-2"></div>
               <div className="font-bold">Salário Líquido:</div>
               <div className="font-bold text-blue-900 text-right">R$ {raw.net_salary?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -427,7 +406,7 @@ export default function DashboardFullWidth() {
       icon: <PercentCircle className="w-5 h-5 text-purple-400" />,
       source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
     },
-  ] : summaryCards;
+  ] : [];
 
   // Affiche automatiquement le détail après analyse
   const handleHoleriteResult = (result: HoleriteResult) => {
@@ -439,6 +418,90 @@ export default function DashboardFullWidth() {
   };
 
   // Ajoute une fonction pour scroller sur la section Perfil
+  const BENEFIT_CATALOG: (Omit<Beneficio, "detectado"> & { keys: string[] })[] = [
+    {
+      tipo: "Vale Refeição",
+      comentario: "Ajuda na alimentação diária e pode ser negociado.",
+      actionLink: "/recursos/vale-refeicao",
+      keys: ["vale refeição", "vale refeicao", "vr", "vale alimentação", "vale alimentacao", "va"],
+    },
+    {
+      tipo: "Plano de Saúde",
+      comentario: "Compare cobertura e rede credenciada.",
+      actionLink: "/recursos/plano-saude",
+      keys: ["plano de saúde", "plano de saude", "assistência médica", "assistencia medica"],
+    },
+    {
+      tipo: "Previdência Privada",
+      comentario: "Pense na aposentadoria: benefícios fiscais.",
+      actionLink: "/recursos/previdencia-privada",
+      keys: ["previdência", "previdencia", "pgbl", "vgbl"],
+    },
+    {
+      tipo: "FGTS",
+      comentario: "Depósitos regulares garantem segurança financeira.",
+      actionLink: "/recursos/fgts",
+      keys: ["fgts"],
+    },
+  ];
+
+  const [beneficiosDetectados, setBeneficiosDetectados] = useState<Beneficio[] | null>(null);
+
+  useEffect(() => {
+    const fetchBeneficios = async () => {
+      try {
+        // 1. Si on dispose déjà d’un holerite analysé, on l’utilise comme source principale
+        if (holeriteResult?.raw) {
+          const text = JSON.stringify(holeriteResult.raw).toLowerCase();
+          setBeneficiosDetectados(
+            BENEFIT_CATALOG.map((b) => ({
+              tipo: b.tipo,
+              comentario: b.comentario,
+              actionLink: b.actionLink,
+              detectado: b.keys.some((k) => text.includes(k)),
+            }))
+          );
+          return; // pas besoin d’interroger la BD
+        }
+
+        // 2. Si aucun holerite n’est chargé, on récupère les données sauvegardées (manuel ou dernier scan)
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('beneficios_usuario')
+          .select('tipo, ativo')
+          .eq('user_id', user.id);
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const map = new Map<string, boolean>();
+          data.forEach((row: any) => map.set(row.tipo, row.ativo));
+          setBeneficiosDetectados(
+            BENEFIT_CATALOG.map((b) => ({
+              tipo: b.tipo,
+              comentario: b.comentario,
+              actionLink: b.actionLink,
+              detectado: map.get(b.tipo) || false,
+            }))
+          );
+        } else {
+          // fallback simple : aucun enregistrement => aucun benefício ativo
+          setBeneficiosDetectados(
+            BENEFIT_CATALOG.map((b) => ({
+              tipo: b.tipo,
+              comentario: b.comentario,
+              actionLink: b.actionLink,
+              detectado: false,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error('Erro fetch beneficios:', err);
+      }
+    };
+    fetchBeneficios();
+  }, [holeriteResult]);
+
   const handleSidebarNav = (label: string) => {
     setActiveTab(label);
     if (label === "Dados" && perfilRef.current) {
@@ -446,6 +509,8 @@ export default function DashboardFullWidth() {
     }
     // ici tu peux ajouter d'autres actions pour d'autres sections si besoin
   };
+
+  const { data: investimentos = [] } = useInvestimentos(userId, holeriteResult?.raw);
 
   return (
     <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
@@ -604,7 +669,7 @@ export default function DashboardFullWidth() {
                 )}
               </div>
               {/* Composant DashboardPerfilView pour l'édition des données */}
-              <DashboardPerfilView holeriteResult={holeriteResult} user={null} />
+              <DashboardPerfilView holeriteResult={holeriteResult} user={null} onShowHolerite={() => setShowAnalysisDetail(true)} />
             </>
           )}
           
@@ -633,8 +698,9 @@ export default function DashboardFullWidth() {
                 )}
               </div>
               {/* Résumé cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {summaryCardsData.map((card, i) => (
+              {summaryCardsData.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {summaryCardsData.map((card, i) => (
                   <div key={i} className={`flex flex-col w-full min-h-[120px] px-6 py-4 rounded-2xl border ${card.color} shadow-sm items-start transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
                     <div className="flex items-center gap-2 mb-2">
                       {card.icon}
@@ -672,7 +738,12 @@ export default function DashboardFullWidth() {
                     )}
                   </div>
                 ))}
-              </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow p-6 text-center text-gray-500 mb-6">
+                  Nenhum dado disponível. Faça o upload do seu holerite para ver os resultados.
+                </div>
+              )}
               {/* Recommandations personnalisées basées sur le quiz */}
               <PersonalizedRecommendations 
                 quizAnswers={quizAnswers}
@@ -693,9 +764,37 @@ export default function DashboardFullWidth() {
               </div>
             </>
           )}
-          
+
+          {activeTab === "Benefícios" && (
+            <>
+              {holeriteResult ? (
+                <Beneficios
+                  userStatus={holeriteResult.raw?.profile_type || employmentStatus || "CLT"}
+                  beneficios={beneficiosDetectados || []}
+                  onSimularPacote={() => router.push("/simuladores/beneficios")}
+                />
+              ) : (
+                <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 text-center">
+                  <p className="text-gray-600">Faça upload do seu holerite para ver seus benefícios.</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === "Bem-estar" && (
+            <BemEstar userId={userId} employmentStatus={employmentStatus} />
+          )}
+ 
+          {activeTab === "Seguros" && (
+            <Seguros userId={userId} employmentStatus={employmentStatus} />
+          )}
+
+          {activeTab === "Investimentos" && (
+            <InvestimentosComp status={employmentStatus} investimentos={investimentos} />
+          )}
+
           {/* Pour les autres onglets, afficher un message temporaire */}
-          {activeTab !== "Dados" && activeTab !== "Compensação" && (
+          {activeTab !== "Dados" && activeTab !== "Compensação" && activeTab !== "Benefícios" && activeTab !== "Bem-estar" && activeTab !== "Seguros" && activeTab !== "Investimentos" && (
             <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 text-center">
               <div className="text-2xl font-bold text-gray-800 mb-4">{activeTab}</div>
               <p className="text-gray-600">Cette section sera bientôt disponible.</p>
@@ -728,14 +827,16 @@ export default function DashboardFullWidth() {
               </button>
             </div>
           </div>
-          <div className="bg-white rounded-2xl shadow border border-gray-100 p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-            <div className="font-semibold text-lg mb-3 text-gray-800">Resumo Financeiro</div>
-            <div className="flex flex-col gap-3 text-base">
-              <div className="flex justify-between"><span>Saúde Financeira</span><span className="font-bold text-emerald-600">Boa</span></div>
-              <div className="flex justify-between"><span>Economia Mensal</span><span className="font-bold">R$ 1.240</span></div>
-              <div className="flex justify-between"><span>Próximo Objetivo</span><span className="font-bold text-blue-600 cursor-pointer underline">Reserva</span></div>
+          {holeriteResult && (
+            <div className="bg-white rounded-2xl shadow border border-gray-100 p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+              <div className="font-semibold text-lg mb-3 text-gray-800">Resumo Financeiro</div>
+              <div className="flex flex-col gap-3 text-base">
+                <div className="flex justify-between"><span>Salário Bruto</span><span className="font-bold">R$ {holeriteResult.salarioBruto?.toLocaleString()}</span></div>
+                <div className="flex justify-between"><span>Salário Líquido</span><span className="font-bold">R$ {holeriteResult.salarioLiquido?.toLocaleString()}</span></div>
+                <div className="flex justify-between"><span>Eficiência</span><span className="font-bold">{holeriteResult.eficiencia}%</span></div>
+              </div>
             </div>
-          </div>
+          )}
           {/* Bloc résultat holerite (synthétique, cliquable) */}
           {holeriteResult && (
             <div className="bg-emerald-50 rounded-2xl shadow border border-emerald-200 p-6 cursor-pointer hover:bg-emerald-100 transition" onClick={() => setShowAnalysisDetail(true)}>

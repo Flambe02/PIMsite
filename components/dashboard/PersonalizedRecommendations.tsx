@@ -19,11 +19,25 @@ interface PersonalizedRecommendationsProps {
   financialHealthScore: number
 }
 
+const normalize = (str: string | undefined) => {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove accents
+    .trim();
+};
+
+const isOption = (answer: string | undefined, variants: string[]) => {
+  const norm = normalize(answer);
+  return variants.some(v => normalize(v) === norm);
+};
+
 const getRecommendations = (quizAnswers: Record<string, string>, employmentStatus: string, score: number) => {
-  const recommendations = []
+  const recommendations = [] as any[]
 
   // Compensation recommendations
-  if (quizAnswers.salary_month === "rarely" || quizAnswers.salary_month === "never") {
+  if (isOption(quizAnswers.salary_month, ["Raramente", "Nunca", "rarely", "never"])) {
     recommendations.push({
       id: "budget_planning",
       category: "Compensação",
@@ -35,7 +49,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
     })
   }
 
-  if (quizAnswers.salary_raises === "rarely" || quizAnswers.salary_raises === "never") {
+  if (isOption(quizAnswers.salary_raises, ["Raramente", "Nunca", "rarely", "never"])) {
     recommendations.push({
       id: "salary_negotiation",
       category: "Compensação",
@@ -48,7 +62,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
   }
 
   // Benefits recommendations
-  if (quizAnswers.company_benefits === "poor" || quizAnswers.company_benefits === "none") {
+  if (isOption(quizAnswers.company_benefits, ["Poucos", "Nenhum", "poor", "none"])) {
     recommendations.push({
       id: "benefits_advocacy",
       category: "Benefícios",
@@ -60,7 +74,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
     })
   }
 
-  if (quizAnswers.food_allowance === "none") {
+  if (isOption(quizAnswers.food_allowance, ["Nenhum", "none"])) {
     recommendations.push({
       id: "food_allowance_negotiation",
       category: "Benefícios",
@@ -73,7 +87,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
   }
 
   // Insurance recommendations
-  if (quizAnswers.health_insurance === "limited" || quizAnswers.health_insurance === "none") {
+  if (isOption(quizAnswers.health_insurance, ["Limitado", "Nenhum", "limited", "none"])) {
     recommendations.push({
       id: "health_insurance_plan",
       category: "Seguros",
@@ -85,7 +99,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
     })
   }
 
-  if (quizAnswers.accident_coverage === "not_covered") {
+  if (isOption(quizAnswers.accident_coverage, ["Não coberto", "not covered", "not_covered"])) {
     recommendations.push({
       id: "accident_insurance",
       category: "Seguros",
@@ -98,7 +112,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
   }
 
   // Investment recommendations
-  if (quizAnswers.regular_investing === "rarely" || quizAnswers.regular_investing === "never") {
+  if (isOption(quizAnswers.regular_investing, ["Raramente", "Nunca", "rarely", "never"])) {
     recommendations.push({
       id: "investment_start",
       category: "Investimentos",
@@ -110,7 +124,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
     })
   }
 
-  if (quizAnswers.investment_confidence === "not_confident" || quizAnswers.investment_confidence === "not_at_all_confident") {
+  if (isOption(quizAnswers.investment_confidence, ["Pouco confiante", "Nada confiante", "not confident", "not_confident", "not_at_all_confident"])) {
     recommendations.push({
       id: "financial_education",
       category: "Investimentos",
@@ -123,7 +137,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
   }
 
   // Tax knowledge recommendations
-  if (quizAnswers.income_tax_understanding === "poor" || quizAnswers.income_tax_understanding === "none") {
+  if (isOption(quizAnswers.income_tax_understanding, ["Pouco", "Nenhum", "poor", "none"])) {
     recommendations.push({
       id: "tax_education",
       category: "Conhecimento Fiscal",
@@ -136,7 +150,7 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
   }
 
   // Pension recommendations
-  if (quizAnswers.private_pension === "none") {
+  if (isOption(quizAnswers.private_pension, ["Nenhum", "none"])) {
     recommendations.push({
       id: "pension_plan",
       category: "Previdência",
@@ -170,6 +184,19 @@ const getRecommendations = (quizAnswers: Record<string, string>, employmentStatu
       description: "Aproveite ao máximo todos os benefícios disponíveis no regime CLT.",
       priority: "medium",
       action: "Ver benefícios"
+    })
+  }
+
+  // Se nenhuma recomendação foi gerada (quiz não respondido e emprego desconhecido)
+  if (recommendations.length === 0) {
+    recommendations.push({
+      id: "generic_financial_health",
+      category: "Bem-estar",
+      icon: "💡",
+      title: "Educação Financeira",
+      description: "Explore nossos recursos de educação financeira para melhorar ainda mais sua saúde financeira.",
+      priority: "low",
+      action: "Ver conteúdos"
     })
   }
 
