@@ -5,7 +5,7 @@ import { FileText, Download, Eye, Calendar, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getUserPayslips } from "@/app/dashboard/actions"
+import { getUserPayslips } from "@/app/[locale]/dashboard/actions"
 import { Payslip } from "@/types";
 
 export function PayslipList() {

@@ -6,6 +6,8 @@ const PROTECTED = ["/dashboard", "/calculadora"];
 const ADMIN_ROUTES = ["/admin"];
 
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  
   let res = NextResponse.next();
   
   const supabase = createServerClient(
@@ -58,9 +60,8 @@ export async function middleware(req: NextRequest) {
   
   const { data: { session } } = await supabase.auth.getSession();
 
-  const { pathname } = req.nextUrl;
-  const needsAuth = PROTECTED.some((p) => pathname.startsWith(p));
-  const needsAdmin = ADMIN_ROUTES.some((p) => pathname.startsWith(p));
+  const needsAuth = PROTECTED.some((p) => pathname.includes(p));
+  const needsAdmin = ADMIN_ROUTES.some((p) => pathname.includes(p));
 
   // Vérifier l'accès admin si nécessaire
   if (needsAdmin) {
@@ -94,7 +95,7 @@ export async function middleware(req: NextRequest) {
   // Vérification onboarding obligatoire pour les routes protégées
   if (session && needsAuth) {
     // On ne bloque plus l'accès à /dashboard même si l'onboarding n'est pas complet
-    if (pathname.startsWith("/calculadora")) {
+    if (pathname.includes("/calculadora")) {
       const { data: onboarding, error } = await supabase
         .from('user_onboarding')
         .select('profile_completed, checkup_completed, holerite_uploaded')
@@ -111,7 +112,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (session && pathname === "/login") {
+  if (session && pathname.includes("/login")) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
 
@@ -119,5 +120,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api).*)"],
 }; 

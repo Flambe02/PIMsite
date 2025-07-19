@@ -2,7 +2,7 @@
 
 import { Briefcase, UserCircle, GraduationCap, Bus, Utensils, HeartPulse, Smile } from "lucide-react"
 import { useState } from "react"
-
+import { useId } from "react";
 
 
 // Supprime la variable inutilisée formSchema
@@ -13,7 +13,17 @@ export function ManualPayrollForm() {
   const [salary, setSalary] = useState({ bruto: '', liquido: '', base: '' })
   const [benefits, setBenefits] = useState({ transporte: '', refeicao: '', saude: '', odontologico: '' })
 
-
+  const idSalaryBruto = useId();
+  const idNumeroDependentes = useId();
+  const idOutrosDescontos = useId();
+  const idBeneficios = useId();
+  const idOutrosDescontosPj = useId();
+  const idBeneficiosPj = useId();
+  const idBeneficiosEstagiario = useId();
+  const idValeTransporte = useId();
+  const idValeRefeicao = useId();
+  const idPlanoSaude = useId();
+  const idPlanoOdontologico = useId();
 
 
   // Step indicator
@@ -55,22 +65,22 @@ export function ManualPayrollForm() {
         {/* Champ principal selon le profil */}
         {employmentType === 'clt' && (
           <div className="col-span-2">
-            <label className="block text-emerald-800 font-medium mb-1">Salário Bruto (R$)</label>
-            <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200" value={salary.bruto} onChange={e=>setSalary({...salary, bruto: e.target.value})} placeholder="Ex: 3500" />
+            <label htmlFor={idSalaryBruto} className="block text-emerald-800 font-medium mb-1">Salário Bruto (R$)</label>
+            <input type="number" id={idSalaryBruto} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200" value={salary.bruto} onChange={e=>setSalary({...salary, bruto: e.target.value})} placeholder="Ex: 3500" />
             <div className="text-xs text-gray-500 mt-1">Renda total antes das deduções</div>
           </div>
         )}
         {employmentType === 'pj' && (
           <div className="col-span-2">
-            <label className="block text-emerald-800 font-medium mb-1">Valor da Nota/Serviço (R$)</label>
-            <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200" value={salary.bruto} onChange={e=>setSalary({...salary, bruto: e.target.value})} placeholder="Ex: 8000" />
+            <label htmlFor={idSalaryBruto} className="block text-emerald-800 font-medium mb-1">Valor da Nota/Serviço (R$)</label>
+            <input type="number" id={idSalaryBruto} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200" value={salary.bruto} onChange={e=>setSalary({...salary, bruto: e.target.value})} placeholder="Ex: 8000" />
             <div className="text-xs text-gray-500 mt-1">Valor bruto da sua nota fiscal ou serviço</div>
           </div>
         )}
         {employmentType === 'estagiario' && (
           <div className="col-span-2">
-            <label className="block text-emerald-800 font-medium mb-1">Bolsa Estágio (R$)</label>
-            <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200" value={salary.bruto} onChange={e=>setSalary({...salary, bruto: e.target.value})} placeholder="Ex: 1200" />
+            <label htmlFor={idSalaryBruto} className="block text-emerald-800 font-medium mb-1">Bolsa Estágio (R$)</label>
+            <input type="number" id={idSalaryBruto} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200" value={salary.bruto} onChange={e=>setSalary({...salary, bruto: e.target.value})} placeholder="Ex: 1200" />
             <div className="text-xs text-gray-500 mt-1">Valor mensal da bolsa estágio</div>
           </div>
         )}
@@ -78,35 +88,35 @@ export function ManualPayrollForm() {
         {employmentType === 'clt' && (
           <>
             <div>
-              <label className="block text-emerald-800 font-medium mb-1">Número de dependentes</label>
-              <input type="number" min="0" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 2" />
+              <label htmlFor={idNumeroDependentes} className="block text-emerald-800 font-medium mb-1">Número de dependentes</label>
+              <input type="number" id={idNumeroDependentes} min="0" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 2" />
             </div>
             <div>
-              <label className="block text-emerald-800 font-medium mb-1">Outros descontos (R$)</label>
-              <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 200" />
+              <label htmlFor={idOutrosDescontos} className="block text-emerald-800 font-medium mb-1">Outros descontos (R$)</label>
+              <input type="number" id={idOutrosDescontos} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 200" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-emerald-800 font-medium mb-1">Benefícios (R$)</label>
-              <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 500" />
+              <label htmlFor={idBeneficios} className="block text-emerald-800 font-medium mb-1">Benefícios (R$)</label>
+              <input type="number" id={idBeneficios} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 500" />
             </div>
           </>
         )}
         {employmentType === 'pj' && (
           <>
             <div>
-              <label className="block text-emerald-800 font-medium mb-1">Outros descontos (R$)</label>
-              <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 300" />
+              <label htmlFor={idOutrosDescontosPj} className="block text-emerald-800 font-medium mb-1">Outros descontos (R$)</label>
+              <input type="number" id={idOutrosDescontosPj} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 300" />
             </div>
             <div>
-              <label className="block text-emerald-800 font-medium mb-1">Benefícios (R$)</label>
-              <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 400" />
+              <label htmlFor={idBeneficiosPj} className="block text-emerald-800 font-medium mb-1">Benefícios (R$)</label>
+              <input type="number" id={idBeneficiosPj} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 400" />
             </div>
           </>
         )}
         {employmentType === 'estagiario' && (
           <div>
-            <label className="block text-emerald-800 font-medium mb-1">Benefícios (R$)</label>
-            <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 200" />
+            <label htmlFor={idBeneficiosEstagiario} className="block text-emerald-800 font-medium mb-1">Benefícios (R$)</label>
+            <input type="number" id={idBeneficiosEstagiario} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm" placeholder="Ex: 200" />
           </div>
         )}
       </div>
@@ -120,24 +130,24 @@ export function ManualPayrollForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-center gap-2">
           <Bus className="w-5 h-5 text-emerald-400" />
-          <label className="block text-emerald-800 font-medium mb-1">Vale Transporte</label>
+          <label htmlFor={idValeTransporte} className="block text-emerald-800 font-medium mb-1">Vale Transporte</label>
         </div>
-        <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.transporte} onChange={e=>setBenefits({...benefits, transporte: e.target.value})} />
+        <input type="number" id={idValeTransporte} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.transporte} onChange={e=>setBenefits({...benefits, transporte: e.target.value})} />
         <div className="flex items-center gap-2">
           <Utensils className="w-5 h-5 text-emerald-400" />
-          <label className="block text-emerald-800 font-medium mb-1">Vale Refeição</label>
+          <label htmlFor={idValeRefeicao} className="block text-emerald-800 font-medium mb-1">Vale Refeição</label>
         </div>
-        <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.refeicao} onChange={e=>setBenefits({...benefits, refeicao: e.target.value})} />
+        <input type="number" id={idValeRefeicao} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.refeicao} onChange={e=>setBenefits({...benefits, refeicao: e.target.value})} />
         <div className="flex items-center gap-2">
           <HeartPulse className="w-5 h-5 text-emerald-400" />
-          <label className="block text-emerald-800 font-medium mb-1">Plano de Saúde</label>
+          <label htmlFor={idPlanoSaude} className="block text-emerald-800 font-medium mb-1">Plano de Saúde</label>
         </div>
-        <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.saude} onChange={e=>setBenefits({...benefits, saude: e.target.value})} />
+        <input type="number" id={idPlanoSaude} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.saude} onChange={e=>setBenefits({...benefits, saude: e.target.value})} />
         <div className="flex items-center gap-2">
           <Smile className="w-5 h-5 text-emerald-400" />
-          <label className="block text-emerald-800 font-medium mb-1">Plano Odontológico</label>
+          <label htmlFor={idPlanoOdontologico} className="block text-emerald-800 font-medium mb-1">Plano Odontológico</label>
         </div>
-        <input type="number" className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.odontologico} onChange={e=>setBenefits({...benefits, odontologico: e.target.value})} />
+        <input type="number" id={idPlanoOdontologico} className="w-full rounded-lg border border-emerald-200 p-2 shadow-sm focus:border-emerald-400 focus:ring-emerald-200 mb-2" value={benefits.odontologico} onChange={e=>setBenefits({...benefits, odontologico: e.target.value})} />
       </div>
     </div>
   )

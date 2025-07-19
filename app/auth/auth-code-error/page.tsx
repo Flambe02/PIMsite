@@ -1,11 +1,14 @@
-"use client";
+"use client"
+
+export const dynamic = 'force-dynamic';
+
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { useSupabase } from "@/components/supabase-provider";
 import { useSearchParams } from "next/navigation";
 
-export default function AuthCodeErrorPage() {
+function AuthCodeErrorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -96,5 +99,13 @@ export default function AuthCodeErrorPage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function AuthCodeErrorPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-emerald-700 text-lg font-semibold">Carregando...</div>}>
+      <AuthCodeErrorContent />
+    </Suspense>
   );
 } 

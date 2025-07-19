@@ -1,6 +1,6 @@
 "use client"
 
-import UploadHolerite from "@/app/calculadora/upload-holerite"
+import UploadHolerite from "@/app/[locale]/calculadora/upload-holerite"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { createBrowserClient } from "@supabase/ssr"
 import { useEffect, useState } from "react"

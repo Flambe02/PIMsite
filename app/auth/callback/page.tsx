@@ -1,31 +1,34 @@
 "use client"
-import { useEffect, useState } from 'react'
+
+export const dynamic = 'force-dynamic';
+
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSupabase } from "@/components/supabase-provider";
 
-export default function AuthCallback() {
+function AuthCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { supabase } = useSupabase();
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [_loading, setLoading] = useState(true)
+  const [error, _setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function handleAuth() {
       const code = searchParams.get('code')
       if (code) {
         try {
-          const { error } = await supabase.auth.exchangeCodeForSession(code)
-          if (!error) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error) {
             // Vérifie l'état d'onboarding et initialise si besoin
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
               // Vérifier ou initialiser la ligne user_onboarding
-              let { data, error: onboardingError } = await supabase
-                .from('user_onboarding')
-                .select('profile_completed, checkup_completed, holerite_uploaded')
-                .eq('user_id', user.id)
-                .single()
+              let { data, error: _onboardingError } = await supabase
+              .from('user_onboarding')
+              .select('profile_completed, checkup_completed, holerite_uploaded')
+              .eq('user_id', user.id)
+              .single()
               if (!data) {
                 // Créer la ligne si elle n'existe pas
                 const { error: insertError } = await supabase
@@ -45,8 +48,8 @@ export default function AuthCallback() {
                 return
               }
             }
-            router.replace('/onboarding')
-          } else {
+          router.replace('/onboarding')
+        } else {
             console.error('Erro exchangeCodeForSession:', error)
             // Gérer spécifiquement le cas où le lien a déjà été utilisé
             if (error.message?.includes('already been used') || error.message?.includes('expired')) {
@@ -77,4 +80,12 @@ export default function AuthCallback() {
   }
 
   return <div className="flex items-center justify-center min-h-screen text-emerald-700 text-lg font-semibold">Conectando... Aguarde um instante.</div>
+}
+
+export default function AuthCallback() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <AuthCallbackContent />
+    </Suspense>
+  )
 } 

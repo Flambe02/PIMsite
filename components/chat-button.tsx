@@ -40,7 +40,7 @@ export function ChatButton() {
                 />
                 <h3 className="font-medium">PIM - Assistente Financeiro</h3>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)} aria-label="Fermer le chat">
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -56,6 +56,7 @@ export function ChatButton() {
           <Button
             onClick={() => setIsOpen(true)}
             className="h-14 w-14 rounded-full bg-emerald-600 hover:bg-emerald-700 shadow-lg flex items-center justify-center sticky-cta"
+            aria-label="Ouvrir le chat"
           >
             <MessageCircle className="h-6 w-6" />
           </Button>

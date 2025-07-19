@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ResponsiveContainer, PieChart, Pie, Legend, Cell, Tooltip } from 'recharts'
-import { getLatestPayrollAnalysis } from '@/app/dashboard/actions' 
+import { getLatestPayrollAnalysis } from '@/app/[locale]/dashboard/actions' 
 import { PayrollAnalysisResult } from '@/types' 
 import { Button } from '@/components/ui/button'
 

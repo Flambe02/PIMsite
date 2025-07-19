@@ -6,5 +6,15 @@
       "subtitle": "Sous-titre de la page d'accueil",
       "cta": "Commencer"
     }
+  },
+  "france": {
+    "specialOffer": "Offre exclusive pour la France : bénéficiez d’un accompagnement personnalisé sur la fiscalité française.",
+    "guide": "Consultez notre guide complet sur la protection sociale et les avantages en France.",
+    "cta": "Découvrir les avantages français"
+  },
+  "fr-ca": {
+    "specialOffer": "Offre exclusive pour le Canada : découvrez les avantages sociaux canadiens et la fiscalité locale.",
+    "guide": "Consultez notre guide sur la retraite, la santé et les bénéfices au Canada.",
+    "cta": "Voir les avantages canadiens"
   }
 } 

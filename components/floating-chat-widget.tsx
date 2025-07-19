@@ -106,6 +106,7 @@ export function FloatingChatWidget() {
         <Button
           onClick={() => setIsMinimized(false)}
           className="rounded-full h-12 w-12 bg-emerald-600 hover:bg-emerald-700 shadow-lg flex items-center justify-center"
+          aria-label="Ouvrir le chat"
         >
           <Image src="/images/pim-avatar.png" alt="PIM" width={30} height={30} className="rounded-full" />
         </Button>
@@ -123,6 +124,7 @@ export function FloatingChatWidget() {
                 size="icon"
                 className="h-6 w-6 text-white hover:bg-emerald-700 rounded-full"
                 onClick={() => setIsMinimized(true)}
+                aria-label="Minimiser le chat"
               >
                 <Minimize2 className="h-3 w-3" />
               </Button>
@@ -131,6 +133,7 @@ export function FloatingChatWidget() {
                 size="icon"
                 className="h-6 w-6 text-white hover:bg-emerald-700 rounded-full"
                 onClick={() => setIsOpen(false)}
+                aria-label="Fermer le chat"
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -210,6 +213,7 @@ export function FloatingChatWidget() {
                 size="icon"
                 onClick={handleSend}
                 disabled={input.trim() === ""}
+                aria-label="Envoyer le message"
               >
                 <Send className="h-4 w-4" />
               </Button>

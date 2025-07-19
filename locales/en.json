@@ -6,5 +6,15 @@
       "subtitle": "Homepage subtitle",
       "cta": "Get started"
     }
+  },
+  "international": {
+    "specialOffer": "Exclusive offer: get personalized support for your country’s tax and benefits system.",
+    "guide": "Check out our complete guide to social protection and benefits in your country.",
+    "cta": "Discover your local advantages"
+  },
+  "en-gb": {
+    "specialOffer": "Exclusive offer for the UK: get support on British tax and benefits.",
+    "guide": "Read our guide to social protection and benefits in the UK.",
+    "cta": "See UK advantages"
   }
 } 

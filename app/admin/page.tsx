@@ -1,4 +1,7 @@
 'use client'
+
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react'
 import { createClient } from "../../lib/supabase/client"
 import { Button } from '@/components/ui/button'
@@ -14,7 +17,6 @@ import {
   Building2, 
   Gift, 
   Calculator, 
-  Shield, 
   Settings,
   LogOut,
   Plus,
@@ -26,12 +28,6 @@ import { ProviderList } from '@/components/admin/provider-list'
 import { BenefitList } from '@/components/admin/benefit-list'
 import { OcrResults } from '@/components/admin/ocr-results'
 import { AdminGuard } from '@/components/admin/AdminGuard'
-
-interface AdminUser {
-  name: string
-  email: string
-  password: string
-}
 
 interface Country {
   code: string
@@ -54,15 +50,15 @@ interface BenefitProvider {
 }
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [adminUser, setAdminUser] = useState<AdminUser>({ name: '', email: '', password: '' })
+  // Suppression de l'état du login uniquement
+  // const [_isAuthenticated, setIsAuthenticated] = useState(false)
+  // const [adminUser, setAdminUser] = useState<AdminUser>({ ... })
   
-  // Country form state
+  // Restauration des états des formulaires
   const [country, setCountry] = useState<Country>({
     code: '', name: '', capital: '', currency: '', currency_code: '', language: '', population: 0
   })
   
-  // Benefit provider form state
   const [benefitProvider, setBenefitProvider] = useState<BenefitProvider>({
     name: '', description: '', category: '', website: '', contact_email: '', is_active: true
   })
@@ -122,20 +118,12 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Simple authentication for demo - in production, use proper auth
-    if (adminUser.email && adminUser.password) {
-      setIsAuthenticated(true)
-      setMessage('Connexion réussie !')
-    } else {
-      setMessage('Veuillez remplir tous les champs')
-    }
-  }
-
   const handleLogout = () => {
-    setIsAuthenticated(false)
-    setAdminUser({ name: '', email: '', password: '' })
+    // Remplacer par la méthode de déconnexion de Supabase si AdminGuard l'utilise
+    const supabase = createClient()
+    supabase.auth.signOut()
+    // setIsAuthenticated(false) // Plus nécessaire
+    // setAdminUser({ name: '', email: '', password: '' }) // Plus nécessaire
     setMessage('Déconnexion réussie')
   }
 

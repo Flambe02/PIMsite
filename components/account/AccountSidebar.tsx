@@ -8,7 +8,7 @@ type Props = {
 
 export default function AccountSidebar({ selected, onSelect, sections }: Props) {
   return (
-    <nav className="w-64 bg-white border-r min-h-screen">
+    <nav className="w-64 bg-white border-r min-h-screen" aria-label="Navigation du compte">
       <ul className="py-8 space-y-2">
         {sections.map((section) => (
           <li key={section.key}>
@@ -19,6 +19,7 @@ export default function AccountSidebar({ selected, onSelect, sections }: Props) 
                   : "hover:bg-gray-100"
               }`}
               onClick={() => onSelect(section.key)}
+              aria-current={selected === section.key ? "page" : undefined}
             >
               {section.icon}
               {section.label}

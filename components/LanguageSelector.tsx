@@ -1,45 +1,55 @@
 "use client"
 
-import { useLocale } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Globe } from 'lucide-react'
-
-const languages = {
-  br: { name: 'Português', flag: '🇧🇷' },
-  fr: { name: 'Français', flag: '🇫🇷' },
-  en: { name: 'English', flag: '🇺🇸' }
-}
+import { Button } from '@/components/ui/button'
 
 export function LanguageSelector() {
-  const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
 
-  const handleLocaleChange = (newLocale: string) => {
+  const getCurrentLocale = () => {
+    const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
+    return localeMatch ? localeMatch[1] : 'br';
+  };
+
+  const currentLocale = getCurrentLocale();
+
+  const switchLocale = (newLocale: string) => {
     // Supprimer le locale actuel du pathname
-    const pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/'
+    const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
     
     // Construire le nouveau pathname avec le nouveau locale
-    const newPathname = newLocale === 'br' ? pathWithoutLocale : `/${newLocale}${pathWithoutLocale}`
+    const newPathname = newLocale === 'br' ? pathWithoutLocale : `/${newLocale}${pathWithoutLocale}`;
     
-    router.push(newPathname)
-  }
+    router.push(newPathname);
+  };
 
   return (
-    <Select value={locale} onValueChange={handleLocaleChange}>
-      <SelectTrigger className="w-[180px]">
-        <Globe className="mr-2 h-4 w-4" />
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {Object.entries(languages).map(([code, lang]) => (
-          <SelectItem key={code} value={code}>
-            <span className="mr-2">{lang.flag}</span>
-            {lang.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="flex gap-1">
+      <Button
+        variant={currentLocale === 'br' ? "default" : "outline"}
+        size="sm"
+        onClick={() => switchLocale('br')}
+        className={currentLocale === 'br' ? "bg-emerald-600 text-white" : "text-emerald-600 border-emerald-600"}
+      >
+        🇧🇷 BR
+      </Button>
+      <Button
+        variant={currentLocale === 'en' ? "default" : "outline"}
+        size="sm"
+        onClick={() => switchLocale('en')}
+        className={currentLocale === 'en' ? "bg-emerald-600 text-white" : "text-emerald-600 border-emerald-600"}
+      >
+        🇺🇸 EN
+      </Button>
+      <Button
+        variant={currentLocale === 'fr' ? "default" : "outline"}
+        size="sm"
+        onClick={() => switchLocale('fr')}
+        className={currentLocale === 'fr' ? "bg-emerald-600 text-white" : "text-emerald-600 border-emerald-600"}
+      >
+        🇫🇷 FR
+      </Button>
+    </div>
   )
 } 

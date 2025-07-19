@@ -15,6 +15,7 @@ export function PimChatWidget() {
       <button
         className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white rounded-full p-4 shadow-lg hover:bg-emerald-700"
         onClick={() => setOpen(o => !o)}
+        aria-label="Ouvrir ou fermer le chatbot"
       >
         <Bot className="w-6 h-6" />
       </button>

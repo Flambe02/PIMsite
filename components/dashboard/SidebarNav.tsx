@@ -58,12 +58,13 @@ export function SidebarNav() {
       {navSections.map(section => (
         <div key={section.title} className="mb-2">
           <div className="text-xs font-bold text-emerald-700 uppercase mb-2 tracking-wider">{section.title}</div>
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-1" aria-label={`Navigation ${section.title}`}>
             {section.items.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
                 className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition group"
+                aria-current={typeof window !== 'undefined' && window.location.pathname === item.href ? "page" : undefined}
               >
                 {item.icon}
                 <span className="font-medium">{item.label}</span>

@@ -2,17 +2,46 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
-import { Menu, UserCircle, Shield } from "lucide-react";
+import { Menu, UserCircle, Shield, ChevronDown } from "lucide-react";
 import { LoginModal } from "@/components/LoginModal";
 import { useAdmin } from "@/hooks/useAdmin";
-import { usePathname } from "next/navigation";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [countryMenuOpen, setCountryMenuOpen] = useState(false);
   const { isAdmin, loading, error } = useAdmin();
+  const pathname = usePathname();
+  const router = useRouter();
   
+  const getCurrentLocale = () => {
+    const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
+    return localeMatch ? localeMatch[1] : 'br';
+  };
+
+  const currentLocale = getCurrentLocale();
+
+  const switchCountry = (newLocale: string) => {
+    const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
+    const newPathname = newLocale === 'br' ? pathWithoutLocale : `/${newLocale}${pathWithoutLocale}`;
+    router.push(newPathname);
+    setCountryMenuOpen(false);
+  };
+
+  const getCountryInfo = (locale: string) => {
+    switch(locale) {
+      case 'br':
+        return { flag: '🇧🇷', name: 'Brasil', code: 'BR', language: 'PT' };
+      case 'fr':
+        return { flag: '🇫🇷', name: 'France', code: 'FR', language: 'FR' };
+      default:
+        return { flag: '🇧🇷', name: 'Brasil', code: 'BR', language: 'PT' };
+    }
+  };
+
+  const currentCountry = getCountryInfo(currentLocale);
+
   return (
     <>
       <header className="w-full border-b bg-[#1a2e22] shadow-md sticky top-0 z-30">
@@ -30,27 +59,106 @@ export function Header() {
           <div className="hidden lg:block col-span-6 xl:col-span-7"></div>
           {/* Actions alignées à droite (desktop only) */}
           <div className="hidden lg:flex col-span-3 xl:col-span-3 items-center justify-end gap-4">
-            <Link href="/recursos" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Recursos</Link>
-            <Link href="/guia-paises" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Guia dos Países</Link>
-            <Link href="/dashboard" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Dashboard</Link>
+            <Link href="/br/recursos" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Recursos</Link>
+            <Link href="/br/guia-paises" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Guia dos Países</Link>
+            <Link href="/br/dashboard" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Dashboard</Link>
+            {/* Sélecteur de pays avec langue automatique */}
+            <div className="relative ml-2">
+              <button
+                onClick={() => setCountryMenuOpen(!countryMenuOpen)}
+                className="flex items-center gap-1 px-2 py-1 text-white hover:text-emerald-300 transition-all duration-150"
+              >
+                <span className="text-sm font-medium">{currentCountry.code} {currentCountry.language}</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${countryMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {countryMenuOpen && (
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-[140px] z-50">
+                  <button
+                    onClick={() => switchCountry('br')}
+                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 ${
+                      currentLocale === 'br' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                    }`}
+                  >
+                    <span className="text-lg">🇧🇷</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">Brasil</span>
+                      <span className="text-xs text-gray-500">Português</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => switchCountry('fr')}
+                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 ${
+                      currentLocale === 'fr' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                    }`}
+                  >
+                    <span className="text-lg">🇫🇷</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">France</span>
+                      <span className="text-xs text-gray-500">Français</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
             <HeaderClient />
           </div>
           {/* Mobile drawer */}
           {mobileMenuOpen && (
-            <div className="fixed inset-0 z-50 bg-black/40 flex">
+            <div className="fixed inset-0 z-50 bg-black/40 flex" role="dialog" aria-modal="true">
               <div className="w-[80vw] max-w-xs bg-emerald-50 h-full p-6 flex flex-col gap-8 animate-fadeIn shadow-2xl">
                 <button className="self-end mb-4 text-gray-500 text-3xl" onClick={() => setMobileMenuOpen(false)}>&times;</button>
-                <nav className="flex flex-col gap-4 w-full mt-8">
-                  <Link href="/recursos" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Recursos</Link>
-                  <Link href="/guia-paises" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Guia dos Países</Link>
-                  <Link href="/dashboard" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                  <Link href="/profile" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Perfil</Link>
+                <nav className="flex flex-col gap-4 w-full mt-8" aria-label="Navigation mobile principale">
+                  <Link href="/br/recursos" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Recursos</Link>
+                  <Link href="/br/guia-paises" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Guia dos Países</Link>
+                  <Link href="/br/dashboard" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                  <Link href="/br/profile" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Perfil</Link>
                   {isAdmin && (
                     <Link href="/admin" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
                       <Shield className="w-5 h-5" />
                       Admin Panel
                     </Link>
                   )}
+                  {/* Sélecteur de pays mobile avec langue automatique */}
+                  <div className="mt-4">
+                    <span className="text-sm font-medium text-gray-700 mb-2 block">Pays</span>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          switchCountry('br');
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 ${
+                          currentLocale === 'br' 
+                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
+                            : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="text-lg">🇧🇷</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">Brasil</span>
+                          <span className="text-xs text-gray-500">Português</span>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => {
+                          switchCountry('fr');
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 ${
+                          currentLocale === 'fr' 
+                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
+                            : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="text-lg">🇫🇷</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">France</span>
+                          <span className="text-xs text-gray-500">Français</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
                   <div className="mt-6 flex flex-col gap-3">
                     <HeaderClient />
                   </div>
@@ -106,7 +214,7 @@ function HeaderClient() {
             <Shield className="w-6 h-6 text-emerald-700" />
           </Link>
         )}
-        <Link href="/profile" className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#1a2e22] hover:bg-emerald-50 transition-colors" title="Perfil">
+        <Link href="/br/profile" className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#1a2e22] hover:bg-emerald-50 transition-colors" title="Perfil">
           <UserCircle className="w-6 h-6 text-emerald-700" />
         </Link>
         <button onClick={handleLogout} className="text-sm px-3 py-1 border rounded bg-red-500 text-white">Sair</button>

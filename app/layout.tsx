@@ -2,10 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
-import { Header } from '@/components/header'
 import { SupabaseProvider } from "@/components/supabase-provider";
 import ReactQueryProvider from "@/components/ReactQueryProvider";
-import Image from "next/image";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,48 +18,32 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="pt-BR">
+    <html>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Définir la langue basée sur l'URL
+              const path = window.location.pathname;
+              const localeMatch = path.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
+              const locale = localeMatch ? localeMatch[1] : 'br';
+              document.documentElement.lang = locale;
+            `,
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <SupabaseProvider initialSession={null}>
           <ReactQueryProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <div className="flex-1 flex flex-col">
-                {children}
-              </div>
-              <footer className="flex flex-col sm:flex-row items-center justify-between py-6 w-full border-t px-4 md:px-6 bg-[#1a2e22] mt-auto text-sm text-gray-300 shadow-inner">
-                <div className="flex items-center mb-2 sm:mb-0 flex-col items-start">
-                  <div className="flex items-center">
-                    <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={28} height={28} className="h-7 w-auto mr-2" />
-                    <span className="font-bold text-emerald-200">Pimentão Rouge Company</span>
-                    <span className="text-[10px] text-gray-400 ml-2">V0.2.0</span>
-                  </div>
-                </div>
-                <div className="text-xs text-gray-400 text-center sm:text-left max-w-md leading-snug mb-2 sm:mb-0">
-                  Nossa missão: ajudar todos os brasileiros a entender e otimizar seus benefícios  de forma simples, segura e transparente.<br/>
-                </div>
-                <nav className="flex flex-wrap gap-4 items-center">
-                  <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Termos de Serviço</a>
-                  <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Privacidade</a>
-                  <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Sobre</a>
-                  <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Contato</a>
-                  <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">FAQ</a>
-                  <span className="flex gap-2 ml-2">
-                    <a href="#" aria-label="Instagram" className="bg-[#223c2c] text-emerald-200 hover:text-white rounded-full p-1 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" /></svg></a>
-                    <a href="#" aria-label="LinkedIn" className="bg-[#223c2c] text-emerald-200 hover:text-white rounded-full p-1 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="2" /></svg></a>
-                    <a href="#" aria-label="Twitter" className="bg-[#223c2c] text-emerald-200 hover:text-white rounded-full p-1 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path d="M5 15c6 0 9-5 9-9v-1a6 6 0 0 0 1-1" /></svg></a>
-                  </span>
-                </nav>
-              </footer>
-            </div>
+            {children}
             <Analytics />
           </ReactQueryProvider>
         </SupabaseProvider>
       </body>
     </html>
   )
-}
+} 

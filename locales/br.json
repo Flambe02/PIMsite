@@ -6,5 +6,15 @@
       "subtitle": "Subtítulo da página inicial",
       "cta": "Começar"
     }
+  },
+  "brasil": {
+    "specialOffer": "Oferta exclusiva para o Brasil: receba orientação personalizada sobre impostos e benefícios brasileiros.",
+    "guide": "Confira nosso guia completo sobre previdência e vantagens no Brasil.",
+    "cta": "Descubra os benefícios brasileiros"
+  },
+  "pt-pt": {
+    "specialOffer": "Oferta exclusiva para Portugal: descubra os benefícios e impostos portugueses.",
+    "guide": "Veja nosso guia sobre segurança social e vantagens em Portugal.",
+    "cta": "Ver benefícios em Portugal"
   }
 } 

@@ -6,12 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Facebook, Apple, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import CreateAccount from "@/components/CreateAccount"
 import { useSupabase } from "@/components/supabase-provider";
 
-export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }: { open: boolean, onOpenChange: (v: boolean) => void, message?: string, redirectTo?: string }) {
+function LoginModalContent({ open, onOpenChange, message = "", redirectTo = "" }: { open: boolean, onOpenChange: (v: boolean) => void, message?: string, redirectTo?: string }) {
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [tab, setTab] = useState<'login' | 'register'>("login");
@@ -23,9 +23,7 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
 
   useEffect(() => {
     if (urlEmail) setEmailValue(urlEmail);
-    // Si on arrive avec un message d'email déjà existant, bascule sur Login
     if (urlMessage && urlMessage.toLowerCase().includes("já possui uma conta")) setTab("login");
-    // Si message "Usuário não cadastrado", bascule sur register
     if (urlMessage && urlMessage.toLowerCase().includes("usuário não cadastrado")) setTab("register");
   }, [urlEmail, urlMessage]);
 
@@ -33,13 +31,14 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
     e.preventDefault();
     setLoginError("");
     const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+    const emailInput = form.elements.namedItem("email");
+    const passwordInput = form.elements.namedItem("password");
+    const email = (emailInput && (emailInput as HTMLInputElement).value) || "";
+    const password = (passwordInput && (passwordInput as HTMLInputElement).value) || "";
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoginError(error.message || "Email ou senha inválidos.");
     } else {
-      // Vérifier ou initialiser la ligne user_onboarding
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         let { data, error: onboardingError } = await supabase
@@ -48,7 +47,6 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
           .eq('user_id', user.id)
           .single();
         if (!data) {
-          // Créer la ligne si elle n'existe pas
           const { error: insertError } = await supabase
             .from('user_onboarding')
             .upsert({
@@ -62,15 +60,11 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
         }
         const onboardingComplete = data.profile_completed && data.checkup_completed && data.holerite_uploaded;
         onOpenChange(false);
-        if (onboardingComplete) {
-          if (redirectTo) window.location.href = redirectTo;
-          else window.location.href = "/dashboard";
-        } else {
-          window.location.href = "/onboarding";
-        }
+        if (redirectTo) window.location.href = redirectTo;
+        else if (onboardingComplete) window.location.href = "/dashboard";
+        else window.location.href = "/onboarding";
         return;
       }
-      // fallback
       window.location.reload();
     }
   };
@@ -89,9 +83,7 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
       <DialogContent className="max-w-3xl p-0 bg-transparent border-0 shadow-none">
         <DialogTitle className="sr-only">Bem-vindo ao PIM</DialogTitle>
         <div className="w-full bg-white rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border border-gray-100">
-          {/* Bouton X en haut à droite */}
           <button className="absolute top-4 right-4 z-20 text-gray-400 hover:text-gray-700 text-2xl font-bold" aria-label="Fermer" onClick={() => onOpenChange(false)}>&times;</button>
-          {/* Colonne gauche : formulaire */}
           <div className="flex-1 flex flex-col justify-center p-8 md:p-12 min-h-[440px] md:min-h-[440px]">
             <div className="flex items-center justify-between mb-6">
               <span className="text-xs text-gray-500">Brasil 🇧🇷</span>
@@ -111,7 +103,6 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
               <Button variant="outline" size="icon" className="rounded-full border-gray-300"><Facebook className="w-5 h-5 text-blue-600" /></Button>
               <Button variant="outline" size="icon" className="rounded-full border-gray-300"><Apple className="w-5 h-5 text-gray-900" /></Button>
               <Button variant="outline" size="icon" className="rounded-full border-gray-300" onClick={handleGoogleLogin}>
-                {/* Icône Google stylisé */}
                 <svg className="w-5 h-5" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.22l6.85-6.85C35.64 2.36 30.18 0 24 0 14.82 0 6.73 5.48 2.69 13.44l7.98 6.2C12.13 13.09 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.55c0-1.64-.15-3.22-.43-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.65 7.01l7.19 5.6C43.98 37.36 46.1 31.45 46.1 24.55z"/><path fill="#FBBC05" d="M9.67 28.09c-1.09-3.25-1.09-6.74 0-9.99l-7.98-6.2C-1.13 17.09-1.13 30.91 1.69 36.11l7.98-6.2z"/><path fill="#EA4335" d="M24 48c6.18 0 11.64-2.04 15.54-5.54l-7.19-5.6c-2.01 1.35-4.58 2.14-8.35 2.14-6.38 0-11.87-3.59-14.33-8.84l-7.98 6.2C6.73 42.52 14.82 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></g></svg>
               </Button>
             </div>
@@ -163,7 +154,6 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
               ) : null}
             </div>
           </div>
-          {/* Colonne droite : image/vidéo + overlay */}
           <div className="hidden md:block md:w-1/2 relative bg-black/80">
             <video
               autoPlay
@@ -182,7 +172,6 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
                   <span className="font-semibold text-sm">Otimização de Carreira PIM</span>
                 </div>
                 <div className="flex gap-2 mb-4">
-                  {/* images supprimées */}
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
@@ -202,4 +191,14 @@ export function LoginModal({ open, onOpenChange, message = "", redirectTo = "" }
       </DialogContent>
     </Dialog>
   );
-} 
+}
+
+export function LoginModal(props: { open: boolean, onOpenChange: (v: boolean) => void, message?: string, redirectTo?: string }) {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <LoginModalContent {...props} />
+    </Suspense>
+  );
+}
+
+export default LoginModal; 
