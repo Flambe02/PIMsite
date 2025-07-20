@@ -1,98 +1,228 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { useSupabase } from "@/components/supabase-provider";
+import { locales, type Locale } from '@/lib/i18n-simple';
 
-interface UserOnboardingState {
-  profile_completed: boolean;
-  checkup_completed: boolean;
-  holerite_uploaded: boolean;
-  onboarding_complete: boolean;
-  progress: number;
+export interface OnboardingState {
+  isCompleted: boolean;
+  currentStep: number;
+  profileCompleted: boolean;
+  preferencesCompleted: boolean;
+  goalsCompleted: boolean;
+  locale: Locale;
 }
 
-export function useUserOnboarding(userId?: string): UserOnboardingState | null {
-  const [state, setState] = useState<UserOnboardingState | null>(null);
-  const { supabase } = useSupabase();
+export interface UserProfile {
+  id: string;
+  email: string;
+  locale?: Locale;
+  onboarding_completed?: boolean;
+  onboarding_step?: number;
+  profile_completed?: boolean;
+  preferences_completed?: boolean;
+  goals_completed?: boolean;
+  created_at: string;
+}
 
-  useEffect(() => {
-    if (!userId) return;
-    let isMounted = true;
-    async function fetchOnboarding() {
-      const { data, error } = await supabase
-        .from('user_onboarding')
-        .select('profile_completed, checkup_completed, holerite_uploaded')
-        .eq('user_id', userId)
-        .single();
-      if (error) {
-        console.log('Erreur fetch user_onboarding:', error.message);
-        if (isMounted) setState(null);
-        return;
+export function useUserOnboarding(user: User | null) {
+  const [onboardingState, setOnboardingState] = useState<OnboardingState>({
+    isCompleted: false,
+    currentStep: 0,
+    profileCompleted: false,
+    preferencesCompleted: false,
+    goalsCompleted: false,
+    locale: 'fr'
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const supabase = createClient();
+
+  // Détection de la langue cible
+  const detectUserLocale = (): Locale => {
+    // Priorité 1: Locale de l'utilisateur en session
+    if (user?.user_metadata?.locale && locales.includes(user.user_metadata.locale as Locale)) {
+      return user.user_metadata.locale as Locale;
+    }
+
+    // Priorité 2: Locale du navigateur
+    if (typeof window !== 'undefined') {
+      const browserLang = navigator.language.toLowerCase();
+      if (browserLang.startsWith('pt') || browserLang.startsWith('pt-br')) {
+        return 'br';
       }
-      const steps = [data?.profile_completed, data?.checkup_completed, data?.holerite_uploaded];
-      const completed = steps.filter(Boolean).length;
-      const progress = Math.round((completed / steps.length) * 100);
-      if (isMounted) setState({
-        profile_completed: !!data?.profile_completed,
-        checkup_completed: !!data?.checkup_completed,
-        holerite_uploaded: !!data?.holerite_uploaded,
-        onboarding_complete: steps.every(Boolean),
-        progress
-      });
+      if (browserLang.startsWith('fr')) {
+        return 'fr';
+      }
+      if (browserLang.startsWith('en')) {
+        return 'en';
+      }
     }
-    fetchOnboarding();
-    return () => { isMounted = false; };
-  }, [userId]);
 
-  return state;
-}
-
-export function useOnboardingPhase1() {
-  const [email, setEmail] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string>("");
-  const { supabase } = useSupabase();
-
-  useEffect(() => {
-    async function fetchEmail() {
-      setIsLoading(true);
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (user?.email) setEmail(user.email);
-      if (!user) setError("Sessão não encontrada. Faça login novamente.");
-      if (error) setError(error.message);
-      setIsLoading(false);
+    // Priorité 3: Locale de l'URL actuelle
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    const urlLocale = pathname.split('/')[1];
+    if (urlLocale && locales.includes(urlLocale as Locale)) {
+      return urlLocale as Locale;
     }
-    fetchEmail();
-  }, []);
 
-  async function savePerfil({ firstName, lastName, password }: { firstName: string, lastName: string, password: string }) {
-    setLoading(true); setError("");
+    // Fallback: français par défaut
+    return 'fr';
+  };
+
+  // Charger l'état de l'onboarding depuis Supabase
+  const loadOnboardingState = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // 1. Update password in Auth
-      const { error: passError } = await supabase.auth.updateUser({ password });
-      if (passError) throw new Error(passError.message);
-      // 2. Update profile (firstName, lastName)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ first_name: firstName, last_name: lastName })
-        .eq('id', user.id);
-      if (profileError) throw new Error(profileError.message);
-      // 3. Mark onboarding phase 1 complete
-      const { error: onboardingError } = await supabase
-        .from('user_onboarding')
-        .update({ profile_completed: true })
-        .eq('user_id', user.id);
-      if (onboardingError) throw new Error(onboardingError.message);
-      setLoading(false);
-      return true;
-    } catch (e: any) {
-      setError(e.message || 'Erro desconhecido');
-      setLoading(false);
-      return false;
-    }
-  }
+      setLoading(true);
+      setError(null);
 
-  return { email, loading, isLoading, error, savePerfil };
+      // Récupérer le profil utilisateur
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
+      }
+
+      // Détecter la locale
+      const detectedLocale = detectUserLocale();
+
+      // État par défaut
+      const defaultState: OnboardingState = {
+        isCompleted: false,
+        currentStep: 0,
+        profileCompleted: false,
+        preferencesCompleted: false,
+        goalsCompleted: false,
+        locale: detectedLocale
+      };
+
+      if (profile) {
+        // Utiliser les données du profil si disponibles
+        setOnboardingState({
+          isCompleted: profile.onboarding_completed || false,
+          currentStep: profile.onboarding_step || 0,
+          profileCompleted: profile.profile_completed || false,
+          preferencesCompleted: profile.preferences_completed || false,
+          goalsCompleted: profile.goals_completed || false,
+          locale: profile.locale || detectedLocale
+        });
+      } else {
+        // Créer un profil par défaut
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            locale: detectedLocale,
+            onboarding_completed: false,
+            onboarding_step: 0,
+            profile_completed: false,
+            preferences_completed: false,
+            goals_completed: false
+          });
+
+        if (insertError) {
+          console.error('Erreur création profil:', insertError);
+        }
+
+        setOnboardingState(defaultState);
+      }
+    } catch (err) {
+      console.error('Erreur chargement onboarding:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mettre à jour l'état de l'onboarding
+  const updateOnboardingState = async (updates: Partial<OnboardingState>) => {
+    if (!user) return;
+
+    try {
+      const newState = { ...onboardingState, ...updates };
+      setOnboardingState(newState);
+
+      // Mettre à jour en base
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          onboarding_completed: newState.isCompleted,
+          onboarding_step: newState.currentStep,
+          profile_completed: newState.profileCompleted,
+          preferences_completed: newState.preferencesCompleted,
+          goals_completed: newState.goalsCompleted,
+          locale: newState.locale
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Erreur mise à jour onboarding:', error);
+        throw error;
+      }
+    } catch (err) {
+      console.error('Erreur mise à jour état:', err);
+      setError(err instanceof Error ? err.message : 'Erreur mise à jour');
+    }
+  };
+
+  // Changer de locale
+  const changeLocale = async (newLocale: Locale) => {
+    await updateOnboardingState({ locale: newLocale });
+  };
+
+  // Passer à l'étape suivante
+  const nextStep = async () => {
+    const nextStepNumber = onboardingState.currentStep + 1;
+    const isCompleted = nextStepNumber >= 3; // 3 étapes totales
+
+    await updateOnboardingState({
+      currentStep: nextStepNumber,
+      isCompleted
+    });
+  };
+
+  // Marquer une section comme complétée
+  const completeSection = async (section: 'profile' | 'preferences' | 'goals') => {
+    const updates: Partial<OnboardingState> = {};
+    
+    switch (section) {
+      case 'profile':
+        updates.profileCompleted = true;
+        break;
+      case 'preferences':
+        updates.preferencesCompleted = true;
+        break;
+      case 'goals':
+        updates.goalsCompleted = true;
+        break;
+    }
+
+    await updateOnboardingState(updates);
+  };
+
+  // Charger l'état au montage et quand l'utilisateur change
+  useEffect(() => {
+    loadOnboardingState();
+  }, [user]);
+
+  return {
+    onboardingState,
+    loading,
+    error,
+    updateOnboardingState,
+    changeLocale,
+    nextStep,
+    completeSection,
+    detectUserLocale
+  };
 } 

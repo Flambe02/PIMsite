@@ -13,57 +13,99 @@ function AuthCallbackContent() {
   const [_loading, setLoading] = useState(true)
   const [error, _setError] = useState<string | null>(null)
 
+  // Détection de la langue cible
+  const detectUserLocale = (): string => {
+    // Priorité 1: Locale depuis les paramètres de l'URL
+    const urlLocale = searchParams.get('locale');
+    if (urlLocale && ['fr', 'br', 'en'].includes(urlLocale)) {
+      return urlLocale;
+    }
+
+    // Priorité 2: Locale du navigateur
+    if (typeof window !== 'undefined') {
+      const browserLang = navigator.language.toLowerCase();
+      if (browserLang.startsWith('pt') || browserLang.startsWith('pt-br')) {
+        return 'br';
+      }
+      if (browserLang.startsWith('fr')) {
+        return 'fr';
+      }
+      if (browserLang.startsWith('en')) {
+        return 'en';
+      }
+    }
+
+    // Fallback: français par défaut
+    return 'fr';
+  };
+
   useEffect(() => {
     async function handleAuth() {
       const code = searchParams.get('code')
       if (code) {
         try {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
-            // Vérifie l'état d'onboarding et initialise si besoin
-          const { data: { user } } = await supabase.auth.getUser()
-          if (user) {
-              // Vérifier ou initialiser la ligne user_onboarding
-              let { data, error: _onboardingError } = await supabase
-              .from('user_onboarding')
-              .select('profile_completed, checkup_completed, holerite_uploaded')
-              .eq('user_id', user.id)
-              .single()
-              if (!data) {
-                // Créer la ligne si elle n'existe pas
-                const { error: insertError } = await supabase
-                  .from('user_onboarding')
-                  .upsert({
-                    user_id: user.id,
-                    profile_completed: false,
-                    checkup_completed: false,
-                    holerite_uploaded: false
-                  })
-                if (insertError) console.error('Erro insert user_onboarding:', insertError.message)
-                data = { profile_completed: false, checkup_completed: false, holerite_uploaded: false }
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          if (!error) {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+              // Détecter la locale
+              const detectedLocale = detectUserLocale();
+              
+              // Vérifier l'état d'onboarding dans la table profiles
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+              if (profileError && profileError.code !== 'PGRST116') {
+                console.error('Erreur récupération profil:', profileError);
               }
-              const onboardingComplete = data.profile_completed && data.checkup_completed && data.holerite_uploaded
-              if (onboardingComplete) {
-                router.replace('/dashboard')
-                return
+
+              // Créer ou mettre à jour le profil avec la locale détectée
+              const { error: upsertError } = await supabase
+                .from('profiles')
+                .upsert({
+                  id: user.id,
+                  email: user.email,
+                  locale: detectedLocale,
+                  onboarding_completed: profile?.onboarding_completed || false,
+                  onboarding_step: profile?.onboarding_step || 0,
+                  profile_completed: profile?.profile_completed || false,
+                  preferences_completed: profile?.preferences_completed || false,
+                  goals_completed: profile?.goals_completed || false
+                });
+
+              if (upsertError) {
+                console.error('Erreur upsert profil:', upsertError);
               }
-            }
-          router.replace('/onboarding')
-        } else {
-            console.error('Erro exchangeCodeForSession:', error)
-            // Gérer spécifiquement le cas où le lien a déjà été utilisé
-            if (error.message?.includes('already been used') || error.message?.includes('expired')) {
-              router.replace('/auth/auth-code-error?message=Link já foi utilizado ou expirou')
+
+              // Redirection intelligente selon l'état d'onboarding
+              if (profile?.onboarding_completed) {
+                router.replace(`/${detectedLocale}/dashboard`);
+              } else {
+                router.replace(`/${detectedLocale}/onboarding`);
+              }
             } else {
-              router.replace(`/auth/auth-code-error?message=${encodeURIComponent(error.message)}`)
+              router.replace(`/${detectedLocale}/login`);
+            }
+          } else {
+            console.error('Erro exchangeCodeForSession:', error)
+            const detectedLocale = detectUserLocale();
+            if (error.message?.includes('already been used') || error.message?.includes('expired')) {
+              router.replace(`/${detectedLocale}/auth/auth-code-error?message=Link já foi utilizado ou expirou`)
+            } else {
+              router.replace(`/${detectedLocale}/auth/auth-code-error?message=${encodeURIComponent(error.message)}`)
             }
           }
         } catch (err) {
           console.error('Erro inesperado:', err)
-          router.replace('/auth/auth-code-error?message=Erro inesperado durante a confirmação')
+          const detectedLocale = detectUserLocale();
+          router.replace(`/${detectedLocale}/auth/auth-code-error?message=Erro inesperado durante a confirmação`)
         }
       } else {
-        router.replace('/auth/auth-code-error?message=Código de confirmação não encontrado')
+        const detectedLocale = detectUserLocale();
+        router.replace(`/${detectedLocale}/auth/auth-code-error?message=Código de confirmação não encontrado`)
       }
       setLoading(false)
     }

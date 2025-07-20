@@ -64,15 +64,51 @@ export default function OAuthLoginButton({
     setLoading(true)
     
     try {
+      // Détection de la langue cible
+      const detectUserLocale = (): string => {
+        // Priorité 1: Locale de l'URL actuelle
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        const urlLocale = pathname.split('/')[1];
+        if (urlLocale && ['fr', 'br', 'en'].includes(urlLocale)) {
+          return urlLocale;
+        }
+
+        // Priorité 2: Locale du navigateur
+        if (typeof window !== 'undefined') {
+          const browserLang = navigator.language.toLowerCase();
+          if (browserLang.startsWith('pt') || browserLang.startsWith('pt-br')) {
+            return 'br';
+          }
+          if (browserLang.startsWith('fr')) {
+            return 'fr';
+          }
+          if (browserLang.startsWith('en')) {
+            return 'en';
+          }
+        }
+
+        // Fallback: français par défaut
+        return 'fr';
+      };
+
+      const detectedLocale = detectUserLocale();
+      
       // Configuration dynamique selon l'environnement
-      const redirectTo = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000/dashboard'
-        : `${window.location.origin}/dashboard`
+      const baseUrl = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : window.location.origin;
+
+      // Redirection intelligente : onboarding si nouveau user, dashboard sinon
+      // On laisse le callback auth gérer la logique de redirection
+      const redirectTo = `${baseUrl}/auth/callback?locale=${detectedLocale}`;
 
       await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo
+          redirectTo,
+          queryParams: {
+            locale: detectedLocale
+          }
         }
       })
     } catch (error) {

@@ -50,5 +50,45 @@
     "analysis-complete": "Analyse terminée",
     "no-data": "Aucune donnée disponible",
     "upload-prompt": "Téléchargez votre bulletin de paie pour voir les résultats"
+  },
+  "onboarding": {
+    "welcome": "Bienvenue sur PIM",
+    "welcome-subtitle": "Votre assistant financier personnel",
+    "step-1": "Étape 1",
+    "step-2": "Étape 2", 
+    "step-3": "Étape 3",
+    "profile": "Profil",
+    "preferences": "Préférences",
+    "goals": "Objectifs",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "complete": "Terminer",
+    "skip": "Passer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "profile-title": "Créons votre profil",
+    "profile-subtitle": "Dites-nous qui vous êtes",
+    "preferences-title": "Vos préférences",
+    "preferences-subtitle": "Personnalisez votre expérience",
+    "goals-title": "Vos objectifs financiers",
+    "goals-subtitle": "Définissez vos priorités",
+    "form": {
+      "first-name": "Prénom",
+      "last-name": "Nom",
+      "email": "Email",
+      "country": "Pays",
+      "language": "Langue",
+      "currency": "Devise",
+      "timezone": "Fuseau horaire"
+    },
+    "goals": {
+      "save-money": "Épargner de l'argent",
+      "invest": "Investir",
+      "retirement": "Préparer la retraite",
+      "debt-free": "Être sans dette",
+      "emergency-fund": "Créer un fonds d'urgence",
+      "other": "Autre"
+    }
   }
 } 

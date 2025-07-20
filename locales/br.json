@@ -50,5 +50,45 @@
     "analysis-complete": "Análise completa",
     "no-data": "Nenhum dado disponível",
     "upload-prompt": "Faça o upload do seu holerite para ver os resultados"
+  },
+  "onboarding": {
+    "welcome": "Bem-vindo ao PIM",
+    "welcome-subtitle": "Seu assistente financeiro pessoal",
+    "step-1": "Etapa 1",
+    "step-2": "Etapa 2",
+    "step-3": "Etapa 3",
+    "profile": "Perfil",
+    "preferences": "Preferências",
+    "goals": "Objetivos",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "complete": "Concluir",
+    "skip": "Pular",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "profile-title": "Vamos criar seu perfil",
+    "profile-subtitle": "Conte-nos quem você é",
+    "preferences-title": "Suas preferências",
+    "preferences-subtitle": "Personalize sua experiência",
+    "goals-title": "Seus objetivos financeiros",
+    "goals-subtitle": "Defina suas prioridades",
+    "form": {
+      "first-name": "Nome",
+      "last-name": "Sobrenome",
+      "email": "Email",
+      "country": "País",
+      "language": "Idioma",
+      "currency": "Moeda",
+      "timezone": "Fuso horário"
+    },
+    "goals": {
+      "save-money": "Economizar dinheiro",
+      "invest": "Investir",
+      "retirement": "Preparar aposentadoria",
+      "debt-free": "Ficar sem dívidas",
+      "emergency-fund": "Criar fundo de emergência",
+      "other": "Outro"
+    }
   }
 } 
