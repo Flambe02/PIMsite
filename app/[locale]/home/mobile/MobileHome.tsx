@@ -483,6 +483,12 @@ export default function MobileHome({ locale }: { locale: string }) {
       <div className="fixed bottom-20 left-4 z-40 md:hidden">
         <ChatButton />
       </div>
+      
+      {/* FAB avec avatar PIM */}
+      <FAB 
+        href={`/${locale}/calculadora`}
+        label="Commencer un diagnostic"
+      />
     </MobilePageWrapper>
   )
 } 

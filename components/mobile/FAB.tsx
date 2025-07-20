@@ -98,7 +98,7 @@ export function FAB({
       >
         {icon || (
           <Image 
-            src="images/pim-avatar.png" 
+            src="/images/pim-avatar.png" 
             alt="PIM Assistant"
             width={32}
             height={32}
