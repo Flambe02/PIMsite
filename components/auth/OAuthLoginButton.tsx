@@ -98,8 +98,7 @@ export default function OAuthLoginButton({
         ? 'http://localhost:3000'
         : window.location.origin;
 
-      // Redirection intelligente : onboarding si nouveau user, dashboard sinon
-      // On laisse le callback auth gérer la logique de redirection
+      // Redirection vers le callback auth
       const redirectTo = `${baseUrl}/auth/callback?locale=${detectedLocale}`;
 
       await supabase.auth.signInWithOAuth({
