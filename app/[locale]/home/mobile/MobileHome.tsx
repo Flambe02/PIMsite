@@ -183,44 +183,8 @@ const localizedContent = {
   }
 };
 
-// Composant Bottom Navigation Mobile
-function BottomTabBar() {
-  const pathname = usePathname()
-  const router = useRouter()
-  
-  const tabs = [
-    { icon: Home, label: "Accueil", href: "/" },
-    { icon: Calculator, label: "Diagnóstico", href: "/calculadora" },
-    { icon: MessageCircle, label: "Chat", href: "/chat" },
-    { icon: User, label: "Compte", href: "/account" }
-  ]
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
-      <div className="flex items-center justify-around py-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon
-          const isActive = pathname === tab.href
-          
-          return (
-            <button
-              key={tab.label}
-              onClick={() => router.push(tab.href)}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
-                isActive 
-                  ? 'text-emerald-600 bg-emerald-50' 
-                  : 'text-gray-600 hover:text-emerald-600'
-              }`}
-            >
-              <Icon className="w-5 h-5 mb-1" />
-              <span className="text-xs font-medium">{tab.label}</span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+// Import des composants de base mobile
+import { MobilePageWrapper, FAB, BottomTabBar } from "@/components/mobile"
 
 // Section Hero Mobile
 function MobileHeroSection({ locale }: { locale: string }) {
@@ -490,47 +454,35 @@ function MobileCTASection({ locale }: { locale: string }) {
 
 // Floating Action Button pour diagnostic rapide
 function FloatingActionButton({ locale }: { locale: string }) {
-  const router = useRouter()
-  
   return (
-    <button
-      onClick={() => router.push(`/${locale}/calculadora`)}
-      className="fixed bottom-20 right-4 z-40 md:hidden bg-emerald-600 hover:bg-emerald-700 text-white rounded-full p-4 shadow-lg transition-all duration-200 hover:scale-105"
-      aria-label="Commencer un diagnostic"
-    >
-      <Upload className="w-6 h-6" />
-    </button>
+    <FAB 
+      href={`/${locale}/calculadora`}
+      icon={<Upload className="w-6 h-6" />}
+      label="Commencer un diagnostic"
+    />
   )
 }
 
 // Composant principal MobileHome
 export default function MobileHome({ locale }: { locale: string }) {
   return (
-    <>
-      <main className="flex-1 pb-20">
-        <MobileHeroSection locale={locale} />
-        <MobileProcessSection locale={locale} />
-        
-        {/* Trust Badges - Version mobile */}
-        <div className="py-6 bg-white">
-          <TrustBadges />
-        </div>
-        
-        <MobileFeaturesSection locale={locale} />
-        <MobileTestimonialsSection locale={locale} />
-        <MobileCTASection locale={locale} />
-      </main>
+    <MobilePageWrapper title="Accueil PIM">
+      <MobileHeroSection locale={locale} />
+      <MobileProcessSection locale={locale} />
       
-      {/* Floating Action Button */}
-      <FloatingActionButton locale={locale} />
+      {/* Trust Badges - Version mobile */}
+      <div className="py-6 bg-white">
+        <TrustBadges />
+      </div>
       
-      {/* Bottom Navigation */}
-      <BottomTabBar />
+      <MobileFeaturesSection locale={locale} />
+      <MobileTestimonialsSection locale={locale} />
+      <MobileCTASection locale={locale} />
       
       {/* Chat Button - Version mobile */}
       <div className="fixed bottom-20 left-4 z-40 md:hidden">
         <ChatButton />
       </div>
-    </>
+    </MobilePageWrapper>
   )
 } 
