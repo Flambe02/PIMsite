@@ -14,6 +14,7 @@ let nextConfig = {
         hostname: 'randomuser.me',
       },
     ],
+    unoptimized: false,
   },
   eslint: {
     ignoreDuringBuilds: true,
