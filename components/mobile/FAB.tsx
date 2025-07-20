@@ -97,10 +97,14 @@ export function FAB({
         disabled={loading}
       >
         {icon || (
-          <img 
-            src="/images/pim-avatar.png" 
+          <Image 
+            src="images/pim-avatar.png" 
             alt="PIM Assistant"
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full object-cover"
+            decoding="async"
+            priority
           />
         )}
       </button>
