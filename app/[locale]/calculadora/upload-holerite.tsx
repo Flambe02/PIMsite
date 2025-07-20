@@ -59,10 +59,33 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
         body: formData,
       });
       console.log('Réponse brute:', res);
-      const data = await res.json();
-      console.log('Données reçues:', data);
+      
+      let data;
+      try {
+        data = await res.json();
+        console.log('Données reçues:', data);
+      } catch (jsonError) {
+        console.error('Erreur parsing JSON côté client:', jsonError);
+        setLoading(false);
+        toast({ 
+          title: "Erreur de traitement", 
+          description: "La réponse du serveur n'est pas valide. Réessayez.", 
+          variant: "destructive" 
+        });
+        return;
+      }
+      
       setLoading(false);
-      if (data.success && onResult) {
+      if (data.success && data.analysisData && onResult) {
+        // Validation des données requises
+        if (!data.analysisData.gross_salary || !data.analysisData.net_salary) {
+          toast({ 
+            title: "Données incomplètes", 
+            description: "L'analyse n'a pas pu extraire toutes les informations nécessaires. Vérifiez que le fichier est bien une feuille de paie.", 
+            variant: "destructive" 
+          });
+          return;
+        }
         // --- ENRICHISSEMENT PJ ---
         let analysis = data.analysisData.analysis || {};
         const raw = data.analysisData;

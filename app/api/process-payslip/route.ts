@@ -66,7 +66,57 @@ export async function POST(req: NextRequest) {
     if (!jsonResponse) throw new Error("Le LLM a retourné une réponse vide.");
     
     console.log('🔧 Parsing de la réponse JSON...');
-    const parsedData = JSON.parse(jsonResponse);
+    console.log('📄 Réponse brute de l\'IA:', jsonResponse);
+    
+    let parsedData;
+    try {
+      // Essayer de parser directement
+      parsedData = JSON.parse(jsonResponse);
+    } catch (parseError) {
+      console.error('❌ Erreur parsing JSON:', parseError);
+      console.log('🔍 Tentative de nettoyage de la réponse...');
+      
+      // Nettoyer la réponse si elle contient des objets
+      let cleanedResponse = jsonResponse;
+      
+      // Si la réponse contient "[object Object]", essayer de la nettoyer
+      if (typeof jsonResponse === 'object') {
+        cleanedResponse = JSON.stringify(jsonResponse);
+      }
+      
+      // Essayer de parser la version nettoyée
+      try {
+        parsedData = JSON.parse(cleanedResponse);
+      } catch (secondError) {
+        console.error('❌ Échec du parsing après nettoyage:', secondError);
+        
+        // Fallback : créer un objet par défaut
+        parsedData = {
+          period: null,
+          company_name: "Entreprise non détectée",
+          employee_name: "Nom non détecté",
+          position: "Poste non détecté",
+          profile_type: "invalide",
+          gross_salary: 0,
+          net_salary: 0,
+          inss_base: 0,
+          fgts_base: 0,
+          irrf_base: 0,
+          fgts_deposit: 0,
+          earnings: [],
+          deductions: [],
+          analysis: {
+            summary: "Impossible d'analyser ce holerite. Veuillez vérifier que le fichier est lisible.",
+            optimization_opportunities: [
+              "Vérifiez que le fichier est bien une feuille de paie",
+              "Assurez-vous que le texte est lisible",
+              "Essayez avec un autre fichier si le problème persiste"
+            ]
+          }
+        };
+      }
+    }
+    
     console.log('✅ Données parsées avec succès');
     
     console.log('💾 Sauvegarde dans Supabase...');

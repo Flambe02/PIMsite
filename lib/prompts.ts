@@ -1,5 +1,9 @@
 // lib/prompts.ts
-export const payslipAnalysisPrompt = `Você é um contador especialista em holerites brasileiros. A partir do texto bruto do holerite fornecido, extraia as informações abaixo. Se um valor não for encontrado, use null no JSON. Responda SOMENTE com um objeto JSON válido, sem explicação extra. Todos os textos (inclusive resumo e oportunidades) devem estar em português. 
+export const payslipAnalysisPrompt = `Você é um contador especialista em holerites brasileiros. A partir do texto bruto do holerite fornecido, extraia as informações abaixo. Se um valor não for encontrado, use null no JSON. 
+
+⚠️ IMPORTANTE: Responda EXCLUSIVAMENTE com um objeto JSON valido, sem texte avant ou après. N'utilisez pas de markdown, pas de \`\`\`json, juste le JSON pur.
+
+Todos os textos (inclusive resumo e oportunidades) devem estar em português.
 Extraia também o mês de referência do holerite (campo "period"), no formato "AAAA-MM" ou "MM/YYYY".
 
 Identifique e extraia também:
