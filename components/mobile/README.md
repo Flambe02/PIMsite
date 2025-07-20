@@ -27,6 +27,7 @@ export default function MaPageMobile() {
 - `fabAction?: () => void` - Action personnalisée pour le FAB
 - `fabIcon?: React.ReactNode` - Icône personnalisée pour le FAB
 - `fabLabel?: string` - Label d'accessibilité pour le FAB
+- `fabRequiresAuth?: boolean` - Le FAB nécessite-t-il une authentification (défaut: false)
 
 ### `FAB` (Floating Action Button)
 Bouton d'action flottant pour les actions rapides.
@@ -53,6 +54,7 @@ import { Upload } from "lucide-react"
 - `label?: string` - Label d'accessibilité
 - `href?: string` - Lien de navigation
 - `variant?: "primary" | "secondary" | "success" | "warning"` - Couleur
+- `requiresAuth?: boolean` - Nécessite une authentification (défaut: false)
 
 ### `BottomTabBar`
 Navigation en bas d'écran avec 4 onglets.
@@ -68,6 +70,7 @@ import { BottomTabBar } from "@/components/mobile"
 
 **Fonctionnalités :**
 - Navigation automatique vers `/`, `/dashboard`, `/chat`, `/account`
+- **Authentification automatique** : Les onglets protégés ouvrent le modal de connexion si l'utilisateur n'est pas connecté
 - Indicateur d'onglet actif
 - Support des badges de notification
 - Responsive (visible uniquement sur mobile)
@@ -107,6 +110,7 @@ export default function MaPageMobile() {
       fabAction={handleUpload}
       fabIcon={<Upload className="w-6 h-6" />}
       fabLabel="Upload holerite"
+      fabRequiresAuth={true} // Le FAB nécessite une authentification
     >
       {/* Contenu de votre page */}
       <div className="space-y-4">

@@ -11,6 +11,7 @@ interface MobilePageWrapperProps {
   fabAction?: () => void
   fabIcon?: React.ReactNode
   fabLabel?: string
+  fabRequiresAuth?: boolean
 }
 
 export function MobilePageWrapper({ 
@@ -19,7 +20,8 @@ export function MobilePageWrapper({
   showFAB = true,
   fabAction,
   fabIcon,
-  fabLabel = "Diagnóstico"
+  fabLabel = "Diagnóstico",
+  fabRequiresAuth = false
 }: MobilePageWrapperProps) {
   
   // Mise à jour du titre de la page
@@ -42,6 +44,7 @@ export function MobilePageWrapper({
           action={fabAction}
           icon={fabIcon}
           label={fabLabel}
+          requiresAuth={fabRequiresAuth}
         />
       )}
       
