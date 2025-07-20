@@ -12,7 +12,7 @@ import { TrustBadges } from "@/components/trust-badges"
 import { ChatButton } from "@/components/chat-button"
 import dynamic from "next/dynamic"
 
-const LoginModal = dynamic(() => import("@/components/LoginModal").then(m => m.LoginModal), {
+const LoginModal = dynamic(() => import("@/components/auth/LoginModal"), {
   loading: () => <div className="py-8 text-center text-emerald-900">Chargement du module de connexion...</div>,
   ssr: false
 })

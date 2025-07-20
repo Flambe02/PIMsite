@@ -7,7 +7,7 @@ import { createBrowserClient } from "@supabase/ssr"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 
-const LoginModal = dynamic(() => import("@/components/LoginModal").then(m => m.LoginModal), {
+const LoginModal = dynamic(() => import("@/components/auth/LoginModal"), {
   loading: () => <div className="py-8 text-center text-emerald-900">Chargement du module de connexion...</div>,
   ssr: false
 })

@@ -77,10 +77,14 @@ function LoginPageContent() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setLoginError("");
+    const redirectTo = process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000/dashboard'
+      : `${window.location.origin}/dashboard`
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: typeof window !== 'undefined' ? 'https://pimsite-prod.supabase.co/auth/v1/callback' : undefined
+        redirectTo
       }
     });
     setLoading(false);

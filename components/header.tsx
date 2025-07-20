@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { Menu, UserCircle, Shield, ChevronDown, X } from "lucide-react";
-import { LoginModal } from "@/components/LoginModal";
+import LoginModal from "@/components/auth/LoginModal";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useCountry, useCountryInfo } from "@/lib/geo";
 import { useTranslations } from '@/hooks/useTranslations';

@@ -10,7 +10,7 @@ import Dynamic from "next/dynamic";
 import Image from "next/image"
 import { useSupabase } from "@/components/supabase-provider";
 import { CheckCircle2, User, ClipboardCheck, FileText, ArrowLeft, ArrowRight, Home } from "lucide-react"
-import { LoginModal } from "@/components/LoginModal"
+import LoginModal from "@/components/auth/LoginModal"
 
 const OnboardingStep1 = Dynamic(() => import("@/components/onboarding/OnboardingStep1").then(m => m.default), {
   loading: () => <div className="py-12 text-center text-emerald-900">Chargement de l'étape 1...</div>,
