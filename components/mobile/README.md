@@ -30,13 +30,13 @@ export default function MaPageMobile() {
 - `fabRequiresAuth?: boolean` - Le FAB nécessite-t-il une authentification (défaut: false)
 
 ### `FAB` (Floating Action Button)
-Bouton d'action flottant pour les actions rapides.
+Bouton d'action flottant pour les actions rapides. Utilise l'avatar PIM par défaut.
 
 ```tsx
 import { FAB } from "@/components/mobile"
 import { Upload } from "lucide-react"
 
-// Utilisation simple
+// Utilisation simple (affiche l'avatar PIM)
 <FAB />
 
 // Avec personnalisation
@@ -50,11 +50,19 @@ import { Upload } from "lucide-react"
 
 **Props :**
 - `action?: () => void` - Fonction personnalisée
-- `icon?: React.ReactNode` - Icône personnalisée
+- `icon?: React.ReactNode` - Icône personnalisée (par défaut: avatar PIM)
 - `label?: string` - Label d'accessibilité
 - `href?: string` - Lien de navigation
 - `variant?: "primary" | "secondary" | "success" | "warning"` - Couleur
 - `requiresAuth?: boolean` - Nécessite une authentification (défaut: false)
+
+**Fonctionnalités :**
+- Position fixe en bas à droite (mobile uniquement)
+- Animation de scale au clic
+- Navigation par défaut vers `/calculadora`
+- Support des variantes de couleur
+- Authentification automatique si configuré
+- **Avatar PIM par défaut** : Utilise `/images/pim-avatar.png` si aucune icône personnalisée
 
 ### `BottomTabBar`
 Navigation en bas d'écran avec 4 onglets.

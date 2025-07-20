@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 import dynamic from "next/dynamic"
+import Image from "next/image"
 
 const LoginModal = dynamic(() => import("@/components/LoginModal").then(m => m.LoginModal), {
   loading: () => <div className="py-8 text-center text-emerald-900">Chargement du module de connexion...</div>,
@@ -91,11 +92,19 @@ export function FAB({
     <>
       <button
         onClick={handleClick}
-        className={`fixed bottom-20 right-4 z-40 md:hidden w-14 h-14 rounded-full ${getVariantClasses()} text-white shadow-xl active:scale-95 transition-transform duration-200 flex items-center justify-center`}
+        className={`fixed bottom-20 right-4 z-40 md:hidden w-14 h-14 rounded-full ${getVariantClasses()} text-white shadow-xl active:scale-95 transition-transform duration-200 flex items-center justify-center overflow-hidden`}
         aria-label={label}
         disabled={loading}
       >
-        {icon || <Plus className="w-6 h-6" />}
+        {icon || (
+          <Image 
+            src="/images/pim-avatar.png" 
+            alt="PIM Assistant"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        )}
       </button>
       
       {/* Modal de connexion */}
