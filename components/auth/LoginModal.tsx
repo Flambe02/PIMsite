@@ -96,7 +96,7 @@ export default function LoginModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 bg-transparent border-0 shadow-none">
+      <DialogContent className="max-w-md p-0 bg-transparent border-0 shadow-none" data-testid="login-modal">
         <div className="w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Header avec bouton fermer */}
           <div className="flex justify-between items-center p-6 pb-4">
@@ -109,6 +109,7 @@ export default function LoginModal({
               size="icon"
               onClick={handleClose}
               className="h-8 w-8 rounded-full"
+              data-testid="modal-close-button"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -118,12 +119,13 @@ export default function LoginModal({
           <div className="px-6 pb-6">
             {/* Bouton Google */}
             <div className="mb-6">
-              <GoogleLoginButton 
-                className="w-full border-gray-300"
-                disabled={loading}
-              >
-                Continuer avec Google
-              </GoogleLoginButton>
+                          <GoogleLoginButton 
+              className="w-full border-gray-300"
+              disabled={loading}
+              data-testid="google-login-button"
+            >
+              Continuer avec Google
+            </GoogleLoginButton>
             </div>
 
             {/* Séparateur */}
@@ -145,6 +147,7 @@ export default function LoginModal({
                   placeholder="votre@email.com"
                   required
                   disabled={loading}
+                  data-testid="email-input"
                 />
               </div>
 
@@ -159,6 +162,7 @@ export default function LoginModal({
                     placeholder="Votre mot de passe"
                     required
                     disabled={loading}
+                    data-testid="password-input"
                   />
                   <Button
                     type="button"
@@ -178,7 +182,7 @@ export default function LoginModal({
               </div>
 
               {loginError && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" data-testid="login-error">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{loginError}</AlertDescription>
                 </Alert>
@@ -188,6 +192,7 @@ export default function LoginModal({
                 type="submit"
                 className="w-full"
                 disabled={loading}
+                data-testid="email-login-button"
               >
                 {loading ? "Connexion..." : "Se connecter"}
               </Button>
