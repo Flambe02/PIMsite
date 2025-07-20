@@ -1,20 +1,54 @@
 {
-  "homepage": {
-    "hero": {
-      "badge": "Bem-vindo",
-      "title": "Título principal",
-      "subtitle": "Subtítulo da página inicial",
-      "cta": "Começar"
-    }
+  "navigation": {
+    "dashboard": "Dashboard",
+    "recursos": "Recursos",
+    "guia-paises": "Guia dos Países",
+    "calculadora": "Calculadora",
+    "simulador": "Simulador"
   },
-  "brasil": {
-    "specialOffer": "Oferta exclusiva para o Brasil: receba orientação personalizada sobre impostos e benefícios brasileiros.",
-    "guide": "Confira nosso guia completo sobre previdência e vantagens no Brasil.",
-    "cta": "Descubra os benefícios brasileiros"
+  "dashboard": {
+    "compensacao": "Compensação",
+    "beneficios": "Benefícios",
+    "bem-estar": "Bem-estar",
+    "seguros": "Seguros",
+    "investimentos": "Investimentos",
+    "dados": "Dados",
+    "upload-holerite": "Upload Holerite",
+    "analise": "Análise",
+    "perfil": "Perfil",
+    "acoes-rapidas": "Ações Rápidas",
+    "resumo-financeiro": "Resumo Financeiro",
+    "oportunidades": "Oportunidades Identificadas"
   },
-  "pt-pt": {
-    "specialOffer": "Oferta exclusiva para Portugal: descubra os benefícios e impostos portugueses.",
-    "guide": "Veja nosso guia sobre segurança social e vantagens em Portugal.",
-    "cta": "Ver benefícios em Portugal"
+  "common": {
+    "salario-bruto": "Salário Bruto",
+    "salario-liquido": "Salário Líquido",
+    "descontos": "Descontos",
+    "eficiencia": "Eficiência",
+    "upload": "Upload",
+    "analisar": "Analisar",
+    "ver-detalhes": "Ver Detalhes",
+    "acessar": "Acessar",
+    "sim": "Sim",
+    "nao": "Não",
+    "carregando": "Carregando...",
+    "erro": "Erro",
+    "sucesso": "Sucesso"
+  },
+  "beneficios": {
+    "vale-refeicao": "Vale Refeição",
+    "plano-saude": "Plano de Saúde",
+    "previdencia-privada": "Previdência Privada",
+    "fgts": "FGTS",
+    "detectado": "Detectado",
+    "comentario-educativo": "Comentário Educativo",
+    "acao": "Ação"
+  },
+  "messages": {
+    "upload-success": "Holerite carregado com sucesso!",
+    "upload-error": "Erro ao carregar holerite",
+    "analysis-complete": "Análise completa",
+    "no-data": "Nenhum dado disponível",
+    "upload-prompt": "Faça o upload do seu holerite para ver os resultados"
   }
 } 

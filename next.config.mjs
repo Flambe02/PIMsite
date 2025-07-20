@@ -41,21 +41,23 @@ let nextConfig = {
   },
 };
 
+// Add bundle analyzer
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-// Envelopper d'abord avec le bundle analyzer, puis avec Sentry
 nextConfig = withBundleAnalyzer(nextConfig);
 
-export default withSentryConfig(
-  nextConfig,
-  {
-    org: 'the-pimentao-rouge-company',
-    project: 'javascript-nextjs',
-    silent: !process.env.CI,
-    widenClientFileUpload: true,
-    disableLogger: true,
-    automaticVercelMonitors: true,
-  }
-);
+// Add Sentry
+nextConfig = withSentryConfig(nextConfig, {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  // Suppresses source map uploading logs during build
+  silent: true,
+  org: 'pimentao-rouge',
+  project: 'pim-site',
+});
+
+export default nextConfig;
+

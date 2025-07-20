@@ -1,20 +1,54 @@
 {
-  "homepage": {
-    "hero": {
-      "badge": "Welcome",
-      "title": "Main title",
-      "subtitle": "Homepage subtitle",
-      "cta": "Get started"
-    }
+  "navigation": {
+    "dashboard": "Dashboard",
+    "recursos": "Resources",
+    "guia-paises": "Country Guide",
+    "calculadora": "Calculator",
+    "simulador": "Simulator"
   },
-  "international": {
-    "specialOffer": "Exclusive offer: get personalized support for your country’s tax and benefits system.",
-    "guide": "Check out our complete guide to social protection and benefits in your country.",
-    "cta": "Discover your local advantages"
+  "dashboard": {
+    "compensacao": "Compensation",
+    "beneficios": "Benefits",
+    "bem-estar": "Well-being",
+    "seguros": "Insurance",
+    "investimentos": "Investments",
+    "dados": "Data",
+    "upload-holerite": "Upload Payslip",
+    "analise": "Analysis",
+    "perfil": "Profile",
+    "acoes-rapidas": "Quick Actions",
+    "resumo-financeiro": "Financial Summary",
+    "oportunidades": "Identified Opportunities"
   },
-  "en-gb": {
-    "specialOffer": "Exclusive offer for the UK: get support on British tax and benefits.",
-    "guide": "Read our guide to social protection and benefits in the UK.",
-    "cta": "See UK advantages"
+  "common": {
+    "salario-bruto": "Gross Salary",
+    "salario-liquido": "Net Salary",
+    "descontos": "Deductions",
+    "eficiencia": "Efficiency",
+    "upload": "Upload",
+    "analisar": "Analyze",
+    "ver-detalhes": "View Details",
+    "acessar": "Access",
+    "sim": "Yes",
+    "nao": "No",
+    "carregando": "Loading...",
+    "erro": "Error",
+    "sucesso": "Success"
+  },
+  "beneficios": {
+    "vale-refeicao": "Meal Vouchers",
+    "plano-saude": "Health Plan",
+    "previdencia-privada": "Private Pension",
+    "fgts": "Severance Fund",
+    "detectado": "Detected",
+    "comentario-educativo": "Educational Comment",
+    "acao": "Action"
+  },
+  "messages": {
+    "upload-success": "Payslip uploaded successfully!",
+    "upload-error": "Error uploading payslip",
+    "analysis-complete": "Analysis complete",
+    "no-data": "No data available",
+    "upload-prompt": "Upload your payslip to see results"
   }
 } 

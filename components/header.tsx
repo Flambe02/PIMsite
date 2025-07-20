@@ -4,9 +4,11 @@ import { Logo } from "@/components/logo";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
-import { Menu, UserCircle, Shield, ChevronDown } from "lucide-react";
+import { Menu, UserCircle, Shield, ChevronDown, X } from "lucide-react";
 import { LoginModal } from "@/components/LoginModal";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useCountry, useCountryInfo } from "@/lib/geo";
+import { useTranslations } from '@/hooks/useTranslations';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,61 +16,116 @@ export function Header() {
   const { isAdmin, loading, error } = useAdmin();
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations();
   
-  const getCurrentLocale = () => {
-    const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
-    return localeMatch ? localeMatch[1] : 'br';
-  };
-
-  const currentLocale = getCurrentLocale();
-
-  const switchCountry = (newLocale: string) => {
-    const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
-    const newPathname = newLocale === 'br' ? pathWithoutLocale : `/${newLocale}${pathWithoutLocale}`;
+  // Utilisation du nouveau hook useCountry
+  const currentCountry = useCountry();
+  const countryInfo = useCountryInfo();
+  
+  const switchCountry = (newCountry: 'br' | 'fr') => {
+    const pathWithoutLocale = pathname.replace(/^\/(br|fr)/, '') || '/';
+    const newPathname = newCountry === 'br' ? pathWithoutLocale : `/${newCountry}${pathWithoutLocale}`;
     router.push(newPathname);
     setCountryMenuOpen(false);
+    setMobileMenuOpen(false);
   };
-
-  const getCountryInfo = (locale: string) => {
-    switch(locale) {
-      case 'br':
-        return { flag: '🇧🇷', name: 'Brasil', code: 'BR', language: 'PT' };
-      case 'fr':
-        return { flag: '🇫🇷', name: 'France', code: 'FR', language: 'FR' };
-      default:
-        return { flag: '🇧🇷', name: 'Brasil', code: 'BR', language: 'PT' };
-    }
-  };
-
-  const currentCountry = getCountryInfo(currentLocale);
 
   return (
     <>
       <header className="w-full border-b bg-[#1a2e22] shadow-md sticky top-0 z-30">
-        <div className="max-w-[1280px] mx-auto grid grid-cols-12 items-center h-16 px-4 sm:px-6 lg:px-8 relative">
-          {/* Hamburger mobile */}
-          <button className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-40 bg-[#223c2c] border border-[#3a5c47] rounded-full p-2 shadow-md text-white hover:bg-[#2e4a38] transition" onClick={() => setMobileMenuOpen(true)}>
-            <Menu className="w-7 h-7" />
-          </button>
-          {/* Logo aligné avec la sidebar */}
-          <div className="col-span-3 xl:col-span-2 flex items-center gap-4">
-            <Logo />
-            {/* Lien Admin supprimé ici */}
-          </div>
-          {/* Espace central vide (pour centrer le logo) */}
-          <div className="hidden lg:block col-span-6 xl:col-span-7"></div>
-          {/* Actions alignées à droite (desktop only) */}
-          <div className="hidden lg:flex col-span-3 xl:col-span-3 items-center justify-end gap-4">
-            <Link href="/br/recursos" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Recursos</Link>
-            <Link href="/br/guia-paises" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Guia dos Países</Link>
-            <Link href="/br/dashboard" className="text-white px-5 py-2 h-11 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap">Dashboard</Link>
-            {/* Sélecteur de pays avec langue automatique */}
-            <div className="relative ml-2">
+        {/* Container mobile-first avec flex-col par défaut */}
+        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between h-16 px-4 sm:px-6 lg:px-8 relative">
+          
+          {/* Section gauche : Logo et menu mobile */}
+          <div className="flex items-center justify-between w-full md:w-auto">
+            {/* Hamburger mobile - plus discret */}
+            <button 
+              className="md:hidden flex items-center justify-center w-8 h-8 bg-[#223c2c] border border-[#3a5c47] rounded-lg text-white hover:bg-[#2e4a38] transition-colors" 
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Ouvrir le menu de navigation"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+            
+            {/* Logo - centré sur mobile, aligné à gauche sur desktop */}
+            <div className="flex items-center justify-center md:justify-start flex-1 md:flex-none">
+              <Logo />
+            </div>
+            
+            {/* Sélecteur de pays mobile - plus compact */}
+            <div className="md:hidden relative">
               <button
                 onClick={() => setCountryMenuOpen(!countryMenuOpen)}
-                className="flex items-center gap-1 px-2 py-1 text-white hover:text-emerald-300 transition-all duration-150"
+                className="flex items-center gap-1 px-2 py-1 text-white hover:text-emerald-300 transition-colors rounded text-xs"
+                aria-label="Sélectionner le pays"
               >
-                <span className="text-sm font-medium">{currentCountry.code} {currentCountry.language}</span>
+                <span className="font-medium">{countryInfo.flag} {countryInfo.code.toUpperCase()}</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${countryMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {countryMenuOpen && (
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px] z-50">
+                  <button
+                    onClick={() => switchCountry('br')}
+                    className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm ${
+                      currentCountry === 'br' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                    }`}
+                  >
+                    <span className="text-base">🇧🇷</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium text-xs">Brasil</span>
+                      <span className="text-xs text-gray-500">PT</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => switchCountry('fr')}
+                    className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm ${
+                      currentCountry === 'fr' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                    }`}
+                  >
+                    <span className="text-base">🇫🇷</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium text-xs">France</span>
+                      <span className="text-xs text-gray-500">FR</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Navigation desktop - cachée sur mobile */}
+          <nav className="hidden md:flex items-center justify-center gap-4 flex-1 max-w-2xl">
+            <Link 
+              href={`/${currentCountry}/recursos`} 
+              className="text-white px-4 py-2 h-10 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap"
+            >
+              {t.navigation?.recursos || 'Recursos'}
+            </Link>
+            <Link 
+              href={`/${currentCountry}/guia-paises`} 
+              className="text-white px-4 py-2 h-10 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap"
+            >
+              {t.navigation?.['guia-paises'] || 'Guia dos Países'}
+            </Link>
+            <Link 
+              href={`/${currentCountry}/dashboard`} 
+              className="text-white px-4 py-2 h-10 flex items-center rounded-full font-semibold shadow-sm border border-[#3a5c47] bg-[#223c2c] hover:bg-[#2e4a38] hover:text-emerald-300 transition-all duration-150 focus:ring-2 focus:ring-emerald-300 whitespace-nowrap"
+            >
+              {t.navigation?.dashboard || 'Dashboard'}
+            </Link>
+          </nav>
+
+          {/* Actions droite - desktop seulement */}
+          <div className="hidden md:flex items-center justify-end gap-4">
+            {/* Sélecteur de pays desktop */}
+            <div className="relative">
+              <button
+                onClick={() => setCountryMenuOpen(!countryMenuOpen)}
+                className="flex items-center gap-1 px-3 py-2 text-white hover:text-emerald-300 transition-colors rounded-lg"
+                aria-label="Sélectionner le pays"
+              >
+                <span className="text-sm font-medium">{countryInfo.flag} {countryInfo.code.toUpperCase()}</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${countryMenuOpen ? 'rotate-180' : ''}`} />
               </button>
               
@@ -77,7 +134,7 @@ export function Header() {
                   <button
                     onClick={() => switchCountry('br')}
                     className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 ${
-                      currentLocale === 'br' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                      currentCountry === 'br' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
                     }`}
                   >
                     <span className="text-lg">🇧🇷</span>
@@ -89,7 +146,7 @@ export function Header() {
                   <button
                     onClick={() => switchCountry('fr')}
                     className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 ${
-                      currentLocale === 'fr' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                      currentCountry === 'fr' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
                     }`}
                   >
                     <span className="text-lg">🇫🇷</span>
@@ -103,72 +160,114 @@ export function Header() {
             </div>
             <HeaderClient />
           </div>
-          {/* Mobile drawer */}
-          {mobileMenuOpen && (
-            <div className="fixed inset-0 z-50 bg-black/40 flex" role="dialog" aria-modal="true">
-              <div className="w-[80vw] max-w-xs bg-emerald-50 h-full p-6 flex flex-col gap-8 animate-fadeIn shadow-2xl">
-                <button className="self-end mb-4 text-gray-500 text-3xl" onClick={() => setMobileMenuOpen(false)}>&times;</button>
-                <nav className="flex flex-col gap-4 w-full mt-8" aria-label="Navigation mobile principale">
-                  <Link href="/br/recursos" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Recursos</Link>
-                  <Link href="/br/guia-paises" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Guia dos Países</Link>
-                  <Link href="/br/dashboard" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                  <Link href="/br/profile" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Perfil</Link>
-                  {isAdmin && (
-                    <Link href="/admin" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                      <Shield className="w-5 h-5" />
-                      Admin Panel
-                    </Link>
-                  )}
-                  {/* Sélecteur de pays mobile avec langue automatique */}
-                  <div className="mt-4">
-                    <span className="text-sm font-medium text-gray-700 mb-2 block">Pays</span>
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => {
-                          switchCountry('br');
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 ${
-                          currentLocale === 'br' 
-                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
-                            : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="text-lg">🇧🇷</span>
-                        <div className="flex flex-col">
-                          <span className="font-medium">Brasil</span>
-                          <span className="text-xs text-gray-500">Português</span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          switchCountry('fr');
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 ${
-                          currentLocale === 'fr' 
-                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
-                            : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="text-lg">🇫🇷</span>
-                        <div className="flex flex-col">
-                          <span className="font-medium">France</span>
-                          <span className="text-xs text-gray-500">Français</span>
-                        </div>
-                      </button>
-                    </div>
+        </div>
+
+        {/* Menu mobile - plus discret et élégant */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 bg-black/20 flex md:hidden" role="dialog" aria-modal="true">
+            {/* Menu latéral discret */}
+            <div className="w-72 bg-white h-full flex flex-col shadow-2xl">
+              {/* Header du menu mobile - plus compact */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                <h2 className="text-base font-semibold text-gray-900">Menu</h2>
+                <button 
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Fermer le menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* Navigation mobile - plus compacte */}
+              <nav className="flex flex-col flex-1 p-4 gap-1" aria-label="Navigation mobile principale">
+                <Link 
+                  href={`/${currentCountry}/recursos`} 
+                  className="text-base font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-700" 
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t.navigation?.recursos || 'Recursos'}
+                </Link>
+                <Link 
+                  href={`/${currentCountry}/guia-paises`} 
+                  className="text-base font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-700" 
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t.navigation?.['guia-paises'] || 'Guia dos Países'}
+                </Link>
+                <Link 
+                  href={`/${currentCountry}/dashboard`} 
+                  className="text-base font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-700" 
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t.navigation?.dashboard || 'Dashboard'}
+                </Link>
+                  <Link 
+                    href={`/${currentCountry}/profile`} 
+                    className="text-base font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-700" 
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                  {currentCountry === 'br' ? 'Perfil' : 'Profil'}
+                  </Link>
+                
+                {/* Admin panel mobile */}
+                {isAdmin && (
+                  <Link 
+                    href="/admin" 
+                    className="text-base font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-700" 
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin Panel
+                  </Link>
+                )}
+                
+                {/* Sélecteur de pays mobile - plus compact */}
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs font-medium text-gray-500 mb-2 block px-3">Pays</span>
+                  <div className="space-y-1">
+                  <button 
+                      onClick={() => switchCountry('br')}
+                      className={`w-full px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${
+                        currentCountry === 'br' 
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-base">🇧🇷</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-xs">Brasil</span>
+                        <span className="text-xs text-gray-500">PT</span>
+                      </div>
+                  </button>
+                    <button
+                      onClick={() => switchCountry('fr')}
+                      className={`w-full px-3 py-2 rounded-lg flex items-center gap-2 text-sm ${
+                        currentCountry === 'fr' 
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-base">🇫🇷</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-xs">France</span>
+                        <span className="text-xs text-gray-500">FR</span>
+                      </div>
+                    </button>
                   </div>
-                  <div className="mt-6 flex flex-col gap-3">
-                    <HeaderClient />
-                  </div>
-        </nav>
+                </div>
+              </nav>
             </div>
-            <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
+            
+            {/* Overlay pour fermer le menu */}
+            <div 
+              className="flex-1" 
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
           </div>
         )}
-      </div>
-    </header>
+      </header>
     </>
   );
 }
@@ -179,6 +278,8 @@ function HeaderClient() {
   const router = useRouter();
   const pathname = usePathname();
   const { isAdmin } = useAdmin();
+  const currentCountry = useCountry();
+  
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -208,16 +309,25 @@ function HeaderClient() {
         {isAdmin && (
           <Link 
             href="/admin" 
-            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#eaf6f0] hover:bg-emerald-50 transition-colors" 
+            className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#eaf6f0] hover:bg-emerald-50 transition-colors" 
             title="Admin Panel"
           >
-            <Shield className="w-6 h-6 text-emerald-700" />
+            <Shield className="w-5 h-5 text-emerald-700" />
           </Link>
         )}
-        <Link href="/br/profile" className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#1a2e22] hover:bg-emerald-50 transition-colors" title="Perfil">
-          <UserCircle className="w-6 h-6 text-emerald-700" />
+        <Link 
+          href={`/${currentCountry}/profile`} 
+          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#1a2e22] hover:bg-emerald-50 transition-colors" 
+          title={currentCountry === 'br' ? 'Perfil' : 'Profil'}
+        >
+          <UserCircle className="w-5 h-5 text-emerald-700" />
         </Link>
-        <button onClick={handleLogout} className="text-sm px-3 py-1 border rounded bg-red-500 text-white">Sair</button>
+        <button 
+          onClick={handleLogout} 
+          className="text-xs px-2 py-1 border rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+        >
+          {currentCountry === 'br' ? 'Sair' : 'Déconnexion'}
+        </button>
       </>
     );
   }
@@ -231,8 +341,10 @@ function HeaderClient() {
             setLoginOpen(true);
           }
         }}
-        className="text-sm px-3 py-1 border rounded bg-emerald-600 text-white hover:bg-emerald-700"
-      >Entrar</button>
+        className="text-xs px-2 py-1 border rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+      >
+        {currentCountry === 'br' ? 'Entrar' : 'Connexion'}
+      </button>
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
     </>
   );

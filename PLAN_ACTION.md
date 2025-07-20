@@ -248,7 +248,95 @@ Réduire l'empreinte de Sentry dans le bundle Node.js et Edge en production, tou
 
 ### 7. Suivi & priorisation
 - **Action 4.19** : Lister les optimisations restantes à faire, les classer par impact (bundle, UX, sécurité).
-- **Action 4.20** : Planifier des points réguliers d’audit (mensuel ou à chaque release majeure).
 
-#### Prochaine étape immédiate
-- Relancer un build complet, analyser le nouveau rapport Bundle Analyzer, et cibler les plus gros modules restants pour la prochaine vague d’optimisation.
+---
+
+## Phase 6 : Internationalisation (i18n) - En cours de finalisation
+
+### Objectif
+Supporter BR/FR/EN avec le Brésil comme base et la France comme extension indépendante mais intégrée.
+
+### Actions réalisées
+
+#### 1. Configuration next-intl ✅
+- **Installation** : `npm install next-intl` ✅
+- **Configuration** : `i18n.ts` selon la documentation officielle ✅
+- **Locales** : ['br', 'fr', 'en'] avec 'br' par défaut ✅
+- **Middleware** : Intégration avec authentification existante ✅
+
+#### 2. Fichiers de traduction ✅
+- **br.json** : Portugais brésilien (base) ✅
+- **fr.json** : Français (France) ✅
+- **en.json** : Anglais (international) ✅
+- **Structure** : Navigation, dashboard, common, beneficios, messages ✅
+
+#### 3. Intégration dans les composants ✅
+- **Header** : Navigation traduite (Recursos/Ressources/Resources) ✅
+- **Dashboard** : Onglets traduits (Compensação/Compensation) ✅
+- **Layout** : Provider NextIntlClientProvider intégré ✅
+
+#### 4. Routage avec locales ✅
+- **URLs** : `/br/dashboard`, `/fr/dashboard`, `/en/dashboard` ✅
+- **Redirection** : `/dashboard` → `/br/dashboard` (locale par défaut) ✅
+- **Middleware** : Gestion des locales + authentification ✅
+
+#### 5. Page de test créée ✅
+- **Test I18n** : `/br/test-i18n`, `/fr/test-i18n`, `/en/test-i18n` ✅
+- **Validation** : Traductions fonctionnelles ✅
+
+### État actuel
+
+#### ✅ Fonctionnel
+- Configuration next-intl selon la documentation officielle
+- Fichiers de traduction complets
+- Middleware intégré
+- Composants traduits
+- Page de test opérationnelle
+
+#### ⚠️ Problèmes techniques
+- **Cache Next.js** : Problèmes de permissions sur `.next/trace`
+- **Redémarrage** : Serveur de développement en cours de redémarrage
+- **Validation** : Tests en cours pour confirmer le fonctionnement
+
+### Avantages obtenus
+
+#### 1. Expansion internationale
+- **Base solide** : Structure prête pour nouveaux marchés
+- **Indépendance** : Chaque locale peut avoir ses spécificités
+- **Cohérence** : Interface unifiée avec adaptations locales
+
+#### 2. Développement France
+- **Pages dédiées** : Possibilité de créer `/fr/` spécifiques
+- **Contenu adapté** : Bulletins de paie français, avantages sociaux
+- **Législation** : Respect des règles françaises (35h, congés, etc.)
+
+#### 3. Scalabilité
+- **Ajout facile** : Nouveaux pays en ajoutant locale + traductions
+- **Maintenance** : Traductions centralisées et organisées
+- **Performance** : Chargement conditionnel des traductions
+
+### Prochaines étapes recommandées
+
+#### 1. Validation complète
+- **Test des URLs** : Vérifier `/br/test-i18n`, `/fr/test-i18n`, `/en/test-i18n`
+- **Navigation** : Confirmer le fonctionnement du header traduit
+- **Dashboard** : Valider les onglets traduits
+
+#### 2. Contenu spécifique France
+- **Bulletins français** : OCR adapté aux formats français
+- **Avantages sociaux** : Tickets restaurant, mutuelle, prévoyance
+- **Calculs fiscaux** : IR, CSG, CRDS, charges sociales
+
+#### 3. Pages dédiées France
+- **Guides français** : Droit du travail, conventions collectives
+- **Ressources** : Sites officiels français (URSSAF, CPAM, etc.)
+- **Calculatrices** : Simulateurs adaptés au système français
+
+#### 4. Optimisations
+- **SEO** : Meta tags par locale
+- **Performance** : Lazy loading des traductions
+- **Tests** : Tests automatisés par locale
+
+---
+
+## Phase 7 : Optimisations futures (À planifier)

@@ -1,20 +1,54 @@
 {
-  "homepage": {
-    "hero": {
-      "badge": "Bienvenue",
-      "title": "Titre principal",
-      "subtitle": "Sous-titre de la page d'accueil",
-      "cta": "Commencer"
-    }
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "recursos": "Ressources",
+    "guia-paises": "Guide des Pays",
+    "calculadora": "Calculateur",
+    "simulador": "Simulateur"
   },
-  "france": {
-    "specialOffer": "Offre exclusive pour la France : bénéficiez d’un accompagnement personnalisé sur la fiscalité française.",
-    "guide": "Consultez notre guide complet sur la protection sociale et les avantages en France.",
-    "cta": "Découvrir les avantages français"
+  "dashboard": {
+    "compensacao": "Compensation",
+    "beneficios": "Avantages sociaux",
+    "bem-estar": "Bien-être",
+    "seguros": "Assurances",
+    "investimentos": "Investissements",
+    "dados": "Données",
+    "upload-holerite": "Télécharger bulletin",
+    "analise": "Analyse",
+    "perfil": "Profil",
+    "acoes-rapidas": "Actions rapides",
+    "resumo-financeiro": "Résumé financier",
+    "oportunidades": "Opportunités identifiées"
   },
-  "fr-ca": {
-    "specialOffer": "Offre exclusive pour le Canada : découvrez les avantages sociaux canadiens et la fiscalité locale.",
-    "guide": "Consultez notre guide sur la retraite, la santé et les bénéfices au Canada.",
-    "cta": "Voir les avantages canadiens"
+  "common": {
+    "salario-bruto": "Salaire brut",
+    "salario-liquido": "Salaire net",
+    "descontos": "Déductions",
+    "eficiencia": "Efficacité",
+    "upload": "Télécharger",
+    "analisar": "Analyser",
+    "ver-detalhes": "Voir détails",
+    "acessar": "Accéder",
+    "sim": "Oui",
+    "nao": "Non",
+    "carregando": "Chargement...",
+    "erro": "Erreur",
+    "sucesso": "Succès"
+  },
+  "beneficios": {
+    "vale-refeicao": "Tickets restaurant",
+    "plano-saude": "Mutuelle santé",
+    "previdencia-privada": "Retraite privée",
+    "fgts": "Épargne salariale",
+    "detectado": "Détecté",
+    "comentario-educativo": "Commentaire éducatif",
+    "acao": "Action"
+  },
+  "messages": {
+    "upload-success": "Bulletin de paie téléchargé avec succès !",
+    "upload-error": "Erreur lors du téléchargement du bulletin",
+    "analysis-complete": "Analyse terminée",
+    "no-data": "Aucune donnée disponible",
+    "upload-prompt": "Téléchargez votre bulletin de paie pour voir les résultats"
   }
 } 

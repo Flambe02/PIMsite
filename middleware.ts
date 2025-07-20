@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import createIntlMiddleware from 'next-intl/middleware';
 
 const PROTECTED = ["/dashboard", "/calculadora"];
 const ADMIN_ROUTES = ["/admin"];
 
+// Create the internationalization middleware
+const intlMiddleware = createIntlMiddleware({
+  locales: ['br', 'fr', 'en'],
+  defaultLocale: 'br',
+  localePrefix: 'as-needed'
+});
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
+  // Handle internationalization first
+  const response = intlMiddleware(req);
+  
+  // Then handle authentication
   let res = NextResponse.next();
   
   const supabase = createServerClient(
@@ -19,7 +31,6 @@ export async function middleware(req: NextRequest) {
           return req.cookies.get(name)?.value
         },
         set(name: string, value: string, options: unknown) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           req.cookies.set({
             name,
             value,
@@ -37,7 +48,6 @@ export async function middleware(req: NextRequest) {
           })
         },
         remove(name: string, options: unknown) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           req.cookies.set({
             name,
             value: '',
@@ -56,69 +66,44 @@ export async function middleware(req: NextRequest) {
         },
       },
     }
-  );
-  
-  const { data: { session } } = await supabase.auth.getSession();
+  )
 
-  const needsAuth = PROTECTED.some((p) => pathname.includes(p));
-  const needsAdmin = ADMIN_ROUTES.some((p) => pathname.includes(p));
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // Vérifier l'accès admin si nécessaire
-  if (needsAdmin) {
-    if (!session) {
-      const redirectUrl = req.nextUrl.clone();
-      redirectUrl.pathname = "/login";
-      redirectUrl.searchParams.set("redirectTo", pathname);
-      return NextResponse.redirect(redirectUrl);
-    }
+  // Check if the pathname is protected
+  const isProtectedRoute = PROTECTED.some(route => pathname.includes(route))
+  const isAdminRoute = ADMIN_ROUTES.some(route => pathname.includes(route))
 
-    // Vérifier le statut admin
-    const { data: profile, error } = await supabase
+  if (isProtectedRoute && !user) {
+    return NextResponse.redirect(new URL('/', req.url))
+  }
+
+  if (isAdminRoute) {
+    const { data: profile } = await supabase
       .from('profiles')
-      .select('is_admin')
-      .eq('id', session.user.id)
-      .single();
+      .select('role')
+      .eq('id', user?.id)
+      .single()
 
-    if (error || !profile?.is_admin) {
-      // Rediriger vers le dashboard si l'utilisateur n'est pas admin
-      return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+    if (!profile?.role || profile.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', req.url))
     }
   }
 
-  if (!session && needsAuth) {
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    redirectUrl.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  // Vérification onboarding obligatoire pour les routes protégées
-  if (session && needsAuth) {
-    // On ne bloque plus l'accès à /dashboard même si l'onboarding n'est pas complet
-    if (pathname.includes("/calculadora")) {
-      const { data: onboarding, error } = await supabase
-        .from('user_onboarding')
-        .select('profile_completed, checkup_completed, holerite_uploaded')
-        .eq('user_id', session.user.id)
-        .single();
-      if (!error && onboarding) {
-        const onboardingComplete = onboarding.profile_completed && onboarding.checkup_completed && onboarding.holerite_uploaded;
-        if (!onboardingComplete) {
-          const redirectUrl = req.nextUrl.clone();
-          redirectUrl.pathname = "/onboarding";
-          return NextResponse.redirect(redirectUrl);
-        }
-      }
-    }
-  }
-
-  if (session && pathname.includes("/login")) {
-    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
-  }
-
-  return res;
+  return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api).*)"],
-}; 
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+} 
