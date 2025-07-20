@@ -41,10 +41,10 @@ export default function Beneficios({ userStatus, beneficios, onSimularPacote }: 
   const active = filtered.filter((b) => b.detectado);
 
   const resumoFrase = React.useMemo(() => {
-    if (active.length === 0) return "Você não possui benefícios associados ao seu holerite atual.";
-    if (active.length === 1) return `Você possui 1 benefício ativo: ${active[0].tipo}.`;
-    if (active.length === 2) return `Você possui 2 benefícios ativos: ${active[0].tipo} e ${active[1].tipo}.`;
-    return `Você possui ${active.length} benefícios ativos.`;
+    if (active.length === 0) return "Aucun bénéfice détecté dans votre dernière feuille de paie. Téléchargez un nouveau holerite pour mettre à jour vos bénéfices.";
+    if (active.length === 1) return `Vous avez 1 bénéfice actif: ${active[0].tipo}.`;
+    if (active.length === 2) return `Vous avez 2 bénéfices actifs: ${active[0].tipo} et ${active[1].tipo}.`;
+    return `Vous avez ${active.length} bénéfices actifs.`;
   }, [active]);
 
   return (
@@ -59,6 +59,34 @@ export default function Beneficios({ userStatus, beneficios, onSimularPacote }: 
           <CardTitle className="text-lg font-bold text-emerald-900">Sua Situação de Benefícios</CardTitle>
           <CardDescription className="text-gray-700 max-w-xl">{resumoFrase}</CardDescription>
         </CardHeader>
+        
+        {/* Message spécial si aucun bénéfice détecté */}
+        {active.length === 0 && (
+          <CardContent className="pt-0">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <HelpCircle className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-amber-800 mb-1">Aucun bénéfice détecté</h4>
+                  <p className="text-sm text-amber-700 mb-3">
+                    Pour analyser vos bénéfices, téléchargez votre dernière feuille de paie. 
+                    PIM détectera automatiquement vos avantages sociaux.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                    onClick={() => window.location.href = '/calculadora'}
+                  >
+                    Télécharger mon holerite
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       {/* Tableau Benefícios */}

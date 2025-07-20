@@ -460,84 +460,31 @@ export default function DashboardFullWidth() {
   useEffect(() => {
     const fetchBeneficios = async () => {
       try {
-        if (holeriteResult?.raw) {
-          // Analyser spécifiquement les données de la feuille de paie
-          const raw = holeriteResult.raw;
-          const earnings = raw.earnings || [];
-          const deductions = raw.deductions || [];
-          
-          // Créer un texte de recherche basé sur les descriptions réelles
-          const searchText = [
-            ...earnings.map((e: any) => e.description || ''),
-            ...deductions.map((d: any) => d.description || ''),
-            raw.company_name || '',
-            raw.position || '',
-            raw.profile_type || ''
-          ].join(' ').toLowerCase();
-          
-          // Analyser plus précisément les bénéfices
-          const beneficiosDetectados = BENEFIT_CATALOG.map((b) => {
-            let detectado = false;
-            
-            // Vérifier spécifiquement chaque type de bénéfice
-            if (b.tipo === "Vale Refeição") {
-              detectado = b.keys.some(k => searchText.includes(k)) && 
-                         !searchText.includes('pro labore') && 
-                         !searchText.includes('honorário');
-            } else if (b.tipo === "Plano de Saúde") {
-              detectado = b.keys.some(k => searchText.includes(k)) && 
-                         !searchText.includes('inss') && 
-                         !searchText.includes('pro labore');
-            } else if (b.tipo === "Previdência Privada") {
-              detectado = b.keys.some(k => searchText.includes(k)) && 
-                         !searchText.includes('inss') && 
-                         !searchText.includes('pro labore');
-            } else if (b.tipo === "FGTS") {
-              detectado = b.keys.some(k => searchText.includes(k)) && 
-                         raw.fgts_deposit > 0;
-            }
-            
-            return {
-              tipo: b.tipo,
-              comentario: b.comentario,
-              actionLink: b.actionLink,
-              detectado,
-            };
-          });
-          
-          setBeneficiosDetectados(beneficiosDetectados);
-          return;
-        }
-
-        // Si pas de holerite, utiliser les données de Supabase
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data, error } = await supabase
+        // Récupérer les bénéfices réels de la table beneficios_usuario
+        const { data: beneficiosData, error } = await supabase
           .from('beneficios_usuario')
-          .select('tipo, ativo')
-          .eq('user_id', user.id);
+          .select('tipo, ativo, origem')
+          .eq('user_id', user.id)
+          .order('criado_em', { ascending: false });
+
         if (error) throw error;
-        if (data && data.length > 0) {
-          setBeneficiosDetectados(
-            BENEFIT_CATALOG.map((b) => ({
-              tipo: b.tipo,
-              comentario: b.comentario,
-              actionLink: b.actionLink,
-              detectado: data.some((d) => d.tipo === b.tipo && d.ativo),
-            }))
-          );
-        } else {
-          // Si pas de données dans Supabase, afficher tous les bénéfices comme non détectés
-          setBeneficiosDetectados(
-            BENEFIT_CATALOG.map((b) => ({
-              tipo: b.tipo,
-              comentario: b.comentario,
-              actionLink: b.actionLink,
-              detectado: false,
-            }))
-          );
-        }
+
+        // Mapper les données réelles avec le catalogue
+        const beneficiosDetectados = BENEFIT_CATALOG.map((b) => {
+          const foundBeneficio = beneficiosData?.find(d => d.tipo === b.tipo);
+          
+          return {
+            tipo: b.tipo,
+            comentario: b.comentario,
+            actionLink: b.actionLink,
+            detectado: foundBeneficio?.ativo || false,
+          };
+        });
+
+        setBeneficiosDetectados(beneficiosDetectados);
       } catch (error) {
         console.error('Error fetching beneficios:', error);
         // En cas d'erreur, afficher tous les bénéfices comme non détectés
@@ -553,7 +500,7 @@ export default function DashboardFullWidth() {
     };
 
     fetchBeneficios();
-  }, [holeriteResult, supabase]);
+  }, [supabase]);
 
   const { data: investimentos = [] } = useInvestimentos(userId, holeriteResult?.raw);
 
