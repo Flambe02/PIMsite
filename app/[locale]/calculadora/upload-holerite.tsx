@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Info, UploadCloud, FileText, Loader2, XCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const pastel = {
   green: "#B8E4C7",
@@ -24,8 +25,10 @@ const checklist = [
 export default function UploadHolerite({ onResult }: { onResult?: (result: any) => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -51,17 +54,21 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
   const onAnalyze = async () => {
     if (!file) return;
     setLoading(true);
+    const controller = new AbortController();
+    setAbortController(controller);
     const formData = new FormData();
     formData.append('file', file);
     try {
       const res = await fetch('/api/process-payslip', {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
       console.log('Réponse brute:', res);
       const data = await res.json();
       console.log('Données reçues:', data);
       setLoading(false);
+      setAbortController(null);
       if (data.success && onResult) {
         // --- ENRICHISSEMENT PJ ---
         let analysis = data.analysisData.analysis || {};
@@ -152,12 +159,27 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
         } else if (msg.toLowerCase().includes('ocr')) {
           msg = 'Erreur lors de l\'extraction du texte du holerite. Vérifiez que le fichier est lisible et non protégé.';
         }
-        toast({ title: "Erreur d'analyse", description: msg, variant: "destructive" });
+        toast({ title: "Erreur d'analyse", description: msg + (data.details ? `\nDétails: ${data.details}` : ''), variant: "destructive" });
+        setError(msg + (data.details ? `\nDétails: ${data.details}` : ''));
+        console.error('Erreur OCR/IA côté client:', msg, data.details);
       }
-    } catch (err) {
+    } catch (err: any) {
       setLoading(false);
-      toast({ title: "Erreur réseau ou serveur", description: String(err), variant: "destructive" });
-      console.error('Erreur dans onAnalyze:', err);
+      setAbortController(null);
+      if (err.name === 'AbortError') {
+        toast({ title: "Analyse annulée", description: "Le process a été stoppé par l'utilisateur.", variant: "destructive" });
+      } else {
+        toast({ title: "Erreur réseau ou serveur", description: String(err), variant: "destructive" });
+        console.error('Erreur dans onAnalyze:', err);
+      }
+    }
+  };
+
+  const onStop = () => {
+    if (abortController) {
+      abortController.abort();
+      setLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -176,8 +198,17 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
       {loading && (
         <div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center z-50 rounded-2xl">
           <Loader2 className="w-10 h-10 text-emerald-400 animate-spin mb-2" />
-          <div className="text-emerald-700 font-medium">Analyse en cours…</div>
+          <div className="text-emerald-700 font-medium mb-4">Analyse en cours…</div>
+          <Button variant="destructive" onClick={onStop}>Arrêter</Button>
         </div>
+      )}
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Erreur OCR</AlertTitle>
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
       )}
       <Card className="rounded-2xl shadow-xl border-0 bg-[var(--offwhite)]" style={{ background: pastel.offwhite }}>
         <div className="p-6 md:p-8 flex flex-col gap-6">

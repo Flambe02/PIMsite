@@ -1,12 +1,42 @@
 // lib/prompts.ts
-export const payslipAnalysisPrompt = `Você é um contador especialista em holerites brasileiros. A partir do texto bruto do holerite fornecido, extraia as informações abaixo. Se um valor não for encontrado, use null no JSON. Responda SOMENTE com um objeto JSON válido, sem explicação extra. Todos os textos (inclusive resumo e oportunidades) devem estar em português. 
+export const payslipAnalysisPrompt = `Você é um contador especialista em holerites brasileiros. A partir do texto bruto do holerite fornecido, extraia TODAS as informações importantes listadas abaixo. Se um valor não for encontrado, use null no JSON. Responda SOMENTE com um objeto JSON válido, sem explicação extra. Todos os textos (inclusive resumo e oportunidades) devem estar em português. 
 Extraia também o mês de referência do holerite (campo "period"), no formato "AAAA-MM" ou "MM/YYYY".
 
-Identifique e extraia também:
+ATENÇÃO:
+- Sempre extraia o valor do 'Líquido a Receber' ou 'Salário Líquido' como o valor líquido a receber pelo funcionário, e NUNCA confunda com bases de cálculo de impostos (ex: 'Base de Cálculo IRRF').
+- Para cada valor extraído (salário bruto, líquido, bases, etc.), retorne também o label original encontrado no holerite (ex: { "label": "Líquido a Receber", "valor": 5108.93 }).
+- Se houver dúvida entre dois valores (ex: dois campos possíveis para o líquido), liste ambos com seus labels.
+- Nunca use um campo cujo label contenha 'Base de Cálculo' como salário líquido.
+
+EXTRAIA OBRIGATORIAMENTE OS CAMPOS ABAIXO, SE ENCONTRADOS:
 - "company_name": nome da empresa empregadora
 - "employee_name": nome do funcionário
 - "position": cargo ou função do funcionário
-- "profile_type": tipo de perfil ("CLT", "PJ", "Estagiario" ou "invalide"). Considere "PJ" se houver menção a "pro labore", "Estagiario" se houver menção a estágio, "CLT" caso contrário, e "invalide" se não for uma folha de pagamento válida.
+- "profile_type": tipo de perfil ("CLT", "PJ", "Estagiario", "Autônomo" ou "invalide").
+- "gross_salary": salário base ou salário bruto
+- "net_salary": salário líquido (ver regras acima)
+- "total_earnings": total de vencimentos
+- "total_deductions": total de descontos
+- "inss_base": base de cálculo do INSS
+- "fgts_base": base de cálculo do FGTS
+- "irrf_base": base de cálculo do IRRF
+- "fgts_deposit": valor do depósito FGTS do mês
+- "dependents": número de dependentes
+- "cbo": código CBO
+- "admission_date": data de admissão
+- "period": mês/ano de referência
+- "earnings": lista de proventos (descrição e valor)
+- "deductions": lista de descontos (descrição e valor)
+- "base_calc_fgts": base de cálculo FGTS
+- "fgts_mes": FGTS do mês
+- "base_calc_irrf": base de cálculo IRRF
+- "faixa_irrf": faixa IRRF
+- "department": setor/departamento
+- "work_hours": horas trabalhadas
+- "other_fields": quaisquer outros campos relevantes identificados
+- Para cada campo monetário, inclua também o label original do documento (ex: { "label": "Líquido a Receber", "valor": 5108.93 })
+
+Se um campo não for encontrado, retorne null. Se encontrar outros campos relevantes, inclua-os no JSON.
 
 ATENÇÃO: Para o campo "analysis.optimization_opportunities", siga OBRIGATORIAMENTE as regras abaixo:
 - Cada recomendação deve começar pelo tema principal (ex: FGTS, IRPJ, Plano de Saúde, INSS, Vale Alimentação, etc.), seguido de dois-pontos, depois a recomendação.
@@ -75,14 +105,14 @@ Estrutura exata:
   "employee_name": "João da Silva",
   "position": "Analista de Sistemas",
   "profile_type": "CLT",
-  "gross_salary": 1344.23,
-  "net_salary": 644.78,
-  "inss_base": 1344.23,
-  "fgts_base": 1344.23,
-  "irrf_base": 722.78,
-  "fgts_deposit": 107.53,
-  "earnings": [{ "description": "DIAS NORMAIS", "amount": 1300.00 }],
-  "deductions": [{ "description": "I.N.S.S.", "amount": 101.45 }],
+  "gross_salary": { "label": "Salário Base", "valor": 1344.23 },
+  "net_salary": { "label": "Líquido a Receber", "valor": 5108.93 },
+  "inss_base": { "label": "Base de Cálculo INSS", "valor": 1344.23 },
+  "fgts_base": { "label": "Base de Cálculo FGTS", "valor": 1344.23 },
+  "irrf_base": { "label": "Base de Cálculo IRRF", "valor": 722.78 },
+  "fgts_deposit": { "label": "Depósito FGTS", "valor": 107.53 },
+  "earnings": [{ "description": "DIAS NORMAIS", "amount": { "label": "Vencimento", "valor": 1300.00 } }],
+  "deductions": [{ "description": "I.N.S.S.", "amount": { "label": "Desconto INSS", "valor": 101.45 } }],
   "analysis": {
     "summary": "Este holerite mostra horas extras e desconto de adiantamento salarial. O principal ponto de otimização é o Vale Transporte.",
     "optimization_opportunities": [

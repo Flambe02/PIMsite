@@ -71,12 +71,27 @@ export async function extractTextWithOcrSpace(buffer: Buffer, filename: string):
   formData.append('isOverlayRequired', 'false');
   formData.append('apikey', process.env.OCR_SPACE_API_KEY!);
 
-  const response = await fetch('https://api.ocr.space/parse/image', {
-    method: 'POST',
-    body: formData,
-  });
-  const result = await response.json();
-  return result?.ParsedResults?.[0]?.ParsedText || '';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+  const start = Date.now();
+  try {
+    const response = await fetch('https://api.ocr.space/parse/image', {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const result = await response.json();
+    console.log('OCR.space API response time:', Date.now() - start, 'ms');
+    return result?.ParsedResults?.[0]?.ParsedText || '';
+  } catch (err) {
+    clearTimeout(timeout);
+    console.error('Erreur OCR.space:', err);
+    if (err.name === 'AbortError') {
+      throw new Error('La lecture OCR a dépassé le délai de 60 secondes. Veuillez réessayer avec un fichier plus lisible ou plus léger.');
+    }
+    throw new Error('Erreur réseau ou échec de l’API OCR.space. Veuillez vérifier votre connexion ou réessayer plus tard.');
+  }
 }
 
 // Fonction principale avec switch provider et fallback

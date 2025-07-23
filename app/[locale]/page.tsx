@@ -14,10 +14,11 @@ import { TrustBadges } from "@/components/trust-badges"
 import { ChatButton } from "@/components/chat-button"
 import dynamic from "next/dynamic"
 
-const LoginModal = dynamic(() => import("@/components/LoginModal").then(m => m.LoginModal), {
-  loading: () => <div className="py-8 text-center text-emerald-900">Chargement du module de connexion...</div>,
-  ssr: false
-})
+// Supprimer l'import dynamique de LoginModal
+// const LoginModal = dynamic(() => import("@/components/LoginModal").then(m => m.LoginModal), {
+//   loading: () => <div className="py-8 text-center text-emerald-900">Chargement du module de connexion...</div>,
+//   ssr: false
+// })
 
 // Contenu localisé par pays
 const localizedContent = {
@@ -220,7 +221,7 @@ function HeroSection({ locale }: { locale: string }) {
   
   const handleSimule = () => {
     if (!session) {
-      setLoginOpen(true)
+      router.push(`/${locale}/login`); // Rediriger au lieu d'ouvrir le modal
     } else {
       router.push(`/${locale}/dashboard`)
     }
@@ -271,7 +272,7 @@ function HeroSection({ locale }: { locale: string }) {
             </span>
           ))}
         </div>
-        <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+        {/* Supprimer l'appel à <LoginModal /> */}
       </div>
     </section>
   )

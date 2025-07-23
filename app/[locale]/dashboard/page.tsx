@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image";
-import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info } from "lucide-react";
+import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info, ArrowUpRight, ArrowDownLeft, ArrowRight } from "lucide-react";
 import BemEstar from "@/components/bemEstar/BemEstar";
 import Seguros from "@/components/seguros/Seguros"; // Importer Seguros
 import React, { useState, useRef, useEffect } from "react";
@@ -13,12 +13,13 @@ import Beneficios, { Beneficio } from "@/components/beneficios/Beneficios";
 import { useSupabase } from "@/components/supabase-provider";
 import { useUserOnboarding } from "@/hooks/useUserOnboarding";
 import { GettingStarted } from "@/components/GettingStarted";
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"; // Importer useParams
 import { createBrowserClient } from "@supabase/ssr";
 import InvestimentosComp from "@/components/investimentos/Investimentos";
 import useInvestimentos from "@/hooks/useInvestimentos";
 // Temporairement désactivé pour éviter les erreurs next-intl
 // import { useTranslations, useLocale } from 'next-intl';
+import { useMediaQuery } from 'react-responsive';
 
 // Import dynamique avec fallback
 const UploadHolerite = dynamic(() => import("@/app/[locale]/calculadora/upload-holerite"), {
@@ -202,82 +203,382 @@ type HoleriteResult = {
   raw?: any; // Added raw property
 };
 
+function SummaryCards({ raw }) {
+  const cards = [
+    {
+      label: 'Salário Base',
+      value: raw.gross_salary,
+      color: 'from-blue-100 to-blue-50',
+      icon: <BarChart3 className="w-6 h-6 text-blue-400" />,
+    },
+    {
+      label: 'Salário Líquido',
+      value: raw.net_salary,
+      color: 'from-green-100 to-green-50',
+      icon: <FileText className="w-6 h-6 text-green-400" />,
+    },
+    {
+      label: 'Total Proventos',
+      value: raw.total_earnings,
+      color: 'from-emerald-100 to-emerald-50',
+      icon: <ArrowUpRight className="w-6 h-6 text-emerald-400" />,
+    },
+    {
+      label: 'Total Descontos',
+      value: raw.total_deductions,
+      color: 'from-rose-100 to-rose-50',
+      icon: <ArrowDownLeft className="w-6 h-6 text-rose-400" />,
+    },
+  ];
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {cards.map((c, i) => (
+        <div key={c.label} className={`rounded-2xl shadow-lg bg-gradient-to-br ${c.color} p-4 flex flex-col items-center justify-center glassmorphism animate-fade-in`}>
+          <div className="mb-2">{c.icon}</div>
+          <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{c.label}</div>
+          <div className={`text-lg font-bold ${i===1? 'text-green-700':'text-blue-900'}`}>{c.value !== undefined && c.value !== null ? 'R$ ' + Number(c.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '–'}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StyledTable({ title, rows, color }) {
+  if (!rows || rows.length === 0) return null;
+  return (
+    <div className="rounded-2xl shadow bg-white/70 backdrop-blur-md border border-gray-100 overflow-hidden mb-4 animate-fade-in">
+      <div className="sticky top-0 bg-gradient-to-r from-white/80 to-gray-50/80 px-4 py-2 font-bold text-gray-700 border-b border-gray-200 z-10">{title}</div>
+      <div className="max-h-64 overflow-y-auto relative">
+        <table className="min-w-full text-sm">
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i} className={i%2===0 ? 'bg-white/60' : 'bg-gray-50/60'}>
+                <td className="px-4 py-2 text-gray-700 w-2/3">{row.description}</td>
+                <td className={`px-4 py-2 text-right font-mono ${color}`}>{row.amount < 0 ? '-R$ ' : 'R$ '}{Math.abs(Number(row.amount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {rows.length > 8 && <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />}
+      </div>
+    </div>
+  );
+}
+
+const LABELS_PT = {
+  company_name: 'Empresa',
+  employee_name: 'Nome',
+  position: 'Cargo',
+  profile_type: 'Perfil',
+  department: 'Departamento',
+  admission_date: 'Admissão',
+  period: 'Período',
+  pj_role: 'Cargo PJ',
+  gross_salary: 'Salário Bruto',
+  net_salary: 'Salário Líquido',
+  total_earnings: 'Total de Proventos',
+  total_deductions: 'Total de Descontos',
+  earnings: 'Proventos',
+  deductions: 'Descontos',
+  work_hours: 'Horas Trabalhadas',
+  vale_refeicao: 'Vale-refeição',
+  vale_alimentacao: 'Vale-alimentação',
+  auxilio_educacao: 'Auxílio Educação',
+  outros_beneficios: 'Outros Benefícios',
+  inss_base: 'Base INSS',
+  fgts_base: 'Base FGTS',
+  irrf_base: 'Base IRRF',
+  fgts_deposit: 'Depósito FGTS',
+  dependents: 'Dependentes',
+  cbo: 'CBO',
+  base_calc_fgts: 'Base Cálc. FGTS',
+  fgts_mes: 'FGTS do Mês',
+  base_calc_irrf: 'Base Cálc. IRRF',
+  faixa_irrf: 'Faixa IRRF',
+  Resumo: 'Resumo',
+};
+
+function formatValuePT(k, v) {
+  if (v === null || v === undefined || v === '' || v === 'null') return <span className="text-gray-400 italic">(não informado)</span>;
+  if (typeof v === 'number' && !isNaN(v)) return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  if (k.toLowerCase().includes('date') && typeof v === 'string' && v !== 'Invalid Date') {
+    const d = new Date(v);
+    if (!isNaN(d.getTime())) return d.toLocaleDateString('pt-BR');
+  }
+  return v;
+}
+
+function PayslipBlock({ title, data }) {
+  if (!data || typeof data !== 'object' || Object.values(data).every(v => v === null || v === undefined || v === '' || v === 'null')) return null;
+  return (
+    <div className="mb-6 bg-white rounded-xl shadow p-4">
+      <div className="font-bold text-blue-800 text-lg mb-2 mt-2">{title}</div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base">
+        {Object.entries(data).map(([k, v]) => {
+          if (Array.isArray(v)) return null;
+          const label = LABELS_PT[k] || (k.charAt(0).toUpperCase() + k.slice(1));
+          return (
+            <React.Fragment key={k}>
+              <div className="text-gray-700 font-medium">{label}:</div>
+              <div className="font-bold text-gray-900 text-right">{formatValuePT(k, v)}</div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PayslipSummaryCards({ ident, salarios }) {
+  const cards = [
+    { label: 'Nome', value: ident.employee_name },
+    { label: 'Empresa', value: ident.company_name },
+    { label: 'Cargo', value: ident.position },
+    { label: 'Período', value: ident.period },
+    { label: 'Salário Bruto', value: salarios.gross_salary, color: 'from-blue-100 to-blue-50' },
+    { label: 'Salário Líquido', value: salarios.net_salary, color: 'from-green-100 to-green-50' },
+  ];
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      {cards.map((c, i) => (
+        <div key={c.label} className={`rounded-2xl shadow bg-gradient-to-br ${c.color || 'from-gray-100 to-white'} p-4 flex flex-col items-center glassmorphism`}>
+          <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">{c.label}</div>
+          <div className="text-lg font-bold text-blue-900">{formatValuePT(c.label, c.value)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PayslipArrayTable({ title, rows, color }) {
+  if (!rows || !Array.isArray(rows) || rows.length === 0) return null;
+  return (
+    <div className="rounded-2xl shadow bg-white/70 backdrop-blur-md border border-gray-100 overflow-hidden mb-4 animate-fade-in">
+      <div className="sticky top-0 bg-gradient-to-r from-white/80 to-gray-50/80 px-4 py-2 font-bold text-gray-700 border-b border-gray-200 z-10">{title}</div>
+      <div className="max-h-64 overflow-y-auto relative">
+        <table className="min-w-full text-sm">
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i} className={i%2===0 ? 'bg-white/60' : 'bg-gray-50/60'}>
+                <td className="px-4 py-2 text-gray-700 w-2/3">{row.description}</td>
+                <td className={`px-4 py-2 text-right font-mono ${color}`}>{row.amount < 0 ? '-R$ ' : 'R$ '}{Math.abs(Number(row.amount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {rows.length > 8 && <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />}
+      </div>
+    </div>
+  );
+}
+
+function HoleriteTable({ linhas, totais }) {
+  if (!Array.isArray(linhas) || linhas.length === 0) return null;
+  return (
+    <div className="bg-white rounded-xl shadow p-6 max-w-3xl mx-auto">
+      <div className="font-bold text-xl text-center mb-4 text-blue-900">Recibo de Pagamento de Salário</div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200 text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="border px-2 py-1 font-semibold">Descrição</th>
+              <th className="border px-2 py-1 font-semibold">Referência</th>
+              <th className="border px-2 py-1 font-semibold">Proventos</th>
+              <th className="border px-2 py-1 font-semibold">Descontos</th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map((l, i) => (
+              <tr key={i} className={i%2===0 ? 'bg-white' : 'bg-gray-50'}>
+                <td className="border px-2 py-1 text-gray-800">{l.descricao || ''}</td>
+                <td className="border px-2 py-1 text-gray-700 text-center">{l.referencia || ''}</td>
+                <td className="border px-2 py-1 text-green-700 text-right font-mono">{l.proventos || ''}</td>
+                <td className="border px-2 py-1 text-red-600 text-right font-mono">{l.descontos || ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {totais && Object.keys(totais).length > 0 && (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-2">
+          {Object.entries(totais).map(([label, value], i) => (
+            <div key={i} className="flex justify-between bg-blue-50 rounded px-3 py-2 font-semibold text-blue-900 border border-blue-100">
+              <span>{label}</span>
+              <span className="font-mono">{value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getHolField(raw, bloc, key, totauxLabel, linhaLabel) {
+  // 1. Bloc enrichi
+  if (raw[bloc]?.[key]) return raw[bloc][key];
+  // 2. Totaux (label exact)
+  if (raw.totais && raw.totais[totauxLabel]) return raw.totais[totauxLabel];
+  // 3. Lignes (label exact)
+  if (Array.isArray(raw.linhas)) {
+    const l = raw.linhas.find(l => (l.descricao || '').toUpperCase().includes(linhaLabel.toUpperCase()));
+    if (l && (l.proventos || l.descontos)) return l.proventos || l.descontos;
+  }
+  return '—';
+}
+
+function formatMontant(m) {
+  if (!m) return '—';
+  if (typeof m === 'object' && m.valor !== undefined) {
+    return 'R$ ' + Number(m.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  }
+  if (typeof m === 'number') return 'R$ ' + m.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  if (typeof m === 'string') return m;
+  // Si c'est un objet inattendu, afficher JSON stringifié pour éviter l'erreur React
+  if (typeof m === 'object') return <span className="text-xs text-red-500">{JSON.stringify(m)}</span>;
+  return String(m);
+}
+
+function HoleriteAnalysisDisplay({ raw }) {
+  // Champs principaux
+  const infos = [
+    { label: 'Empresa', value: raw.company_name },
+    { label: 'Nome', value: raw.employee_name },
+    { label: 'Cargo', value: raw.position },
+    { label: 'Perfil', value: raw.profile_type },
+    { label: 'Período', value: raw.period },
+    { label: 'Admissão', value: raw.admission_date },
+    { label: 'CBO', value: raw.cbo },
+    { label: 'Departamento', value: raw.department },
+    { label: 'Horas Trabalhadas', value: raw.work_hours },
+    { label: 'Dependentes', value: raw.dependents },
+  ];
+  // Montants principaux (affiche label d'origine si présent)
+  const montants = [
+    { label: 'Salário Base', value: raw.gross_salary },
+    { label: 'Salário Líquido', value: raw.net_salary },
+    { label: 'Total Vencimentos', value: raw.total_earnings },
+    { label: 'Total Descontos', value: raw.total_deductions },
+    { label: 'INSS', value: raw.inss_base },
+    { label: 'FGTS', value: raw.fgts_base },
+    { label: 'IRRF', value: raw.irrf_base },
+    { label: 'FGTS do Mês', value: raw.fgts_mes },
+    { label: 'Base Cálc. FGTS', value: raw.base_calc_fgts },
+    { label: 'Base Cálc. IRRF', value: raw.base_calc_irrf },
+    { label: 'Faixa IRRF', value: raw.faixa_irrf },
+    { label: 'Depósito FGTS', value: raw.fgts_deposit },
+  ];
+  // Earnings/deductions
+  const earnings = Array.isArray(raw.earnings) ? raw.earnings : [];
+  const deductions = Array.isArray(raw.deductions) ? raw.deductions : [];
+  // Résumé et recommandations
+  const summary = raw.analysis?.summary;
+  const oportunidades = Array.isArray(raw.analysis?.optimization_opportunities) ? raw.analysis.optimization_opportunities : [];
+
+  // Gestion spéciale du net : si c'est un tableau ou plusieurs candidats, afficher tous avec label
+  let netCandidates = [];
+  if (Array.isArray(raw.net_salary)) {
+    netCandidates = raw.net_salary.filter(n => n && n.label && !n.label.toLowerCase().includes('base de cálculo'));
+  } else if (raw.net_salary && typeof raw.net_salary === 'object' && raw.net_salary.label && !raw.net_salary.label.toLowerCase().includes('base de cálculo')) {
+    netCandidates = [raw.net_salary];
+  } else if (raw.net_salary && typeof raw.net_salary === 'number') {
+    netCandidates = [{ label: 'Salário Líquido', valor: raw.net_salary }];
+  }
+
+  return (
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="mb-6">
+        <div className="text-xl md:text-2xl font-bold text-blue-900 mb-1">Análise do Holerite</div>
+        <div className="text-gray-700">Analisamos seu holerite e identificamos as seguintes oportunidades de otimização:</div>
+      </div>
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Colonne gauche : Infos + montants + earnings/deductions */}
+        <div className="bg-white rounded-xl shadow p-6 flex flex-col justify-between">
+          <div className="text-lg font-bold text-blue-900 mb-4">Detalhamento do Holerite</div>
+          <div className="mb-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+            {infos.filter(i => i.value).map((i, idx) => {
+              let v = i.value;
+              if (typeof v === 'object' && v !== null) v = v.value ?? v.valor ?? '—';
+              return (
+                <React.Fragment key={idx}>
+                  <div className="text-gray-500">{i.label}:</div>
+                  <div className="text-gray-900 font-semibold">{v ?? '—'}</div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+          <div className="mb-2">
+            {montants.filter(m => m.value).map((m, idx) => {
+              let v = m.value;
+              if (typeof v === 'object' && v !== null) v = v.value ?? v.valor ?? '—';
+              return (
+                <div key={idx} className="flex justify-between text-base">
+                  <span>{m.label}:</span>
+                  <span className="font-bold text-blue-900">{formatMontant(v)}</span>
+                </div>
+              );
+            })}
+            {/* Affichage spécial pour le net si plusieurs candidats */}
+            {netCandidates.length > 1 && <div className="mt-2 text-xs text-gray-500">Vários candidatos para o líquido: {netCandidates.map((n, i) => <span key={i} className="ml-2">{formatMontant(n)}</span>)}</div>}
+          </div>
+          {earnings.length > 0 && <>
+            <div className="font-bold mt-4 mb-1 text-green-700">Vencimentos</div>
+            <table className="w-full text-sm mb-2">
+              <tbody>
+                {earnings.map((e, i) => (
+                  <tr key={i}>
+                    <td className="text-gray-700">{e.description}</td>
+                    <td className="text-green-700 text-right font-mono">{formatMontant(e.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>}
+          {deductions.length > 0 && <>
+            <div className="font-bold mt-2 mb-1 text-red-600">Descontos</div>
+            <table className="w-full text-sm">
+              <tbody>
+                {deductions.map((d, i) => (
+                  <tr key={i}>
+                    <td className="text-gray-700">{d.description}</td>
+                    <td className="text-red-600 text-right font-mono">-{formatMontant(d.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>}
+        </div>
+        {/* Colonne droite : Oportunidades */}
+        <div className="bg-green-50 rounded-xl shadow p-6 flex flex-col justify-between">
+          <div className="text-lg font-bold text-green-900 mb-4">Oportunidades Identificadas</div>
+          {summary && <div className="mb-4 text-green-900 text-sm bg-green-100 rounded p-2 shadow-inner">{summary}</div>}
+          <div className="space-y-4">
+            {oportunidades.length === 0 && <div className="text-gray-500 italic">Nenhuma oportunidade clara identificada neste holerite.</div>}
+            {oportunidades.map((op, i) => {
+              const match = op.match(/^([^:]+:)(.*)$/);
+              return (
+                <div key={i} className="flex gap-3 items-start">
+                  <CheckCircle2 className="w-6 h-6 text-green-500 mt-1" />
+                  <div>
+                    {match ? <><span className="font-bold text-green-900">{match[1]}</span>{match[2]}</> : op}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PayslipAnalysisDetail({ result, onClose }: { result: HoleriteResult, onClose: () => void }) {
   if (!result) return null;
   const raw = result.raw || {};
-  const formattedPeriod = formatPeriod(raw.period);
-  const profileType = raw.profile_type;
-  const opportunities = (raw.analysis?.optimization_opportunities && raw.analysis.optimization_opportunities.length > 0
-    ? raw.analysis.optimization_opportunities
-    : getDefaultOpportunities(profileType)).slice(0, 5); // Limite à 5
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-8 flex flex-col md:flex-row gap-8 relative max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white/90 rounded-2xl shadow-2xl max-w-5xl w-full p-4 md:p-8 flex flex-col gap-8 relative max-h-[95vh] overflow-y-auto glassmorphism animate-fade-in" onClick={e => e.stopPropagation()}>
         <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold" onClick={onClose}>&times;</button>
-        {/* Détail du holerite */}
-        <div className="flex-1 bg-blue-50 rounded-xl p-6 border border-blue-200 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-bold text-lg text-blue-900">Detalhamento do Holerite</div>
-              {formattedPeriod && (
-                <div className="text-xs text-blue-700 font-semibold bg-blue-100 rounded px-2 py-1">Mês: {formattedPeriod.charAt(0).toUpperCase() + formattedPeriod.slice(1)}</div>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base mt-4">
-              <div className="text-gray-700">Salário Base:</div>
-              <div className="font-bold text-gray-900 text-right">R$ {raw.gross_salary?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-              {raw.earnings?.map((e: any, i: number) => {
-                const val = e.amount ?? e.value ?? e.valor ?? 0;
-                return [
-                  <div key={"e-label-"+i} className="text-gray-700">{e.description || e.tipo || 'Provento'}:</div>,
-                  <div key={"e-val-"+i} className="text-green-700 text-right">R$ {Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-                ];
-              })}
-              {raw.deductions?.map((d: any, i: number) => {
-                const val = d.amount ?? d.value ?? d.valor ?? 0;
-                return [
-                  <div key={"d-label-"+i} className="text-gray-700">{d.description || d.tipo || 'Desconto'}:</div>,
-                  <div key={"d-val-"+i} className="text-red-600 text-right">-R$ {Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-                ];
-              })}
-              <div className="col-span-2 border-t border-blue-200 my-2"></div>
-              <div className="font-bold">Salário Líquido:</div>
-              <div className="font-bold text-blue-900 text-right">R$ {raw.net_salary?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            </div>
-          </div>
-        </div>
-        {/* Opportunités */}
-        <div className="flex-1 bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200 flex flex-col justify-between max-h-[70vh] overflow-y-auto">
-          <div>
-            <div className="font-bold text-lg text-green-900 mb-2 flex items-center gap-2"><Lightbulb className="w-5 h-5 text-green-500" />Oportunidades Identificadas</div>
-            {profileType && (
-              <div className="mb-4">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Perfil: {profileType}</span>
-              </div>
-            )}
-            <div className="flex flex-col gap-4">
-              {opportunities.map((op: string, i: number) => {
-                // Sépare le thème (avant les deux-points) du reste
-                const match = op.match(/^([^:]+:)(.*)$/);
-                return (
-                  <div key={i} className="flex items-start gap-3 bg-white/70 rounded-lg p-3 border border-green-100 shadow-sm">
-                    <CheckCircle2 className="w-6 h-6 text-green-500 mt-1" />
-                    <div className="text-green-800 text-sm leading-snug">
-                      {match ? (
-                        <>
-                          <span className="font-bold">{match[1]}</span>{match[2]}
-                        </>
-                      ) : (
-                        op
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <button className="mt-8 self-end bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition" onClick={onClose}>Fechar</button>
-        </div>
+        <HoleriteAnalysisDisplay raw={raw} />
       </div>
     </div>
   );
@@ -294,20 +595,23 @@ export default function DashboardFullWidth() {
   const [employmentStatus, setEmploymentStatus] = useState("");
   const perfilRef = useRef<HTMLDivElement>(null);
   const SALARIO_MINIMO = 1320;
+  const { supabase, session } = useSupabase(); // Utiliser la session du contexte
   const [userId, setUserId] = useState<string | null>(null);
-  const { supabase } = useSupabase();
   const [isSyncing, setIsSyncing] = useState(false);
   const router = useRouter();
-  // Temporairement désactivé pour éviter les erreurs next-intl
-  // const t = useTranslations();
-  // const locale = useLocale();
-  const country = 'br'; // Valeur par défaut temporaire
-  // Temporairement désactivé pour éviter les erreurs next-intl
-  // let countrySection = null;
-  // Section de pays temporairement désactivée
+  const params = useParams();
+  const locale = typeof params.locale === 'string' ? params.locale : 'br';
+  const [showOnboarding, setShowOnboarding] = useState(true); // Gérer la visibilité
 
-  // Correction : déclaration de onboarding
-  const onboarding = useUserOnboarding(userId || undefined);
+  const { onboarding } = useUserOnboarding(userId || undefined);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      setUserId(session.user.id);
+    }
+  }, [session]);
+
+  const onboardingComplete = onboarding ? (onboarding.profile_completed && onboarding.checkup_completed && onboarding.holerite_uploaded) : false;
 
   // 1. Lecture initiale du cache local
   useEffect(() => {
@@ -554,19 +858,21 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
 
   return (
     <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-      {/* GettingStarted en haut si onboarding non complet */}
-      {onboarding && !onboarding.onboarding_complete && userId && (
+      {/* GettingStarted en haut si onboarding non complet et visible */}
+      {showOnboarding && !onboardingComplete && userId && (
         <div className="mb-8">
-          <GettingStarted userId={userId} onStepClick={(step) => {
-            // Map step key to step number
-            const stepMap = { profile: 1, checkup: 2, holerite: 3 };
-            const stepNum = stepMap[step] || 1;
-            // On n'utilise plus router.push ici, juste un lien ou une info
-            window.location.href = `/onboarding?step=${stepNum}`;
-          }} />
+          <GettingStarted 
+            userId={userId} 
+            onDismiss={() => setShowOnboarding(false)}
+            onStepClick={(step) => {
+              const stepMap: { [key: string]: number } = { profile: 1, checkup: 2, holerite: 3 };
+              const stepNum = stepMap[step] || 1;
+              router.push(`/${locale}/onboarding?step=${stepNum}`);
+            }} 
+          />
         </div>
       )}
-      {/* Bouton Rafraîchir supprimé ici */}
+      
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Sidebar Desktop */}
         <aside className="hidden lg:block col-span-3 xl:col-span-2 mb-8 lg:mb-0">
@@ -677,11 +983,7 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
         <section className="col-span-12 lg:col-span-6 xl:col-span-7 flex flex-col gap-8">
           {/* Retiré : Section Saúde Financeira */}
           {/* GettingStarted juste après Saúde Financeira */}
-          {onboarding && !onboarding.onboarding_complete && userId && (
-            <div className="mb-6 rounded-xl">
-              <GettingStarted userId={userId} />
-            </div>
-          )}
+          {/* Le deuxième GettingStarted a été supprimé d'ici */}
           
           {/* Contenu selon l'onglet actif */}
           {activeTab === "Dados" && (
@@ -915,3 +1217,4 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
       </main>
   );
 }
+

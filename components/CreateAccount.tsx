@@ -1,6 +1,5 @@
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { LoginModal } from "@/components/LoginModal"
+import { useRouter, useParams } from "next/navigation"
 import { useSupabase } from "@/components/supabase-provider";
 import { Button } from "@/components/ui/button";
 
@@ -10,9 +9,10 @@ export default function CreateAccount() {
   const [passwordConfirm, setPasswordConfirm] = useState("")
   const [sent, setSent] = useState(false)
   const [error, setError] = useState("")
-  const [showLogin, setShowLogin] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const params = useParams();
+  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
   const { supabase } = useSupabase();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,7 +64,7 @@ export default function CreateAccount() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: typeof window !== 'undefined' ? 'https://pimsite-prod.supabase.co/auth/v1/callback' : undefined
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined
       }
     });
     setLoading(false);
@@ -99,7 +99,7 @@ export default function CreateAccount() {
           disabled={loading}
         >
           <svg className="w-5 h-5" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.22l6.85-6.85C35.64 2.36 30.18 0 24 0 14.82 0 6.73 5.48 2.69 13.44l7.98 6.2C12.13 13.09 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.55c0-1.64-.15-3.22-.43-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.65 7.01l7.19 5.6C43.98 37.36 46.1 31.45 46.1 24.55z"/><path fill="#FBBC05" d="M9.67 28.09c-1.09-3.25-1.09-6.74 0-9.99l-7.98-6.2C-1.13 17.09-1.13 30.91 1.69 36.11l7.98-6.2z"/><path fill="#EA4335" d="M24 48c6.18 0 11.64-2.04 15.54-5.54l-7.19-5.6c-2.01 1.35-4.58 2.14-8.35 2.14-6.38 0-11.87-3.59-14.33-8.84l-7.98 6.2C6.73 42.52 14.82 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></g></svg>
-          {loading ? "Connexion Google..." : "Continuer avec Google"}
+          {loading ? "Entrando com Google..." : "Entrar com Google"}
         </Button>
       )}
       {/* Formulaire classique */}
@@ -169,14 +169,13 @@ export default function CreateAccount() {
                 <button
                   type="button"
                   className="ml-2 underline text-emerald-700 hover:text-emerald-900"
-                  onClick={() => setShowLogin(true)}
+                  onClick={() => router.push(`/${locale}/login`)} // Redirection au lieu de setShowLogin(true)
                 >
                   {textos.loginExistente}
                 </button>
               )}
             </div>
           )}
-          {showLogin && <LoginModal open={showLogin} onOpenChange={setShowLogin} message={"Entre com seu email existente."} />}
         </>
       ) : (
         <div className="text-center">

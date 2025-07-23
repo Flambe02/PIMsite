@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const redirectTo = formData.get("redirectTo") as string
 
     // Get origin with fallback
-    const origin = request.nextUrl.origin || 'http://localhost:3000'
+    const origin = request.nextUrl.origin || 'pphttp://localhost:3000'
 
     if (!email || !password) {
       const redirectUrl = new URL('/login', origin)

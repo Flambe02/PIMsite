@@ -35,8 +35,23 @@ export async function POST(req: NextRequest) {
     if (!fileBuffer || fileBuffer.length === 0) throw new Error('Le fichier est vide ou non lisible.');
 
     console.log('🔍 Début de l\'extraction OCR...');
-    // Passe le nom de fichier à extractText
-    const ocrResult = await extractText(fileBuffer, 'tesseract', file.name);
+    // --- FORCER LE PROVIDER OCR À OCR.SPACE POUR RAPIDITÉ ---
+    console.log('🔄 Utilisation du provider OCR: ocrspace');
+    let ocrResult;
+    try {
+      ocrResult = await extractText(fileBuffer, 'ocrspace', file.name);
+      console.log('🟡 Réponse brute OCR.space:', JSON.stringify(ocrResult));
+    } catch (err) {
+      console.error('Erreur OCR.space:', err);
+      // Fallback automatique sur Tesseract
+      try {
+        ocrResult = await extractText(fileBuffer, 'tesseract', file.name);
+        console.log('🟢 Fallback Tesseract réussi:', JSON.stringify(ocrResult));
+      } catch (err2) {
+        console.error('Erreur Tesseract:', err2);
+        return NextResponse.json({ error: "OCR: Aucun texte lisible extrait. Vérifiez la qualité du fichier ou essayez un autre moteur.", details: String(err2) }, { status: 400 });
+      }
+    }
     const payslipText = ocrResult.text;
     console.log('✅ OCR terminé, longueur du texte:', payslipText.length);
     console.log('📊 Métriques OCR:', {
@@ -44,9 +59,8 @@ export async function POST(req: NextRequest) {
       confidence: ocrResult.confidence,
       duration_ms: ocrResult.duration_ms
     });
-    
-    if (!payslipText || payslipText.trim().length < 50) {
-      throw new Error("L'OCR n'a pas pu extraire suffisamment de texte. Le fichier pourrait être illisible ou protégé.");
+    if (!payslipText || payslipText.trim().length < 20) {
+      return NextResponse.json({ error: "L'OCR n'a pas pu extraire suffisamment de texte. Le fichier pourrait être illisible ou protégé.", details: payslipText }, { status: 400 });
     }
     
     console.log('🤖 Début de l\'analyse IA...');
@@ -96,11 +110,11 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: session.user.id,
         structured_data: parsedData,
-        nome: parsedData.employee_name || '',
-        empresa: parsedData.company_name || '',
-        perfil: parsedData.profile_type || '',
-        salario_bruto: parsedData.gross_salary || null,
-        salario_liquido: parsedData.net_salary || null,
+        nome: parsedData['Identificação']?.employee_name || '',
+        empresa: parsedData['Identificação']?.company_name || '',
+        perfil: parsedData['Identificação']?.profile_type || '',
+        salario_bruto: parsedData['Salários']?.gross_salary || null,
+        salario_liquido: parsedData['Salários']?.net_salary || null,
         created_at: new Date().toISOString(),
       })
       .select('id')

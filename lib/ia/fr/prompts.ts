@@ -1,0 +1,2 @@
+export const payslipAnalysisPromptFR = `Vous êtes un expert-comptable spécialisé dans les bulletins de paie français. ... (adapte le prompt en français ici)`;
+// Ajoute d'autres prompts spécifiques à la France ici 

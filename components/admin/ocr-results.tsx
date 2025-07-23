@@ -105,9 +105,13 @@ export function OcrResults() {
   }
 
   const getConfidenceDisplay = (confidence: number | null) => {
-    if (confidence === null) return '–'
-    return `${Math.round(confidence)}%`
-  }
+    if (confidence === null || confidence === undefined) return '–';
+    return `${Math.round(confidence)}%`;
+  };
+  const getDurationDisplay = (duration: number | null) => {
+    if (!duration || duration === 0) return '–';
+    return `${duration}ms`;
+  };
 
   if (loading) {
     return (
@@ -157,7 +161,7 @@ export function OcrResults() {
                         {getConfidenceDisplay(result.confidence)}
                       </TableCell>
                       <TableCell>
-                        {result.duration_ms ? `${result.duration_ms}ms` : '–'}
+                        {getDurationDisplay(result.duration_ms)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

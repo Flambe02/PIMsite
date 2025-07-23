@@ -2,84 +2,58 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSupabase } from "@/components/supabase-provider";
+import useAuthRedirect from "@/hooks/useAuthRedirect";
+import useUserOnboarding from "@/hooks/useUserOnboarding";
 
 function AuthCallbackContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { supabase } = useSupabase();
-  const [_loading, setLoading] = useState(true)
-  const [error, _setError] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Centralise la redirection post-auth
+  const { onboarding } = useUserOnboarding(user?.id);
+  useAuthRedirect(user);
 
   useEffect(() => {
     async function handleAuth() {
-      const code = searchParams.get('code')
+      const code = searchParams.get('code');
       if (code) {
         try {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
-            // Vérifie l'état d'onboarding et initialise si besoin
-          const { data: { user } } = await supabase.auth.getUser()
-          if (user) {
-              // Vérifier ou initialiser la ligne user_onboarding
-              let { data, error: _onboardingError } = await supabase
-              .from('user_onboarding')
-              .select('profile_completed, checkup_completed, holerite_uploaded')
-              .eq('user_id', user.id)
-              .single()
-              if (!data) {
-                // Créer la ligne si elle n'existe pas
-                const { error: insertError } = await supabase
-                  .from('user_onboarding')
-                  .upsert({
-                    user_id: user.id,
-                    profile_completed: false,
-                    checkup_completed: false,
-                    holerite_uploaded: false
-                  })
-                if (insertError) console.error('Erro insert user_onboarding:', insertError.message)
-                data = { profile_completed: false, checkup_completed: false, holerite_uploaded: false }
-              }
-              const onboardingComplete = data.profile_completed && data.checkup_completed && data.holerite_uploaded
-              if (onboardingComplete) {
-                router.replace('/dashboard')
-                return
-              }
-            }
-          router.replace('/onboarding')
-        } else {
-            console.error('Erro exchangeCodeForSession:', error)
-            // Gérer spécifiquement le cas où le lien a déjà été utilisé
-            if (error.message?.includes('already been used') || error.message?.includes('expired')) {
-              router.replace('/auth/auth-code-error?message=Link já foi utilizado ou expirou')
-            } else {
-              router.replace(`/auth/auth-code-error?message=${encodeURIComponent(error.message)}`)
-            }
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error) {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+            setLoading(false);
+          } else {
+            setError(error.message);
+            setLoading(false);
           }
-        } catch (err) {
-          console.error('Erro inesperado:', err)
-          router.replace('/auth/auth-code-error?message=Erro inesperado durante a confirmação')
+        } catch (err: any) {
+          setError(err.message || 'Erro inesperado durante a confirmação');
+          setLoading(false);
         }
       } else {
-        router.replace('/auth/auth-code-error?message=Código de confirmação não encontrado')
+        setError('Código de confirmação não encontrado');
+        setLoading(false);
       }
-      setLoading(false)
     }
-    handleAuth()
+    handleAuth();
     // eslint-disable-next-line
-  }, [])
+  }, []);
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-red-700 text-lg font-semibold">
-        Erro: {error}
-      </div>
-    )
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen text-emerald-700 text-lg font-semibold">Conectando... Aguarde um instante.</div>;
   }
-
-  return <div className="flex items-center justify-center min-h-screen text-emerald-700 text-lg font-semibold">Conectando... Aguarde um instante.</div>
+  if (error) {
+    return <div className="flex items-center justify-center min-h-screen text-red-700 text-lg font-semibold">Erro: {error}</div>;
+  }
+  return null;
 }
 
 export default function AuthCallback() {
@@ -87,5 +61,5 @@ export default function AuthCallback() {
     <Suspense fallback={<div>Carregando...</div>}>
       <AuthCallbackContent />
     </Suspense>
-  )
+  );
 } 

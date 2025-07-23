@@ -1,50 +1,48 @@
 import { useEffect, useState } from "react";
-import { User } from '@supabase/supabase-js';
 import { useSupabase } from "@/components/supabase-provider";
 
-interface UserOnboardingState {
+export interface UserOnboardingState {
   profile_completed: boolean;
   checkup_completed: boolean;
   holerite_uploaded: boolean;
-  onboarding_complete: boolean;
-  progress: number;
 }
 
-export function useUserOnboarding(userId?: string): UserOnboardingState | null {
-  const [state, setState] = useState<UserOnboardingState | null>(null);
+export function useUserOnboarding(userId?: string) {
   const { supabase } = useSupabase();
+  const [state, setState] = useState<UserOnboardingState | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
-    let isMounted = true;
-    async function fetchOnboarding() {
-      const { data, error } = await supabase
-        .from('user_onboarding')
-        .select('profile_completed, checkup_completed, holerite_uploaded')
-        .eq('user_id', userId)
-        .single();
-      if (error) {
-        console.log('Erreur fetch user_onboarding:', error.message);
-        if (isMounted) setState(null);
-        return;
-      }
-      const steps = [data?.profile_completed, data?.checkup_completed, data?.holerite_uploaded];
-      const completed = steps.filter(Boolean).length;
-      const progress = Math.round((completed / steps.length) * 100);
-      if (isMounted) setState({
-        profile_completed: !!data?.profile_completed,
-        checkup_completed: !!data?.checkup_completed,
-        holerite_uploaded: !!data?.holerite_uploaded,
-        onboarding_complete: steps.every(Boolean),
-        progress
+    setLoading(true);
+    supabase
+      .from('user_onboarding')
+      .select('profile_completed, checkup_completed, holerite_uploaded')
+      .eq('user_id', userId)
+      .single()
+      .then(({ data, error }) => {
+        if (error) setError(error.message);
+        else setState(data as UserOnboardingState);
+        setLoading(false);
       });
-    }
-    fetchOnboarding();
-    return () => { isMounted = false; };
-  }, [userId]);
+  }, [userId, supabase]);
 
-  return state;
+  const updateFlags = async (flags: Partial<UserOnboardingState>) => {
+    if (!userId) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from('user_onboarding')
+      .update(flags)
+      .eq('user_id', userId);
+    if (error) setError(error.message);
+    else setState(prev => ({ ...prev!, ...flags }));
+    setLoading(false);
+  };
+
+  return { onboarding: state, loading, error, updateFlags };
 }
+export default useUserOnboarding;
 
 export function useOnboardingPhase1() {
   const [email, setEmail] = useState<string>("");

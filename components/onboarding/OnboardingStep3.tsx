@@ -4,6 +4,7 @@ import UploadHolerite from "@/app/[locale]/calculadora/upload-holerite"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { createBrowserClient } from "@supabase/ssr"
 import { useEffect, useState } from "react"
+import { useParams, useRouter } from "next/navigation";
 
 interface OnboardingStep3Props {
   userData: any
@@ -14,6 +15,9 @@ interface OnboardingStep3Props {
 export default function OnboardingStep3({ userData, updateUserData, onBack }: OnboardingStep3Props) {
   const [isSaving, setIsSaving] = useState(false)
   const [modo, setModo] = useState<null | 'upload' | 'manual'>(null)
+  const params = useParams();
+  const router = useRouter();
+  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -75,12 +79,12 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
         }
       }
       setTimeout(() => {
-        window.location.href = "/dashboard"
+        router.push(`/${locale}/dashboard`)
       }, 500)
     } catch (error) {
       console.error('Erro ao salvar:', error)
       setTimeout(() => {
-        window.location.href = "/dashboard"
+        router.push(`/${locale}/dashboard`)
       }, 500)
     } finally {
       setIsSaving(false)
@@ -126,7 +130,7 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
                 ← Voltar
               </button>
               <button
-                onClick={() => window.location.href = "/dashboard"}
+                onClick={() => router.push(`/${locale}/dashboard`)}
                 className="flex-1 rounded-full px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition"
               >
                 Ir para o Dashboard
@@ -146,7 +150,7 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
               ← Voltar para as opções
             </button>
             <button
-              onClick={() => window.location.href = "/dashboard"}
+              onClick={() => router.push(`/${locale}/dashboard`)}
               className="mt-4 w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3"
               disabled={isSaving}
             >
@@ -172,7 +176,7 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
               ← Voltar para as opções
             </button>
             <button
-              onClick={() => window.location.href = "/dashboard"}
+              onClick={() => router.push(`/${locale}/dashboard`)}
               className="mt-2 w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3"
               disabled={isSaving}
             >

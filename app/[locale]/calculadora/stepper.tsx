@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, UploadCloud, FileText, Edit, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { useId } from "react";
+import { useParams, useRouter } from "next/navigation";
 
 const initialFields = {
   nome: "",
@@ -24,6 +25,10 @@ export default function CalculadoraStepper() {
   const [fields, setFields] = useState(initialFields);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const params = useParams();
+  const router = useRouter();
+  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
 
   // Stepper header
   const Stepper = () => (
@@ -128,7 +133,7 @@ export default function CalculadoraStepper() {
             <ResultField label="Data de pagamento" value={fields.data_pagamento} />
           </div>
         </Card>
-        <Button className="mt-4" onClick={()=>window.location.href='/dashboard'}>Ir para Dashboard</Button>
+        <Button className="mt-4" onClick={()=>router.push(`/${locale}/dashboard`)}>Ir para Dashboard</Button>
       </div>
     );
   };
