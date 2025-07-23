@@ -5,12 +5,12 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSupabase } from "@/components/supabase-provider";
-import useAuthRedirect from "@/hooks/useAuthRedirect";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import useUserOnboarding from "@/hooks/useUserOnboarding";
 
 function AuthCallbackContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // pas besoin de null check, jamais null
   const { supabase } = useSupabase();
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);

@@ -8,7 +8,7 @@ export default function AuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : 'br';
+  const locale = typeof params?.locale === 'string' ? params.locale : 'br';
   const { supabase } = useSupabase();
   const hasRun = useRef(false);
   const [loading, setLoading] = useState(true);
