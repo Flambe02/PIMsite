@@ -26,18 +26,18 @@ export default async function LocaleLayout({
         {children}
       </div>
       {/* Footer global simplifié */}
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t px-4 md:px-6 bg-white items-center justify-between">
-        <div className="flex items-center">
-          <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={32} height={32} className="h-8 w-auto mr-2" />
-          <span className="font-bold text-emerald-200">Pimentão Rouge Company</span>
-          <span className="text-[10px] text-gray-400 ml-2">V2.0.0</span>
+      <footer className="w-full border-t bg-white flex flex-col items-center justify-center py-3 px-2 text-xs text-gray-500">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={24} height={24} className="h-6 w-auto" />
+          <span className="font-bold text-emerald-700">Pimentão Rouge</span>
+          <span className="text-[10px] text-gray-400 ml-1">V2.0.0</span>
         </div>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Termos de Serviço</a>
-          <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Privacidade</a>
-          <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Sobre</a>
-          <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">Contato</a>
-          <a className="hover:bg-[#223c2c] hover:text-emerald-200 px-3 py-1 rounded-full transition" href="#">FAQ</a>
+        <nav className="flex flex-col sm:flex-row gap-1 sm:gap-4 items-center justify-center">
+          <a className="hover:underline" href="#">Termos</a>
+          <a className="hover:underline" href="#">Privacidade</a>
+          <a className="hover:underline" href="#">Sobre</a>
+          <a className="hover:underline" href="#">Contato</a>
+          <a className="hover:underline" href="#">FAQ</a>
         </nav>
       </footer>
     </div>

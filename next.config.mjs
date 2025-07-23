@@ -3,6 +3,11 @@ import bundleAnalyzer from '@next/bundle-analyzer';
 /** @type {import('next').NextConfig} */
 let nextConfig = {
   images: {
+    domains: [
+      'placehold.co',
+      'randomuser.me',
+      // ...autres domaines si besoin
+    ],
     remotePatterns: [
       {
         protocol: 'https',

@@ -122,7 +122,17 @@ export function Header() {
             <div className="fixed inset-0 z-50 bg-black/40 flex" role="dialog" aria-modal="true">
               <div className="w-[80vw] max-w-xs bg-emerald-50 h-full p-6 flex flex-col gap-8 animate-fadeIn shadow-2xl">
                 <button className="self-end mb-4 text-gray-500 text-3xl" onClick={() => setMobileMenuOpen(false)}>&times;</button>
-                <nav className="flex flex-col gap-4 w-full mt-8" aria-label="Navigation mobile principale">
+                <nav className="flex flex-col gap-4 w-full mt-2" aria-label="Navigation mobile principale">
+                  {/* Bouton Entrar en haut du menu mobile */}
+                  {!session && (
+                    <Link 
+                      href={`/${currentLocale}/login`}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-full shadow transition text-lg mb-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Entrar
+                    </Link>
+                  )}
                   <Link href="/br/recursos" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Recursos</Link>
                   <Link href="/br/guia-paises" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Guia dos Países</Link>
                   <Link 
