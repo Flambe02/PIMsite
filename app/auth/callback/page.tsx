@@ -22,7 +22,7 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     async function handleAuth() {
-      const code = searchParams.get('code');
+      const code = searchParams!.get('code');
       if (code) {
         try {
           const { error } = await supabase.auth.exchangeCodeForSession(code);

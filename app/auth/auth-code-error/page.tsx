@@ -18,7 +18,7 @@ function AuthCodeErrorContent() {
   const { supabase } = useSupabase();
 
   // Récupérer le message d'erreur depuis l'URL
-  const errorMessage = searchParams.get('message');
+  const errorMessage = searchParams!.get('message');
 
   // Corriger l'erreur d'hydratation
   useEffect(() => {

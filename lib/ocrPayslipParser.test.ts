@@ -68,7 +68,7 @@ const samples = [
         { description: 'INSS', value: 900.00 }
       ],
       net_salary: 6261.45,
-      total_earnings: 7089,84,
+      total_earnings: 7089.84,
       total_deductions: 1680.93,
       warnings: []
     }
@@ -91,8 +91,8 @@ const samples = [
   }
 ];
 
-function extractSimple(arr) {
-  return arr.map(e => ({ description: e.description, value: e.amount.value }));
+function extractSimple(arr: any[]) {
+  return arr.map((e: any) => ({ description: e.description, value: e.amount.value }));
 }
 
 describe('OCR Payslip Parser - Robust Extraction', () => {

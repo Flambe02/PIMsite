@@ -35,7 +35,7 @@ export default function HoleriteDetailPage() {
   }, []);
 
   async function loadHolerite() {
-    if (!params.id) return;
+    if (!params!.id) return;
     
     setLoading(true);
     setError(null);
@@ -47,7 +47,7 @@ export default function HoleriteDetailPage() {
       const { data, error } = await (supabase as any)
         .from("holerites")
         .select("*")
-        .eq("id", params.id)
+        .eq("id", params!.id)
         .eq("user_id", session.user.id)
         .single();
 

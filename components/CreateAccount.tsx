@@ -12,7 +12,7 @@ export default function CreateAccount() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
+  const locale = typeof params?.locale === 'string' ? params?.locale : Array.isArray(params?.locale) ? params?.locale[0] : 'br';
   const { supabase } = useSupabase();
 
   const handleSubmit = async (e: React.FormEvent) => {

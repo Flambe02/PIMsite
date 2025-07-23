@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import Head from "next/head";
-import * as Sentry from "@sentry/nextjs";
 import { useState, useEffect } from "react";
 
 class SentryExampleFrontendError extends Error {
@@ -18,11 +17,7 @@ export default function Page() {
   const [isConnected, setIsConnected] = useState(true);
   
   useEffect(() => {
-    async function checkConnectivity() {
-      const result = await Sentry.diagnoseSdkConnectivity();
-      setIsConnected(result !== 'sentry-unreachable');
-    }
-    checkConnectivity();
+    // Suppression de tout code Sentry (diagnoseSdkConnectivity, startSpan, etc.)
   }, []);
 
   return (
@@ -49,16 +44,7 @@ export default function Page() {
         <button
           type="button"
           onClick={async () => {
-            await Sentry.startSpan({
-              name: 'Example Frontend Span',
-              op: 'test'
-            }, async () => {
-              const res = await fetch("/api/sentry-example-api");
-              if (!res.ok) {
-                setHasSentError(true);
-                throw new SentryExampleFrontendError("This error is raised on the frontend of the example page.");
-              }
-            });
+            // Suppression de tout code Sentry (diagnoseSdkConnectivity, startSpan, etc.)
           }}
         >
           <span>

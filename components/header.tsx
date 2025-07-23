@@ -19,14 +19,14 @@ export function Header() {
   const { session } = useSupabase(); // Récupérer la session ici
   
   const getCurrentLocale = () => {
-    const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
+    const localeMatch = pathname?.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
     return localeMatch ? localeMatch[1] : 'br';
   };
 
   const currentLocale = getCurrentLocale();
 
   const switchCountry = (newLocale: string) => {
-    const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
+    const pathWithoutLocale = pathname?.replace(`/${currentLocale}`, '') || '/';
     const newPathname = newLocale === 'br' ? pathWithoutLocale : `/${newLocale}${pathWithoutLocale}`;
     router.push(newPathname);
     setCountryMenuOpen(false);
@@ -199,7 +199,7 @@ export function Header() {
 function HeaderClient() {
   const router = useRouter();
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
+  const locale = typeof params?.locale === 'string' ? params?.locale : Array.isArray(params?.locale) ? params?.locale[0] : 'br';
   const { isAdmin } = useAdmin();
   const { supabase, session } = useSupabase();
 

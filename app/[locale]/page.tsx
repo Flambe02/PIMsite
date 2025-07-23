@@ -348,7 +348,7 @@ function TestimonialsSection({ locale }: { locale: string }) {
 export default function Home() {
   const pathname = usePathname();
   const getCurrentLocale = () => {
-    const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
+    const localeMatch = pathname!.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
     return localeMatch ? localeMatch[1] : 'br';
   };
   const currentLocale = getCurrentLocale();

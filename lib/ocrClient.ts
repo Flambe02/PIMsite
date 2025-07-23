@@ -87,7 +87,7 @@ export async function extractTextWithOcrSpace(buffer: Buffer, filename: string):
   } catch (err) {
     clearTimeout(timeout);
     console.error('Erreur OCR.space:', err);
-    if (err.name === 'AbortError') {
+    if ((err as Error).name === 'AbortError') {
       throw new Error('La lecture OCR a dépassé le délai de 60 secondes. Veuillez réessayer avec un fichier plus lisible ou plus léger.');
     }
     throw new Error('Erreur réseau ou échec de l’API OCR.space. Veuillez vérifier votre connexion ou réessayer plus tard.');

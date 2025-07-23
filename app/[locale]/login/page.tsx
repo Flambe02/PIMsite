@@ -18,7 +18,7 @@ function LoginPageContent() {
   const [oauthError, setOauthError] = useState("");
   const router = useRouter();
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
+  const locale = typeof params!.locale === 'string' ? params!.locale : Array.isArray(params!.locale) ? params!.locale[0] : 'br';
   const { supabase } = useSupabase();
 
   // Centralise la redirection post-auth
@@ -109,7 +109,7 @@ export default function LoginPage() {
   const { supabase } = useSupabase();
   const router = useRouter();
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : 'br';
+  const locale = typeof params!.locale === 'string' ? params!.locale : 'br';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

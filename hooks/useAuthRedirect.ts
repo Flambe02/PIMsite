@@ -11,7 +11,7 @@ export function useAuthRedirect(user: User | null) {
     const router = useRouter();
     const { supabase } = useSupabase();
     const params = useParams();
-    const locale = params.locale || 'br';
+    const locale = params?.locale || 'br';
 
     useEffect(() => {
         if (!user) return;

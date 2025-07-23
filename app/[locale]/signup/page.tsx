@@ -20,7 +20,7 @@ function SignupContent() {
   const [googleOnly, setGoogleOnly] = useState(false);
   const router = useRouter();
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
+  const locale = typeof params!.locale === 'string' ? params!.locale : Array.isArray(params!.locale) ? params!.locale[0] : 'br';
   const { supabase } = useSupabase();
 
   // useAuthRedirect(user); // Désactivé pour attendre la validation email
@@ -202,7 +202,7 @@ export default function SignupPage() {
   const { supabase } = useSupabase();
   const router = useRouter();
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : 'br';
+  const locale = typeof params!.locale === 'string' ? params!.locale : 'br';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

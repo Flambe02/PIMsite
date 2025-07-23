@@ -18,7 +18,7 @@ export default function AuthCallback() {
       if (hasRun.current) return;
       hasRun.current = true;
 
-      const code = searchParams.get('code');
+      const code = searchParams!.get('code');
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         const { data: { session } } = await supabase.auth.getSession();

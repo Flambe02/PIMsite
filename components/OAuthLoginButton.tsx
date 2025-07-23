@@ -14,7 +14,7 @@ interface OAuthLoginButtonProps {
 export function OAuthLoginButton({ provider = 'google', label = 'Entrar com Google', className = '', onClick, loading = false, locale }: OAuthLoginButtonProps) {
   const { supabase } = useSupabase();
   const params = useParams();
-  const effectiveLocale = locale || (typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br');
+  const effectiveLocale = locale || (typeof params?.locale === 'string' ? params?.locale : Array.isArray(params?.locale) ? params?.locale[0] : 'br');
   const handleOAuth = async () => {
     await supabase.auth.signInWithOAuth({
       provider: provider as any,

@@ -203,7 +203,7 @@ type HoleriteResult = {
   raw?: any; // Added raw property
 };
 
-function SummaryCards({ raw }) {
+function SummaryCards({ raw }: { raw: any }) {
   const cards = [
     {
       label: 'Salário Base',
@@ -243,7 +243,7 @@ function SummaryCards({ raw }) {
   );
 }
 
-function StyledTable({ title, rows, color }) {
+function StyledTable({ title, rows, color }: { title: string; rows: any[]; color: string }) {
   if (!rows || rows.length === 0) return null;
   return (
     <div className="rounded-2xl shadow bg-white/70 backdrop-blur-md border border-gray-100 overflow-hidden mb-4 animate-fade-in">
@@ -251,7 +251,7 @@ function StyledTable({ title, rows, color }) {
       <div className="max-h-64 overflow-y-auto relative">
         <table className="min-w-full text-sm">
           <tbody>
-            {rows.map((row, i) => (
+            {rows.map((row: any, i: number) => (
               <tr key={i} className={i%2===0 ? 'bg-white/60' : 'bg-gray-50/60'}>
                 <td className="px-4 py-2 text-gray-700 w-2/3">{row.description}</td>
                 <td className={`px-4 py-2 text-right font-mono ${color}`}>{row.amount < 0 ? '-R$ ' : 'R$ '}{Math.abs(Number(row.amount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -265,7 +265,7 @@ function StyledTable({ title, rows, color }) {
   );
 }
 
-const LABELS_PT = {
+const LABELS_PT: { [key: string]: string } = {
   company_name: 'Empresa',
   employee_name: 'Nome',
   position: 'Cargo',
@@ -298,7 +298,7 @@ const LABELS_PT = {
   Resumo: 'Resumo',
 };
 
-function formatValuePT(k, v) {
+function formatValuePT(k: string, v: any): React.ReactNode {
   if (v === null || v === undefined || v === '' || v === 'null') return <span className="text-gray-400 italic">(não informado)</span>;
   if (typeof v === 'number' && !isNaN(v)) return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
   if (k.toLowerCase().includes('date') && typeof v === 'string' && v !== 'Invalid Date') {
@@ -308,13 +308,13 @@ function formatValuePT(k, v) {
   return v;
 }
 
-function PayslipBlock({ title, data }) {
-  if (!data || typeof data !== 'object' || Object.values(data).every(v => v === null || v === undefined || v === '' || v === 'null')) return null;
+function PayslipBlock({ title, data }: { title: string; data: any }) {
+  if (!data || typeof data !== 'object' || Object.values(data).every((v: any) => v === null || v === undefined || v === '' || v === 'null')) return null;
   return (
     <div className="mb-6 bg-white rounded-xl shadow p-4">
       <div className="font-bold text-blue-800 text-lg mb-2 mt-2">{title}</div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base">
-        {Object.entries(data).map(([k, v]) => {
+        {Object.entries(data).map(([k, v]: [string, any]) => {
           if (Array.isArray(v)) return null;
           const label = LABELS_PT[k] || (k.charAt(0).toUpperCase() + k.slice(1));
           return (
@@ -329,7 +329,7 @@ function PayslipBlock({ title, data }) {
   );
 }
 
-function PayslipSummaryCards({ ident, salarios }) {
+function PayslipSummaryCards({ ident, salarios }: { ident: any; salarios: any }) {
   const cards = [
     { label: 'Nome', value: ident.employee_name },
     { label: 'Empresa', value: ident.company_name },
@@ -350,7 +350,7 @@ function PayslipSummaryCards({ ident, salarios }) {
   );
 }
 
-function PayslipArrayTable({ title, rows, color }) {
+function PayslipArrayTable({ title, rows, color }: { title: string; rows: any[]; color: string }) {
   if (!rows || !Array.isArray(rows) || rows.length === 0) return null;
   return (
     <div className="rounded-2xl shadow bg-white/70 backdrop-blur-md border border-gray-100 overflow-hidden mb-4 animate-fade-in">
@@ -358,7 +358,7 @@ function PayslipArrayTable({ title, rows, color }) {
       <div className="max-h-64 overflow-y-auto relative">
         <table className="min-w-full text-sm">
           <tbody>
-            {rows.map((row, i) => (
+            {rows.map((row: any, i: number) => (
               <tr key={i} className={i%2===0 ? 'bg-white/60' : 'bg-gray-50/60'}>
                 <td className="px-4 py-2 text-gray-700 w-2/3">{row.description}</td>
                 <td className={`px-4 py-2 text-right font-mono ${color}`}>{row.amount < 0 ? '-R$ ' : 'R$ '}{Math.abs(Number(row.amount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -372,7 +372,7 @@ function PayslipArrayTable({ title, rows, color }) {
   );
 }
 
-function HoleriteTable({ linhas, totais }) {
+function HoleriteTable({ linhas, totais }: { linhas: any[]; totais: any }) {
   if (!Array.isArray(linhas) || linhas.length === 0) return null;
   return (
     <div className="bg-white rounded-xl shadow p-6 max-w-3xl mx-auto">
@@ -388,7 +388,7 @@ function HoleriteTable({ linhas, totais }) {
             </tr>
           </thead>
           <tbody>
-            {linhas.map((l, i) => (
+            {linhas.map((l: any, i: number) => (
               <tr key={i} className={i%2===0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="border px-2 py-1 text-gray-800">{l.descricao || ''}</td>
                 <td className="border px-2 py-1 text-gray-700 text-center">{l.referencia || ''}</td>
@@ -401,7 +401,7 @@ function HoleriteTable({ linhas, totais }) {
       </div>
       {totais && Object.keys(totais).length > 0 && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-2">
-          {Object.entries(totais).map(([label, value], i) => (
+          {Object.entries(totais).map(([label, value]: [string, any], i: number) => (
             <div key={i} className="flex justify-between bg-blue-50 rounded px-3 py-2 font-semibold text-blue-900 border border-blue-100">
               <span>{label}</span>
               <span className="font-mono">{value}</span>
@@ -413,20 +413,20 @@ function HoleriteTable({ linhas, totais }) {
   );
 }
 
-function getHolField(raw, bloc, key, totauxLabel, linhaLabel) {
+function getHolField(raw: any, bloc: string, key: string, totauxLabel: string, linhaLabel: string) {
   // 1. Bloc enrichi
   if (raw[bloc]?.[key]) return raw[bloc][key];
   // 2. Totaux (label exact)
   if (raw.totais && raw.totais[totauxLabel]) return raw.totais[totauxLabel];
   // 3. Lignes (label exact)
   if (Array.isArray(raw.linhas)) {
-    const l = raw.linhas.find(l => (l.descricao || '').toUpperCase().includes(linhaLabel.toUpperCase()));
+    const l = raw.linhas.find((l: any) => (l.descricao || '').toUpperCase().includes(linhaLabel.toUpperCase()));
     if (l && (l.proventos || l.descontos)) return l.proventos || l.descontos;
   }
   return '—';
 }
 
-function formatMontant(m) {
+function formatMontant(m: any) {
   if (!m) return '—';
   if (typeof m === 'object' && m.valor !== undefined) {
     return 'R$ ' + Number(m.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -438,7 +438,7 @@ function formatMontant(m) {
   return String(m);
 }
 
-function HoleriteAnalysisDisplay({ raw }) {
+function HoleriteAnalysisDisplay({ raw }: { raw: any }) {
   // Champs principaux
   const infos = [
     { label: 'Empresa', value: raw.company_name },
@@ -477,7 +477,7 @@ function HoleriteAnalysisDisplay({ raw }) {
   // Gestion spéciale du net : si c'est un tableau ou plusieurs candidats, afficher tous avec label
   let netCandidates = [];
   if (Array.isArray(raw.net_salary)) {
-    netCandidates = raw.net_salary.filter(n => n && n.label && !n.label.toLowerCase().includes('base de cálculo'));
+    netCandidates = raw.net_salary.filter((n: any) => n && n.label && !n.label.toLowerCase().includes('base de cálculo'));
   } else if (raw.net_salary && typeof raw.net_salary === 'object' && raw.net_salary.label && !raw.net_salary.label.toLowerCase().includes('base de cálculo')) {
     netCandidates = [raw.net_salary];
   } else if (raw.net_salary && typeof raw.net_salary === 'number') {
@@ -518,13 +518,13 @@ function HoleriteAnalysisDisplay({ raw }) {
               );
             })}
             {/* Affichage spécial pour le net si plusieurs candidats */}
-            {netCandidates.length > 1 && <div className="mt-2 text-xs text-gray-500">Vários candidatos para o líquido: {netCandidates.map((n, i) => <span key={i} className="ml-2">{formatMontant(n)}</span>)}</div>}
+            {netCandidates.length > 1 && <div className="mt-2 text-xs text-gray-500">Vários candidatos para o líquido: {netCandidates.map((n: any, i: number) => <span key={i} className="ml-2">{formatMontant(n)}</span>)}</div>}
           </div>
           {earnings.length > 0 && <>
             <div className="font-bold mt-4 mb-1 text-green-700">Vencimentos</div>
             <table className="w-full text-sm mb-2">
               <tbody>
-                {earnings.map((e, i) => (
+                {earnings.map((e: any, i: number) => (
                   <tr key={i}>
                     <td className="text-gray-700">{e.description}</td>
                     <td className="text-green-700 text-right font-mono">{formatMontant(e.amount)}</td>
@@ -537,7 +537,7 @@ function HoleriteAnalysisDisplay({ raw }) {
             <div className="font-bold mt-2 mb-1 text-red-600">Descontos</div>
             <table className="w-full text-sm">
               <tbody>
-                {deductions.map((d, i) => (
+                {deductions.map((d: any, i: number) => (
                   <tr key={i}>
                     <td className="text-gray-700">{d.description}</td>
                     <td className="text-red-600 text-right font-mono">-{formatMontant(d.amount)}</td>
@@ -553,7 +553,7 @@ function HoleriteAnalysisDisplay({ raw }) {
           {summary && <div className="mb-4 text-green-900 text-sm bg-green-100 rounded p-2 shadow-inner">{summary}</div>}
           <div className="space-y-4">
             {oportunidades.length === 0 && <div className="text-gray-500 italic">Nenhuma oportunidade clara identificada neste holerite.</div>}
-            {oportunidades.map((op, i) => {
+            {oportunidades.map((op: any, i: number) => {
               const match = op.match(/^([^:]+:)(.*)$/);
               return (
                 <div key={i} className="flex gap-3 items-start">
@@ -571,7 +571,7 @@ function HoleriteAnalysisDisplay({ raw }) {
   );
 }
 
-function PayslipAnalysisDetail({ result, onClose }: { result: HoleriteResult, onClose: () => void }) {
+function PayslipAnalysisDetail({ result, onClose }: { result: any; onClose: () => void }) {
   if (!result) return null;
   const raw = result.raw || {};
   return (
@@ -600,7 +600,7 @@ export default function DashboardFullWidth() {
   const [isSyncing, setIsSyncing] = useState(false);
   const router = useRouter();
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : 'br';
+  const locale = typeof params!.locale === 'string' ? params!.locale : 'br';
   const [showOnboarding, setShowOnboarding] = useState(true); // Gérer la visibilité
 
   const { onboarding } = useUserOnboarding(userId || undefined);

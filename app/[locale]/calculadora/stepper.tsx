@@ -28,7 +28,7 @@ export default function CalculadoraStepper() {
 
   const params = useParams();
   const router = useRouter();
-  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
+  const locale = typeof params!.locale === 'string' ? params!.locale : Array.isArray(params!.locale) ? params!.locale[0] : 'br';
 
   // Stepper header
   const Stepper = () => (

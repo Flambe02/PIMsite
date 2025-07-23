@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 
 function VerifySignupContent() {
   const searchParams = useSearchParams()
-  const email = searchParams.get("email") || ""
+  const email = searchParams!.get("email") || ""
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const { supabase } = useSupabase();

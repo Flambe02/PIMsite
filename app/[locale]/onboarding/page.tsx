@@ -14,15 +14,15 @@ const steps = [
 
 function OnboardingPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // pas besoin de null check, jamais null
   const params = useParams();
-  const locale = typeof params.locale === 'string' ? params.locale : 'br';
+  const locale = typeof params!.locale === 'string' ? params!.locale : 'br';
 
   const [currentStep, setCurrentStep] = useState(1);
 
   // Synchronize current step with URL parameter
   useEffect(() => {
-    const stepFromUrl = searchParams.get('step');
+    const stepFromUrl = searchParams!.get('step');
     if (stepFromUrl && !isNaN(Number(stepFromUrl))) {
       const stepNum = Math.min(Math.max(Number(stepFromUrl), 1), 3);
       if (stepNum !== currentStep) {

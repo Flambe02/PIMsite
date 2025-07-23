@@ -1,4 +1,3 @@
-import { withSentryConfig } from '@sentry/nextjs';
 import bundleAnalyzer from '@next/bundle-analyzer';
 
 /** @type {import('next').NextConfig} */
@@ -45,17 +44,6 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-// Envelopper d'abord avec le bundle analyzer, puis avec Sentry
 nextConfig = withBundleAnalyzer(nextConfig);
 
-export default withSentryConfig(
-  nextConfig,
-  {
-    org: 'the-pimentao-rouge-company',
-    project: 'javascript-nextjs',
-    silent: !process.env.CI,
-    widenClientFileUpload: true,
-    disableLogger: true,
-    automaticVercelMonitors: true,
-  }
-);
+export default nextConfig;

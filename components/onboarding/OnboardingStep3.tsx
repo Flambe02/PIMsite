@@ -17,7 +17,7 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
   const [modo, setModo] = useState<null | 'upload' | 'manual'>(null)
   const params = useParams();
   const router = useRouter();
-  const locale = typeof params.locale === 'string' ? params.locale : Array.isArray(params.locale) ? params.locale[0] : 'br';
+  const locale = typeof params?.locale === 'string' ? params?.locale : Array.isArray(params?.locale) ? params?.locale[0] : 'br';
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

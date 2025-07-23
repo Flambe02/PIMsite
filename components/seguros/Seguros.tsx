@@ -32,10 +32,10 @@ export default function Seguros({ userId, employmentStatus }: SegurosProps) {
 
   const [page, setPage] = React.useState(0);
   const PER_PAGE = 3;
-  const totalPages = Math.ceil(seguros.length / PER_PAGE);
+  const totalPages = Math.ceil((seguros ? seguros.length : 0) / PER_PAGE);
   const visibleSeguros = seguros.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
 
-  const totalActivos = seguros.filter((s) => s.detected).length;
+  const totalActivos = Array.isArray(seguros) ? seguros.filter((s) => s.detected).length : 0;
 
   // Mock data for educational cards and actions, to be replaced later
   const educationalContent = [
@@ -51,7 +51,7 @@ export default function Seguros({ userId, employmentStatus }: SegurosProps) {
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">
             <Badge className={`${employmentStatus === 'PJ' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'} px-3 py-1 rounded-full font-bold`}>{employmentStatus || '-'}</Badge>
-            <span className="text-sm text-gray-600">{totalActivos} de {seguros.length} seguros identificados</span>
+            <span className="text-sm text-gray-600">{totalActivos} de {seguros ? seguros.length : 0} seguros identificados</span>
           </div>
           <CardTitle className="text-lg font-bold text-blue-900">Sua Cobertura de Seguros</CardTitle>
           <CardDescription className="text-gray-700 max-w-xl">
@@ -119,7 +119,7 @@ export default function Seguros({ userId, employmentStatus }: SegurosProps) {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4 flex justify-center gap-2">
-              {Array.from({ length: totalPages }).map((_, idx) => (
+              {Array.from({ length: totalPages || 0 }).map((_, idx) => (
                 <button
                   key={idx}
                   aria-label={`Página ${idx + 1}`}

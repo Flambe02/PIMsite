@@ -8,7 +8,7 @@ export function CountrySelector() {
   const pathname = usePathname()
 
   const getCurrentLocale = () => {
-    const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
+    const localeMatch = pathname?.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
     return localeMatch ? localeMatch[1] : 'br';
   };
 
@@ -16,7 +16,7 @@ export function CountrySelector() {
 
   const switchCountry = (newCountry: string) => {
     // Supprimer le locale actuel du pathname
-    const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
+    const pathWithoutLocale = pathname?.replace(`/${currentLocale}`, '') || '/';
     
     // Construire le nouveau pathname avec le nouveau pays
     const newPathname = newCountry === 'br' ? pathWithoutLocale : `/${newCountry}${pathWithoutLocale}`;
