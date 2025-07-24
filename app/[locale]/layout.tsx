@@ -29,7 +29,7 @@ export default async function LocaleLayout({
       <footer className="w-full border-t bg-white flex flex-row flex-wrap items-center justify-center py-2 px-2 text-[11px] text-gray-500 gap-2">
         <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={18} height={18} className="h-4 w-auto" />
         <span className="font-bold text-emerald-700">Pimentão Rouge</span>
-        <span className="text-[10px] text-gray-400 ml-1">V2.0.0</span>
+        <span className="text-[10px] text-gray-400 ml-1">V3.0.0</span>
         <a className="hover:underline ml-2" href="#">Termos</a>
         <a className="hover:underline" href="#">Privacidade</a>
         <a className="hover:underline" href="#">Sobre</a>
