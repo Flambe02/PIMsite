@@ -8,7 +8,8 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "test": "vitest"
+    "test": "vitest",
+    "prebuild": "echo 'SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL' && echo 'SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
