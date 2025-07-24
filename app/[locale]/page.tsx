@@ -60,19 +60,19 @@ const localizedContent = {
           name: "Lucas",
           quote: "O PIM me ajudou a entender meus benefícios e economizar de verdade!",
           city: "São Paulo, Analista RH",
-          img: "https://randomuser.me/api/portraits/men/32.jpg"
+          img: "/images/lucas.webp"
         },
         {
           name: "Mariana", 
           quote: "Fácil, rápido e super seguro. Recomendo para todos os colegas!",
           city: "Belo Horizonte, Engenheira",
-          img: "https://randomuser.me/api/portraits/women/44.jpg"
+          img: "/images/mariana.webp"
         },
         {
           name: "Carlos",
           quote: "Recebi dicas personalizadas que fizeram diferença no meu salário.",
           city: "Curitiba, Desenvolvedor", 
-          img: "https://randomuser.me/api/portraits/men/65.jpg"
+          img: "/images/carlos.webp"
         }
       ]
     },
@@ -419,7 +419,6 @@ export default function Home() {
       </div>
       {/* Chat with PIM Button */}
       <ChatButton />
-      <SupabaseTest />
     </>
   )
 }

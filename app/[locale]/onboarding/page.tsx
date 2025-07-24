@@ -56,7 +56,7 @@ function OnboardingPageContent() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 text-center">{steps[currentStep - 1].label}</h1>
         
         {currentStep === 1 && (
-          <Step1Profile onNext={() => goToStep(2)} />
+          <Step1Profile onNext={() => goToStep(2)} locale={locale} />
         )}
         {currentStep === 2 && (
           <Step2Checkup onNext={() => goToStep(3)} onBack={handleBack} />
