@@ -4,6 +4,7 @@ import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
 import { SupabaseProvider } from "@/components/supabase-provider";
 import ReactQueryProvider from "@/components/ReactQueryProvider";
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,11 +17,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
   return (
     <html>
       <head>
@@ -37,7 +36,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <SupabaseProvider initialSession={null}>
+        <SupabaseProvider initialSession={session}>
           <ReactQueryProvider>
             {children}
             <Analytics />
