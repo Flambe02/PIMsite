@@ -2,7 +2,7 @@
 
 import UploadHolerite from "@/app/[locale]/calculadora/upload-holerite"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation";
 
@@ -18,10 +18,7 @@ export default function OnboardingStep3({ userData, updateUserData, onBack }: On
   const params = useParams();
   const router = useRouter();
   const locale = typeof params?.locale === 'string' ? params?.locale : Array.isArray(params?.locale) ? params?.locale[0] : 'br';
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const saveUserData = async (result: any) => {
     setIsSaving(true)

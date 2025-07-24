@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useContext, useId } from "react";
 import { User, Mail, Heart, Home, Users, UserPlus, UserMinus, Share2, Briefcase, Lock, Building2 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { SupabaseContext } from "@/components/supabase-provider";
 import { useToast } from "@/components/ui/use-toast";
 import AccountSectionAccount from "@/components/account/AccountSectionAccount";
@@ -17,10 +17,7 @@ const tamanhosList = [
 ];
 
 export default function DashboardPerfilView({ holeriteResult, user, onShowHolerite }: { holeriteResult: any, user?: any, onShowHolerite?: () => void }) {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
   const supabaseCtx = useContext(SupabaseContext);
   const sessionUser = user || supabaseCtx?.session?.user || null;
   const raw = holeriteResult?.raw || {};

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client";
 
 interface OnboardingStep2Props {
   userData: any
@@ -133,10 +133,7 @@ export default function OnboardingStep2({ userData, updateUserData, onNext, onBa
   const [stage, setStage] = useState<'intro' | 'quiz'>("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>(userData.quizAnswers || {});
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const totalQuestions = quizQuestions.length;
   const progress = (currentIndex / totalQuestions) * 100;

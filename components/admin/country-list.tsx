@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client";
 import { ConfirmDialog } from './confirm-dialog'
 import { EditModal } from './edit-modal'
 import { Input } from '@/components/ui/input'
@@ -31,10 +31,7 @@ export function CountryList() {
     const fetchCountries = async () => {
       setLoading(true)
       setError(null)
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      const supabase = createClient();
       const { data, error } = await supabase.from('countries').select('*')
       if (error) setError(error.message)
       else if (data) setCountries(data)
@@ -50,10 +47,7 @@ export function CountryList() {
 
   const confirmDelete = async () => {
     if (!toDelete) return
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createClient();
     await supabase.from('countries').delete().eq('code', toDelete)
     setCountries(countries.filter(c => c.code !== toDelete))
     setConfirmOpen(false)
@@ -78,10 +72,7 @@ export function CountryList() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editForm) return
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createClient();
     await supabase.from('countries').update({
       name: editForm.name,
       capital: editForm.capital,

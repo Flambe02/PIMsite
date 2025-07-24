@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/client';
 
 export function useAdmin() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -10,10 +10,7 @@ export function useAdmin() {
     const checkAdminStatus = async () => {
       try {
         setLoading(true)
-        const supabase = createBrowserClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
+        const supabase = createClient();
         const { data: { user }, error: userError } = await supabase.auth.getUser()
         if (userError || !user) {
           setIsAdmin(false)

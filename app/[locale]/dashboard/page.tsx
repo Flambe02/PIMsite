@@ -14,7 +14,7 @@ import { useSupabase } from "@/components/supabase-provider";
 import { useUserOnboarding } from "@/hooks/useUserOnboarding";
 import { GettingStarted } from "@/components/GettingStarted";
 import { useRouter, useParams } from "next/navigation"; // Importer useParams
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import InvestimentosComp from "@/components/investimentos/Investimentos";
 import useInvestimentos from "@/hooks/useInvestimentos";
 // Temporairement désactivé pour éviter les erreurs next-intl

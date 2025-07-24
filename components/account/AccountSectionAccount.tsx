@@ -1,14 +1,11 @@
 "use client";
 import { Lock, Shield, Trash2, Star } from "lucide-react";
 import { useState, useEffect } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { useId } from "react";
 
 export default function AccountSectionAccount({ user }: { user?: any }) {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
   const [email, setEmail] = useState(user?.email || "");
   const [showDelete, setShowDelete] = useState(false);
   const [loading, setLoading] = useState(true);

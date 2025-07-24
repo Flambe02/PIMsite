@@ -5,7 +5,7 @@ import Image from "next/image"
 import { ArrowRight, BarChart3, FileText, Search, Shield, ChevronUp } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client"
 // Temporairement désactivé pour éviter les erreurs next-intl
 // import { useTranslations, useLocale } from 'next-intl';
 
@@ -192,10 +192,7 @@ function HeroSection({ locale }: { locale: string }) {
   const [loginOpen, setLoginOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createClient();
 
   useEffect(() => {
     let mounted = true
