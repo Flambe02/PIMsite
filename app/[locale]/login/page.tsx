@@ -120,8 +120,14 @@ export default function LoginPage() {
   }, [supabase, router, locale]);
 
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <LoginPageContent />
-    </Suspense>
+    <>
+      {/* Affiche la valeur réelle de NEXT_PUBLIC_SUPABASE_URL en haut de la page login */}
+      <div style={{ fontSize: 10, color: '#888', marginBottom: 8 }}>
+        SUPABASE_URL = {process.env.NEXT_PUBLIC_SUPABASE_URL}
+      </div>
+      <Suspense fallback={<div>Chargement...</div>}>
+        <LoginPageContent />
+      </Suspense>
+    </>
   );
 } 
