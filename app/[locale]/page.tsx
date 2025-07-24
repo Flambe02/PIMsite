@@ -214,8 +214,8 @@ function HeroSection({ locale }: { locale: string }) {
   }, [supabase])
 
   const handleSignUp = () => {
-    router.push(`/${locale}/signup`)
-  }
+    window.location.href = `/${locale}/signup`;
+  };
   
   const handleSimule = () => {
     if (!session) {
