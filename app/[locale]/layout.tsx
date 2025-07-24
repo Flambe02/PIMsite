@@ -26,19 +26,15 @@ export default async function LocaleLayout({
         {children}
       </div>
       {/* Footer global simplifié */}
-      <footer className="w-full border-t bg-white flex flex-col items-center justify-center py-3 px-2 text-xs text-gray-500">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={24} height={24} className="h-6 w-auto" />
-          <span className="font-bold text-emerald-700">Pimentão Rouge</span>
-          <span className="text-[10px] text-gray-400 ml-1">V2.0.0</span>
-        </div>
-        <nav className="flex flex-col sm:flex-row gap-1 sm:gap-4 items-center justify-center">
-          <a className="hover:underline" href="#">Termos</a>
-          <a className="hover:underline" href="#">Privacidade</a>
-          <a className="hover:underline" href="#">Sobre</a>
-          <a className="hover:underline" href="#">Contato</a>
-          <a className="hover:underline" href="#">FAQ</a>
-        </nav>
+      <footer className="w-full border-t bg-white flex flex-row flex-wrap items-center justify-center py-2 px-2 text-[11px] text-gray-500 gap-2">
+        <Image src="/images/pimentao-logo.png" alt="Logo Pimentão Rouge" width={18} height={18} className="h-4 w-auto" />
+        <span className="font-bold text-emerald-700">Pimentão Rouge</span>
+        <span className="text-[10px] text-gray-400 ml-1">V2.0.0</span>
+        <a className="hover:underline ml-2" href="#">Termos</a>
+        <a className="hover:underline" href="#">Privacidade</a>
+        <a className="hover:underline" href="#">Sobre</a>
+        <a className="hover:underline" href="#">Contato</a>
+        <a className="hover:underline" href="#">FAQ</a>
       </footer>
     </div>
   );

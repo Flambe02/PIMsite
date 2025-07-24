@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { TrustBadges } from "@/components/trust-badges"
 import { ChatButton } from "@/components/chat-button"
 import dynamic from "next/dynamic"
+import SupabaseTest from "@/components/SupabaseTest";
 
 // Supprimer l'import dynamique de LoginModal
 // const LoginModal = dynamic(() => import("@/components/LoginModal").then(m => m.LoginModal), {
@@ -421,6 +422,7 @@ export default function Home() {
       </div>
       {/* Chat with PIM Button */}
       <ChatButton />
+      <SupabaseTest />
     </>
   )
 }

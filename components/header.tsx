@@ -193,7 +193,7 @@ export function Header() {
                     </div>
                   </div>
                   <div className="mt-6 flex flex-col gap-3">
-                    <HeaderClient />
+                    {/* <HeaderClient /> supprimé pour éviter le bouton Entrar en double sur mobile */}
                   </div>
         </nav>
             </div>
