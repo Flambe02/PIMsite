@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, useParams } from "next/navigation";
 import Step1Profile from "@/components/onboarding/Step1Profile";
 import Step2Checkup from "@/components/onboarding/Step2Checkup";
 import Step3Payslip from "@/components/onboarding/Step3Payslip";
+import { useRequireSession } from "@/components/supabase-provider";
 
 const steps = [
   { key: 1, label: "Informações Pessoais e Profissionais" },
@@ -17,6 +18,8 @@ function OnboardingPageContent() {
   const searchParams = useSearchParams(); // pas besoin de null check, jamais null
   const params = useParams();
   const locale = typeof params!.locale === 'string' ? params!.locale : 'br';
+
+  const session = useRequireSession(`/onboarding`);
 
   const [currentStep, setCurrentStep] = useState(1);
 

@@ -33,4 +33,12 @@ export async function createClient() {
       },
     }
   )
+}
+
+// Helper pour obtenir la session utilisateur côté serveur
+export async function getServerSession() {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return user;
 } 

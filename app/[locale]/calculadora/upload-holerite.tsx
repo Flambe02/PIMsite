@@ -5,6 +5,7 @@ import { Info, UploadCloud, FileText, Loader2, XCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRequireSession } from "@/components/supabase-provider";
 
 const pastel = {
   green: "#B8E4C7",
@@ -23,6 +24,7 @@ const checklist = [
 ];
 
 export default function UploadHolerite({ onResult }: { onResult?: (result: any) => void }) {
+  useRequireSession(`/calculadora/upload-holerite`);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -63,6 +65,7 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
         method: 'POST',
         body: formData,
         signal: controller.signal,
+        credentials: 'include',
       });
       console.log('Réponse brute:', res);
       const data = await res.json();

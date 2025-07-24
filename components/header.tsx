@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { Menu, UserCircle, Shield, ChevronDown } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/components/ui/use-toast";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -123,14 +124,14 @@ export function Header() {
               <div className="w-[80vw] max-w-xs bg-emerald-50 h-full p-6 flex flex-col gap-8 animate-fadeIn shadow-2xl">
                 <button className="self-end mb-4 text-gray-500 text-3xl" onClick={() => setMobileMenuOpen(false)}>&times;</button>
                 <nav className="flex flex-col gap-4 w-full mt-2" aria-label="Navigation mobile principale">
-                  {/* Bouton Entrar en haut du menu mobile */}
+                  {/* Bouton Sign in tout en haut si pas de session */}
                   {!session && (
                     <Link 
                       href={`/${currentLocale}/login`}
                       className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-full shadow transition text-lg mb-2"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Entrar
+                      Sign in
                     </Link>
                   )}
                   <Link href="/br/recursos" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Recursos</Link>
@@ -212,10 +213,22 @@ function HeaderClient() {
   const locale = typeof params?.locale === 'string' ? params?.locale : Array.isArray(params?.locale) ? params?.locale[0] : 'br';
   const { isAdmin } = useAdmin();
   const { supabase, session } = useSupabase();
+  const { toast } = useToast();
 
   async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push(`/${locale}`);
+    try {
+      await supabase.auth.signOut();
+      // Purge tous les cookies Supabase côté client (si possible)
+      if (typeof document !== 'undefined') {
+        document.cookie.split(';').forEach(function(c) {
+          document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');
+        });
+      }
+      toast({ title: "Déconnexion réussie", description: "Vous avez été déconnecté.", variant: "default" });
+      router.push(`/${locale}/login`);
+    } catch (err) {
+      toast({ title: "Erreur lors de la déconnexion", description: String(err), variant: "destructive" });
+    }
   }
 
   // Rendu pour utilisateur connecté (Sair, Profil, etc.)

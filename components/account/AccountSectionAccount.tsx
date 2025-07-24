@@ -1,8 +1,7 @@
 "use client";
 import { Lock, Shield, Trash2, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useId } from "react";
 
 export default function AccountSectionAccount({ user }: { user?: any }) {
   const supabase = createClient();
@@ -13,6 +12,8 @@ export default function AccountSectionAccount({ user }: { user?: any }) {
   const [profile, setProfile] = useState<any>(null);
   const assinatura = user?.plan || "Basic";
   const [deleting, setDeleting] = useState(false);
+  const emailId = useId();
+  const passwordId = useId();
 
   useEffect(() => {
     setMounted(true);
@@ -79,23 +80,15 @@ export default function AccountSectionAccount({ user }: { user?: any }) {
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-emerald-900"><Lock className="w-7 h-7 text-emerald-600" /> Conta</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-base">
         <div>
-          {(() => { const id = useId(); return (
-            <>
-              <label htmlFor={id} className="font-semibold block mb-1">Email de login</label>
-              <input id={id} type="email" className="input" value={loading ? 'Chargement...' : (email || 'Non connecté')} disabled />
-            </>
-          ); })()}
+          <label htmlFor={emailId} className="font-semibold block mb-1">Email de login</label>
+          <input id={emailId} type="email" className="input" value={loading ? 'Chargement...' : (email || 'Non connecté')} disabled />
         </div>
         <div>
-          {(() => { const id = useId(); return (
-            <>
-              <label htmlFor={id} className="font-semibold block mb-1">Senha</label>
-              <div className="flex gap-2 items-center">
-                <input id={id} type="password" className="input" value="********" disabled />
-                <button className="text-emerald-700 underline text-sm" type="button">Alterar</button>
-              </div>
-            </>
-          ); })()}
+          <label htmlFor={passwordId} className="font-semibold block mb-1">Senha</label>
+          <div className="flex gap-2 items-center">
+            <input id={passwordId} type="password" className="input" value="********" disabled />
+            <button className="text-emerald-700 underline text-sm" type="button">Alterar</button>
+          </div>
         </div>
       </div>
       {/* Champs Nom et Entreprise retirés */}

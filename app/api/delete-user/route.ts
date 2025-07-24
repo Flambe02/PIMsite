@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
-  const { uid } = await req.json();
-  // const _authHeader = req.headers.get("authorization");
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+  }
+  // Ici, tu peux ajouter une vérification de rôle admin si tu as un champ is_admin ou similaire
+  // Exemple :
+  // const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
+  // if (!profile?.is_admin) return NextResponse.json({ error: 'Interdit' }, { status: 403 });
 
-  // URL de l'Edge Function Supabase (à adapter si besoin)
-  const edgeUrl = process.env.NEXT_PUBLIC_SUPABASE_DELETE_USER_URL
-    || "https://<TON-PROJET>.functions.supabase.co/delete-user";
+  const { uid } = await req.json();
+  const edgeUrl = process.env.NEXT_PUBLIC_SUPABASE_DELETE_USER_URL || "https://<TON-PROJET>.functions.supabase.co/delete-user";
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log('Service role key:', serviceRoleKey ? 'OK' : 'MISSING', serviceRoleKey ? serviceRoleKey.slice(0,8) + '...' : '');
-  console.log('Edge function URL:', edgeUrl);
 
   const res = await fetch(edgeUrl, {
     method: "POST",

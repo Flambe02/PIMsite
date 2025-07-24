@@ -603,6 +603,13 @@ export default function DashboardFullWidth() {
   const locale = typeof params!.locale === 'string' ? params!.locale : 'br';
   const [showOnboarding, setShowOnboarding] = useState(true); // Gérer la visibilité
 
+  // Ajout : Redirection si session absente
+  useEffect(() => {
+    if (session === null) {
+      router.replace(`/${locale}/login?redirectTo=/${locale}/dashboard`);
+    }
+  }, [session, router, locale]);
+
   const { onboarding } = useUserOnboarding(userId || undefined);
 
   useEffect(() => {
