@@ -55,6 +55,20 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
 
   const removeFile = () => setFile(null);
 
+  function extractValorField(val: any): string | number {
+    if (val == null) return '';
+    if (typeof val === 'number' || typeof val === 'string') return val;
+    if (Array.isArray(val)) {
+      for (const v of val) {
+        if (v && typeof v === 'object' && 'valor' in v && v.valor != null) return v.valor;
+        if (typeof v === 'number' || typeof v === 'string') return v;
+      }
+      return '';
+    }
+    if (typeof val === 'object' && 'valor' in val) return val.valor;
+    return '';
+  }
+
   const onAnalyze = async () => {
     if (!file) return;
     setLoading(true);
@@ -146,9 +160,11 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
         }
         // --- FIN ENRICHISSEMENT PJ ---
         const result = {
-          salarioBruto: data.analysisData.gross_salary,
-          salarioLiquido: data.analysisData.net_salary,
-          eficiencia: data.analysisData.gross_salary && data.analysisData.net_salary ? ((data.analysisData.net_salary / data.analysisData.gross_salary) * 100).toFixed(1) : null,
+          salarioBruto: extractValorField(data.analysisData.gross_salary),
+          salarioLiquido: extractValorField(data.analysisData.net_salary),
+          eficiencia: data.analysisData.gross_salary && data.analysisData.net_salary
+            ? ((Number(extractValorField(data.analysisData.net_salary)) / Number(extractValorField(data.analysisData.gross_salary))) * 100).toFixed(1)
+            : null,
           insights: [
             { label: "Resumo", value: analysis.summary || "" },
             ...((analysis.optimization_opportunities || []).map((v: string) => ({ label: "Oportunidade", value: v })))
@@ -189,15 +205,6 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
       setAbortController(null);
     }
   };
-
-  // Helper global pour éviter les crashs JSON.parse
-  function _safeJsonParse(str: string) {
-    try {
-      return JSON.parse(str);
-    } catch {
-      return null;
-    }
-  }
 
   return (
     <div className="max-w-xl mx-auto p-4 md:p-6">

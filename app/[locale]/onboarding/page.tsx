@@ -71,7 +71,7 @@ function OnboardingPageContent() {
           <Step2Checkup onNext={() => goToStep(4)} onBack={handleBack} />
         )}
         {currentStep === 4 && (
-          <Step3Payslip onBack={handleBack} onFinish={handleFinish} />
+          <Step3Payslip onBack={handleBack} />
         )}
       </div>
     </div>
