@@ -4,32 +4,33 @@
 // Next.js choisit automatiquement le bon layout/page selon la structure du dossier et la logique côté client (useIsMobile, etc).
 // Ce middleware ne fait plus aucune redirection d'URL.
 
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { type NextRequest, NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
-const PROTECTED = ["/dashboard", "/calculadora"];
-const ADMIN_ROUTES = ["/admin"];
-
-// Fonction pour extraire le locale de la pathname
-const getLocale = (pathname: string) => {
-  const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
-  return localeMatch ? localeMatch[1] : 'br'; // fallback 'br'
-}
-
-export function middleware(request: NextRequest) {
-  // Ici, on ne fait plus aucune redirection vers /desktop ou /mobile
-  // On peut éventuellement poser un cookie ou un header pour le device, mais on laisse Next.js router normalement
-  return NextResponse.next();
+export async function middleware(request: NextRequest) {
+  const res = NextResponse.next();
+  // Synchronise les cookies d'auth Supabase à chaque requête
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll().map(({ name, value }) => ({ name, value })),
+        setAll: (cookies) => {
+          cookies.forEach(({ name, value, options }) => {
+            res.cookies.set({ name, value, ...options });
+          });
+        }
+      }
+    }
+  );
+  await supabase.auth.getUser();
+  return res;
 }
 
 export const config = {
   matcher: [
-    '/',
-    '/dashboard',
-    '/login',
-    '/signup',
-    '/calculadora/upload-holerite',
-    '/results',
+    // Protéger toutes les routes sauf les assets statiques
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }; 

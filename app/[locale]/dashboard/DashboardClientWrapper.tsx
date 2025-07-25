@@ -8,10 +8,6 @@ interface User {
   name: string;
 }
 
-export default function DashboardClientWrapper({ user, payslips }: { user: unknown, payslips: unknown[] }) {
-  // Vérification de type sûre
-  const typedUser = user as User;
-  const typedPayslips = payslips as Payslip[];
-  
-  return <DashboardClient user={typedUser} payslips={typedPayslips} />;
+export default function DashboardClientWrapper() {
+  return <DashboardClient />;
 } 

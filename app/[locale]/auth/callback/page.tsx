@@ -31,10 +31,11 @@ export default function AuthCallback() {
             .single();
           const onboardingComplete = onboarding && onboarding.profile_completed && onboarding.checkup_completed && onboarding.holerite_uploaded;
           if (!onboardingComplete) {
-            router.replace(`/${locale}/onboarding?step=1`);
+            window.location.href = `/${locale}/onboarding?step=1`;
           } else {
-            router.replace(`/${locale}/dashboard`);
+            window.location.href = `/${locale}/dashboard`;
           }
+          return;
         } else {
           router.replace(`/${locale}/login`);
         }

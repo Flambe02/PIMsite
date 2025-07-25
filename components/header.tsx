@@ -17,7 +17,8 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isMobile = useIsMobile();
-  const { session } = useSupabase(); // Récupérer la session ici
+  const { session, supabase } = useSupabase(); // Récupérer la session ici
+  const { toast } = useToast();
   
   const getCurrentLocale = () => {
     const localeMatch = pathname?.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
@@ -52,6 +53,21 @@ export function Header() {
       router.push(`/${currentLocale}/login`);
     }
   };
+
+  async function handleLogout() {
+    try {
+      await supabase.auth.signOut();
+      if (typeof document !== 'undefined') {
+        document.cookie.split(';').forEach(function(c) {
+          document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');
+        });
+      }
+      toast({ title: "Déconnexion réussie", description: "Vous avez été déconnecté.", variant: "default" });
+      router.push(`/${currentLocale}/login`);
+    } catch (err) {
+      toast({ title: "Erreur lors de la déconnexion", description: String(err), variant: "destructive" });
+    }
+  }
 
   return (
     <>
@@ -124,7 +140,7 @@ export function Header() {
               <div className="w-[80vw] max-w-xs bg-emerald-50 h-full p-6 flex flex-col gap-8 animate-fadeIn shadow-2xl">
                 <button className="self-end mb-4 text-gray-500 text-3xl" onClick={() => setMobileMenuOpen(false)}>&times;</button>
                 <nav className="flex flex-col gap-4 w-full mt-2" aria-label="Navigation mobile principale">
-                  {/* Bouton Sign in tout en haut si pas de session */}
+                  {/* Bouton Sign in ou Sair tout en haut selon la session */}
                   {!session && (
                     <Link 
                       href={`/${currentLocale}/login`}
@@ -133,6 +149,14 @@ export function Header() {
                     >
                       Sign in
                     </Link>
+                  )}
+                  {session && (
+                    <button
+                      onClick={handleLogout}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow transition text-lg mb-2"
+                    >
+                      Sair
+                    </button>
                   )}
                   <Link href="/br/recursos" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Recursos</Link>
                   <Link href="/br/guia-paises" className="text-lg font-semibold px-4 py-3 rounded-lg hover:bg-emerald-100 border-b border-emerald-100 transition-all" onClick={() => setMobileMenuOpen(false)}>Guia dos Países</Link>
@@ -218,7 +242,6 @@ function HeaderClient() {
   async function handleLogout() {
     try {
       await supabase.auth.signOut();
-      // Purge tous les cookies Supabase côté client (si possible)
       if (typeof document !== 'undefined') {
         document.cookie.split(';').forEach(function(c) {
           document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');

@@ -63,6 +63,7 @@ export default function ChatPim() {
         body: JSON.stringify({ 
           messages: messageHistory 
         }),
+        credentials: 'include',
       });
 
       if (!response.ok) {

@@ -61,6 +61,7 @@ export default function AccountSectionAccount({ user }: { user?: any }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid: user.id }),
+      credentials: 'include',
     });
     if (res.ok) {
       await supabase.auth.signOut();

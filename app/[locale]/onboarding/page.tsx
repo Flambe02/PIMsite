@@ -5,12 +5,14 @@ import { useRouter, useSearchParams, useParams } from "next/navigation";
 import Step1Profile from "@/components/onboarding/Step1Profile";
 import Step2Checkup from "@/components/onboarding/Step2Checkup";
 import Step3Payslip from "@/components/onboarding/Step3Payslip";
+import Step2Dados from "@/components/onboarding/Step2Dados";
 import { useRequireSession } from "@/components/supabase-provider";
 
 const steps = [
   { key: 1, label: "Informações Pessoais e Profissionais" },
-  { key: 2, label: "Check-up Financeiro (em breve)" },
-  { key: 3, label: "Análise de Holerite" },
+  { key: 2, label: "Dados principais" },
+  { key: 3, label: "Check-up Financeiro (em breve)" },
+  { key: 4, label: "Análise de Holerite" },
 ];
 
 function OnboardingPageContent() {
@@ -27,7 +29,7 @@ function OnboardingPageContent() {
   useEffect(() => {
     const stepFromUrl = searchParams!.get('step');
     if (stepFromUrl && !isNaN(Number(stepFromUrl))) {
-      const stepNum = Math.min(Math.max(Number(stepFromUrl), 1), 3);
+      const stepNum = Math.min(Math.max(Number(stepFromUrl), 1), 4);
       if (stepNum !== currentStep) {
         setCurrentStep(stepNum);
       }
@@ -36,6 +38,7 @@ function OnboardingPageContent() {
 
   const goToStep = (step: number) => {
     setCurrentStep(step);
+    router.replace(`/${locale}/onboarding?step=${step}`);
   };
 
   const handleFinish = () => {
@@ -62,9 +65,12 @@ function OnboardingPageContent() {
           <Step1Profile onNext={() => goToStep(2)} locale={locale} />
         )}
         {currentStep === 2 && (
-          <Step2Checkup onNext={() => goToStep(3)} onBack={handleBack} />
+          <Step2Dados onNext={() => goToStep(3)} onBack={handleBack} locale={locale} />
         )}
         {currentStep === 3 && (
+          <Step2Checkup onNext={() => goToStep(4)} onBack={handleBack} />
+        )}
+        {currentStep === 4 && (
           <Step3Payslip onBack={handleBack} onFinish={handleFinish} />
         )}
       </div>

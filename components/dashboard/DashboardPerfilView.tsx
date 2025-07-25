@@ -210,6 +210,7 @@ export default function DashboardPerfilView({ holeriteResult, user, onShowHoleri
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: user.id }),
+      credentials: 'include',
     });
     if (res.ok) {
       toast({ title: "Compte supprimé", description: "Votre compte et vos données ont été supprimés.", variant: "default" });
@@ -222,8 +223,8 @@ export default function DashboardPerfilView({ holeriteResult, user, onShowHoleri
 
   return (
     <div className="w-full relative">
-      {/* Section Dados principais */}
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-emerald-900"><User className="w-7 h-7 text-emerald-600" /> Dados principais</h2>
+      {/* Section Dados principaux */}
+      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-emerald-900"><User className="w-7 h-7 text-emerald-600" /> Dados principaux</h2>
       <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-base">
           <div>

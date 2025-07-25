@@ -17,15 +17,26 @@ export async function POST(request: NextRequest) {
       .from('profiles')
       .upsert({
         id: user.id,
-        nome: `${userData.firstName} ${userData.lastName}`,
+        nome: `${userData.firstName || userData.nomePreferido || ''}`,
         email: userData.email,
-        empresa: userData.company,
-        tipo_profissional: userData.employmentStatus,
+        empresa: userData.company || userData.empresa,
+        tipo_profissional: userData.employmentStatus || userData.setor,
         tem_filhos: userData.hasChildren,
         financial_health_score: userData.financialHealthScore,
         quiz_answers: userData.quizAnswers,
         onboarding_completed: true,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        numero_filhos: userData.numeroFilhos,
+        estado_civil: userData.estadoCivil,
+        genero: userData.genero,
+        nascimento: userData.nascimento,
+        cidade: userData.cidade,
+        pais: userData.pais,
+        setor: userData.setor,
+        tamanho: userData.tamanho,
+        localizacao: userData.localizacao,
+        telefone: userData.telefone,
+        interesses: userData.interesses,
       })
 
     if (profileError) {

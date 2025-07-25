@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRequireSession } from "@/components/supabase-provider";
+import { useQueryClient } from "@tanstack/react-query";
 
 const pastel = {
   green: "#B8E4C7",
@@ -25,6 +26,7 @@ const checklist = [
 
 export default function UploadHolerite({ onResult }: { onResult?: (result: any) => void }) {
   useRequireSession(`/calculadora/upload-holerite`);
+  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -143,17 +145,19 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
           analysis.efficiency_tooltip = 'Eficiência representa quanto do seu salário bruto você realmente recebe. Uma eficiência abaixo de 75% pode indicar excesso de descontos ou estrutura fiscal ineficiente.';
         }
         // --- FIN ENRICHISSEMENT PJ ---
-        onResult({
+        const result = {
           salarioBruto: data.analysisData.gross_salary,
           salarioLiquido: data.analysisData.net_salary,
-          descontos: (data.analysisData.gross_salary || 0) - (data.analysisData.net_salary || 0),
           eficiencia: data.analysisData.gross_salary && data.analysisData.net_salary ? ((data.analysisData.net_salary / data.analysisData.gross_salary) * 100).toFixed(1) : null,
           insights: [
             { label: "Resumo", value: analysis.summary || "" },
             ...((analysis.optimization_opportunities || []).map((v: string) => ({ label: "Oportunidade", value: v })))
-          ],
-          raw: { ...data.analysisData, analysis }
-        });
+          ]
+        };
+        console.log('onResult', result);
+        onResult(result);
+        // --- REFRESH DASHBOARD ---
+        queryClient.invalidateQueries({ queryKey: ["payslips"] });
       } else {
         // Gestion d'erreur OCR détaillée
         let msg = data.error || 'Erreur lors de l\'analyse.';

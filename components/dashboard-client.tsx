@@ -1,5 +1,7 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { FileText, Upload, FileEdit, BarChart2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -14,7 +16,33 @@ interface DashboardClientProps {
   payslips: Payslip[];
 }
 
-export default function DashboardClient({ payslips }: DashboardClientProps) {
+export default function DashboardClient() {
+  const router = useRouter();
+  // Fetch profil utilisateur
+  const { data: profile, isLoading: loadingProfile, error: errorProfile, refetch: refetchProfile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile", { credentials: "include" });
+      if (!res.ok) throw new Error("Erreur profil");
+      return res.json();
+    }
+  });
+  // Fetch holerites
+  const { data: payslips, isLoading: loadingPayslips, error: errorPayslips, refetch: refetchPayslips } = useQuery({
+    queryKey: ["payslips"],
+    queryFn: async () => {
+      const res = await fetch("/api/payslips", { credentials: "include" });
+      if (!res.ok) throw new Error("Erreur holerites");
+      return res.json();
+    }
+  });
+  if (loadingProfile || loadingPayslips) {
+    return <div className="flex justify-center items-center h-64"><span className="animate-spin text-4xl">⏳</span> Chargement du dashboard...</div>;
+  }
+  if (errorProfile || errorPayslips) {
+    return <div className="text-red-600 text-center py-8">Erreur lors du chargement des données. Veuillez réessayer.</div>;
+  }
+
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold text-indigo-900 mb-2">Dashboard de Holerites</h1>
@@ -46,19 +74,32 @@ export default function DashboardClient({ payslips }: DashboardClientProps) {
         <section className="mb-10">
           <h2 className="text-lg font-semibold mb-4">Seus Holerites</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {payslips.map((p: Payslip) => (
-              <div key={p.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-indigo-700">
-                  <FileText size={20} />
-                  <span className="font-medium">{p.periodo}</span>
+            {payslips.map((p: any) => {
+              const bruto = p.salarioBruto
+                || p.salario_bruto
+                || (typeof p.structured_data?.gross_salary === 'object' ? p.structured_data?.gross_salary?.valor : p.structured_data?.gross_salary)
+                || '';
+              const liquido = p.salarioLiquido
+                || p.salario_liquido
+                || (typeof p.structured_data?.net_salary === 'object' ? p.structured_data?.net_salary?.valor : p.structured_data?.net_salary)
+                || '';
+              const periodo = p.periodo
+                || p.structured_data?.period
+                || '';
+              return (
+                <div key={p.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-indigo-700">
+                    <FileText size={20} />
+                    <span className="font-medium">{String(periodo)}</span>
+                  </div>
+                  <div className="text-gray-700">Salário Líquido: <span className="font-bold">R$ {String(liquido)}</span></div>
+                  <div className="text-gray-500 text-sm">Enviado em {p.dataEnvio || ''}</div>
+                  <Link href={`/holerite/${p.id}`}>
+                    <Button variant="outline" className="mt-2 w-full">Ver detalhes</Button>
+                  </Link>
                 </div>
-                <div className="text-gray-700">Salário Líquido: <span className="font-bold">R$ {p.salarioLiquido}</span></div>
-                <div className="text-gray-500 text-sm">Enviado em {p.dataEnvio}</div>
-                <Link href={`/holerite/${p.id}`}>
-                  <Button variant="outline" className="mt-2 w-full">Ver detalhes</Button>
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="flex gap-4 mt-8">
             <Link href="/calculadora?tab=upload">
