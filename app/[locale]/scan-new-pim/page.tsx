@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 };
 
 interface ScanNewPIMPageProps {
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 }
 
-export default function ScanNewPIMPage({ params }: ScanNewPIMPageProps) {
+export default async function ScanNewPIMPage({ params }: ScanNewPIMPageProps) {
   // Détection du pays basée sur la locale
   const getCountryFromLocale = (locale: string) => {
     const countryMap: { [key: string]: string } = {
@@ -29,7 +29,8 @@ export default function ScanNewPIMPage({ params }: ScanNewPIMPageProps) {
     return countryMap[locale] || 'br';
   };
 
-  const country = getCountryFromLocale(params.locale);
+  const resolvedParams = await params;
+  const country = getCountryFromLocale(resolvedParams.locale);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

@@ -16,6 +16,7 @@ export interface ScanNewPIMResponse {
       text: string;
       confidence: number;
       processingTime: number;
+      duplicateInfo?: string;
     };
     analysis: {
       structuredData: any;
@@ -110,6 +111,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
 
     console.log('✅ OCR réussi, texte extrait:', ocrResult.text.length, 'caractères');
     console.log('📄 Texte extrait (premiers 500 caractères):', ocrResult.text.substring(0, 500));
+    
+    // Afficher l'information sur les pages dupliquées si présente
+    if (ocrResult.duplicateInfo) {
+      console.log('🔄', ocrResult.duplicateInfo);
+    }
 
     // 5. Validation du document (feuille de paie)
     const validationResult = await googleVisionService.validateDocument(ocrResult.text);
@@ -184,7 +190,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
         ocr: {
           text: ocrResult.text,
           confidence: ocrResult.confidence,
-          processingTime: ocrResult.processingTime
+          processingTime: ocrResult.processingTime,
+          duplicateInfo: ocrResult.duplicateInfo
         },
         analysis: {
           structuredData: analysisResult.structuredData,

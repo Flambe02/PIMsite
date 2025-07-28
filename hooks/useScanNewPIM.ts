@@ -4,8 +4,16 @@
  */
 
 import { useState, useCallback } from 'react';
-import { googleVisionService, ScanResult } from '@/lib/services/googleVisionService';
+import { googleVisionService, ScanResult as GoogleVisionScanResult } from '@/lib/services/googleVisionService';
 import { scanAnalysisService, AnalysisResult } from '@/lib/services/scanAnalysisService';
+
+export interface ScanResult {
+  success: boolean;
+  text: string;
+  confidence: number;
+  processingTime: number;
+  duplicateInfo?: string;
+}
 
 export interface ScanResults {
   ocr: ScanResult;
@@ -107,7 +115,8 @@ export const useScanNewPIM = (): UseScanNewPIMReturn => {
           success: true,
           text: result.data.ocr.text,
           confidence: result.data.ocr.confidence,
-          processingTime: result.data.ocr.processingTime
+          processingTime: result.data.ocr.processingTime,
+          duplicateInfo: result.data.ocr.duplicateInfo
         },
         analysis: {
           success: true,

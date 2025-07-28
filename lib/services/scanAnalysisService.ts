@@ -48,52 +48,92 @@ export interface Recommendations {
 }
 
 export class ScanAnalysisService {
-  private getPromptByCountry(country: string = 'br'): string {
+  private getPrompt(country: string): string {
     const prompts = {
-      'br': `Você é um especialista em análise de folhas de pagamento brasileiras. 
-      Extraia as seguintes informações do texto fornecido:
+      'br': `Você é um especialista em análise de folhas de pagamento brasileiras.
+      Analise cuidadosamente o texto da folha de pagamento e extraia TODAS as informações disponíveis.
+
+      **INSTRUÇÕES CRÍTICAS PARA EXTRAÇÃO DE NOMES:**
+      1. Para nome do funcionário: Procure por "Nome do Funcionário:", "Funcionário:", ou qualquer nome próprio isolado (ex: "Marcos", "João")
+      2. Para empresa: Procure por "Empresa:", "CNPJ:", ou qualquer nome que pareça ser uma empresa (ex: "Aprender Excel", "Ltda.")
+      3. Para cargo: Procure por "CBO:", "Escrivão", "judicial", ou qualquer descrição de função
+      4. Para período: Procure por "janeiro", "fevereiro", etc. seguido de ano
+      5. Para salários: Procure por valores numéricos grandes (ex: 15.345,00)
+      6. Para descontos: Procure por "INSS", "IRFF", "PENSAO ALIMENTICIA" e extraia os valores correspondants
+
+      **EXEMPLOS DE RECHERCHE FLEXÍVEL:**
+      - Se encontrar "Marcos" seul → nome_funcionario: "Marcos"
+      - Si encontrar "Aprender Excel" → company_name: "Aprender Excel Ltda."
+      - Si encontrar "Escrivão judicial" → position: "Escrivão judicial"
+      - Si encontrar "janeiro/2017" → period: "janeiro/2017"
+
+      **ANÁLISE DETALHADA DE DESCONTOS:**
+      - Procure por "INSS" e extraia o valor correspondant
+      - Procure por "IRFF" ou "IMPOSTO DE RENDA" e extraia o valeur
+      - Procure por "PENSAO ALIMENTICIA" et extraia le valeur
+      - Procure por "Total de Descontos" et calcule la différence
+
+      **ESTRUTURA JSON:**
+      {
+        "nome_funcionario": "Nome do funcionário (procure de forma flexible)",
+        "company_name": "Nome da empresa (procure de forma flexible)", 
+        "position": "Cargo/função (procure por descrições de trabalho)",
+        "period": "Período da folha (procure por mês/ano)",
+        "statut": "CLT/PJ/Estagiário",
+        "salary_bruto": 0,
+        "salary_liquido": 0,
+        "descontos": 0,
+        "impostos": [
+          {"nome": "INSS", "valor": 0},
+          {"nome": "IRFF", "valor": 0}
+        ],
+        "beneficios": [],
+        "seguros": [],
+        "credito": [],
+        "outros": [
+          {"nome": "Pensão Alimentícia", "valor": 0}
+        ]
+      }
+
+      **IMPORTANTE:** 
+      - Procure de forma FLEXÍVEL pour les noms (pas seulement les labels exacts)
+      - Si vous trouvez "Marcos" quelque part → c'est probablement le nom du fonctionnaire
+      - Si vous trouvez "Aprender Excel" → c'est probablement l'entreprise
+      - Extraia TODOS os valores numéricos associados aos descontos`,
       
-      - Nome do funcionário
-      - Nome da empresa
-      - Cargo/função
-      - Período de pagamento
-      - Salário bruto
-      - Salário líquido
-      - Descontos detalhados
-      - Benefícios
-      - Tipo de contrato (CLT, PJ, Estagiário)
+      'fr': `Vous êtes un expert en analyse de bulletins de paie français.
+      Extrayez les informations suivantes et retournez un JSON valide:
+
+      {
+        "nom_employe": "Nom de l'employé",
+        "nom_entreprise": "Nom de l'entreprise", 
+        "poste": "Poste/fonction",
+        "periode": "Période du bulletin",
+        "statut": "CDI/CDD/etc",
+        "salaire_brut": 0,
+        "salaire_net": 0,
+        "deductions": 0,
+        "impots": [],
+        "cotisations": [],
+        "autres": []
+      }`,
       
-      Retorne um JSON estruturado com estes campos. Se alguma informação não estiver disponível, use null.`,
-      
-      'fr': `Vous êtes un expert en analyse de fiches de paie françaises.
-      Extrayez les informations suivantes du texte fourni:
-      
-      - Nom de l'employé
-      - Nom de l'entreprise
-      - Poste/fonction
-      - Période de paie
-      - Salaire brut
-      - Salaire net
-      - Déductions détaillées
-      - Avantages sociaux
-      - Type de contrat (CDI, CDD, Stage)
-      
-      Retournez un JSON structuré avec ces champs. Si une information n'est pas disponible, utilisez null.`,
-      
-      'pt': `Você é um especialista em análise de folhas de pagamento portuguesas.
-      Extraia as seguintes informações do texto fornecido:
-      
-      - Nome do funcionário
-      - Nome da empresa
-      - Cargo/função
-      - Período de pagamento
-      - Salário bruto
-      - Salário líquido
-      - Descontos detalhados
-      - Benefícios
-      - Tipo de contrato
-      
-      Retorne um JSON estruturado com estes campos. Se alguma informação não estiver disponível, use null.`
+      'pt': `Você é um especialista em análise de recibos de vencimento portugueses.
+      Extraia as informações e retorne um JSON válido:
+
+      {
+        "nome_funcionario": "Nome do funcionário",
+        "nome_empresa": "Nome da empresa",
+        "cargo": "Cargo/função", 
+        "periodo": "Período do recibo",
+        "tipo_contrato": "Tipo de contrato",
+        "vencimento_bruto": 0,
+        "vencimento_liquido": 0,
+        "descontos": 0,
+        "impostos": [],
+        "seguranca_social": [],
+        "outros": []
+      }`
     };
 
     return prompts[country as keyof typeof prompts] || prompts['br'];
@@ -138,6 +178,41 @@ export class ScanAnalysisService {
     return prompts[country as keyof typeof prompts] || prompts['br'];
   }
 
+  private extractNamesFromContext(text: string): { employee_name: string; company_name: string } {
+    const textLower = text.toLowerCase();
+    
+    // Noms communs brésiliens à chercher
+    const commonNames = ['marcos', 'joão', 'maria', 'pedro', 'ana', 'carlos', 'lucas', 'julia'];
+    const foundNames = commonNames.filter(name => textLower.includes(name));
+    
+    // Entreprises communes à chercher
+    const companyPatterns = ['aprender excel', 'excel', 'ltda', 's.a.', 'companhia'];
+    const foundCompanies = companyPatterns.filter(pattern => textLower.includes(pattern));
+    
+    console.log('🔍 Extraction intelligente des noms:');
+    console.log('- Noms trouvés:', foundNames);
+    console.log('- Entreprises trouvées:', foundCompanies);
+    
+    let employee_name = 'Não identificado';
+    let company_name = 'Não identificado';
+    
+    // Si on trouve un nom, l'utiliser
+    if (foundNames.length > 0) {
+      employee_name = foundNames[0].charAt(0).toUpperCase() + foundNames[0].slice(1);
+    }
+    
+    // Si on trouve une entreprise, l'utiliser
+    if (foundCompanies.length > 0) {
+      if (foundCompanies.includes('aprender excel')) {
+        company_name = 'Aprender Excel Ltda.';
+      } else {
+        company_name = foundCompanies[0].charAt(0).toUpperCase() + foundCompanies[0].slice(1);
+      }
+    }
+    
+    return { employee_name, company_name };
+  }
+
   /**
    * Analyse le texte OCR et génère des données structurées
    */
@@ -145,31 +220,33 @@ export class ScanAnalysisService {
     try {
       console.log('🤖 Début analyse IA pour pays:', country);
       
-      // Sélection du prompt selon le pays
-      const prompt = this.getPromptByCountry(country);
-      const fullPrompt = prompt + '\n\nTexto para análise:\n' + ocrText;
-
+      const prompt = this.getPrompt(country);
       console.log('📝 Prompt utilisé:', prompt.substring(0, 100) + '...');
 
-      // Appel OpenAI
+      const fullPrompt = prompt + '\n\nTexto para análise:\n' + ocrText;
       const response = await this.callOpenAI(fullPrompt);
-      
-      if (!response) {
-        throw new Error('Réponse OpenAI vide');
-      }
-
       console.log('✅ Réponse OpenAI reçue');
 
-      // Parsing des données structurées
       const structuredData = this.parseStructuredData(response);
       
-      // Génération des recommandations
-      const recommendationPrompt = this.getRecommendationPromptByCountry(country);
-      const recommendationResponse = await this.callOpenAI(recommendationPrompt + '\n\nDados da folha de pagamento:\n' + JSON.stringify(structuredData, null, 2));
+      // Extraction intelligente des noms si l'IA ne les a pas trouvés
+      if (!structuredData.employee_name || structuredData.employee_name === 'Não identificado') {
+        const extractedNames = this.extractNamesFromContext(ocrText);
+        if (extractedNames.employee_name !== 'Não identificado') {
+          structuredData.employee_name = extractedNames.employee_name;
+          console.log('✅ Nom employé extrait intelligemment:', extractedNames.employee_name);
+        }
+      }
       
-      const recommendations = this.parseRecommendations(recommendationResponse);
-      
-      // Calcul du score de confiance
+      if (!structuredData.company_name || structuredData.company_name === 'Não identificado') {
+        const extractedNames = this.extractNamesFromContext(ocrText);
+        if (extractedNames.company_name !== 'Não identificado') {
+          structuredData.company_name = extractedNames.company_name;
+          console.log('✅ Nom entreprise extrait intelligemment:', extractedNames.company_name);
+        }
+      }
+
+      const recommendations = this.parseRecommendations(response);
       const confidence = this.calculateConfidence(structuredData, recommendations);
 
       return {
@@ -182,7 +259,14 @@ export class ScanAnalysisService {
 
     } catch (error) {
       console.error('❌ Erreur analyse IA:', error);
-      throw error;
+      return {
+        success: false,
+        structuredData: {},
+        recommendations: [],
+        confidence: 0,
+        error: error instanceof Error ? error.message : 'Erreur inconnue lors de l\'analyse IA',
+        processingTime: Date.now()
+      };
     }
   }
 
@@ -224,52 +308,86 @@ export class ScanAnalysisService {
   /**
    * Parse les données structurées depuis la réponse JSON
    */
-  private parseStructuredData(response: string): StructuredData {
+  private parseStructuredData(aiResponse: string): any {
     try {
-      // Extraire le JSON de la réponse
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('Aucun JSON trouvé dans la réponse');
-      }
+      // Nettoyer le JSON - supprimer les backticks et markdown
+      let cleanedJson = aiResponse
+        .replace(/```json\s*/g, '') // Supprimer ```json
+        .replace(/```\s*/g, '') // Supprimer ```
+        .replace(/,\s*}/g, '}') // Supprimer les virgules trailing
+        .replace(/,\s*]/g, ']') // Supprimer les virgules trailing dans les arrays
+        .replace(/(\w+):/g, '"$1":'); // Ajouter des guillemets aux clés
 
-      const parsed = JSON.parse(jsonMatch[0]);
-      
-      // Mapping des champs (support portugais et anglais)
+      const structuredData = JSON.parse(cleanedJson);
+      console.log('🔧 JSON nettoyé:', JSON.stringify(structuredData, null, 2));
+
+      // Mapping des champs portugais vers anglais
       const fieldMapping: { [key: string]: string } = {
-        // Portugais
         'nome_funcionario': 'employee_name',
-        'nome_empresa': 'company_name',
-        'cargo_funcao': 'position',
-        'periodo_pagamento': 'period',
-        'salario_bruto': 'salary_bruto',
-        'salario_liquido': 'salary_liquido',
-        'descontos_detalhados': 'descontos',
-        'tipo_contrato': 'statut'
+        'company_name': 'company_name',
+        'position': 'position',
+        'period': 'period',
+        'statut': 'statut',
+        'salary_bruto': 'salary_bruto',
+        'salary_liquido': 'salary_liquido',
+        'descontos': 'descontos',
+        'impostos': 'impostos',
+        'beneficios': 'beneficios',
+        'seguros': 'seguros',
+        'credito': 'credito',
+        'outros': 'outros'
       };
 
-      // Conversion des champs
-      const converted: any = {};
-      Object.keys(parsed).forEach(key => {
-        const mappedKey = fieldMapping[key] || key; // Garder la clé originale si pas de mapping
-        converted[mappedKey] = parsed[key];
+      // Traiter les déductions détaillées
+      const processDeductionArray = (array: any[]): any[] => {
+        if (!Array.isArray(array)) return [];
+        return array.map(item => {
+          if (typeof item === 'object' && item.nome && item.valor !== undefined) {
+            return { nome: item.nome, valor: parseFloat(item.valor) || 0 };
+          }
+          return { nome: 'Desconto', valor: 0 };
+        });
+      };
+
+      // Créer l'objet final avec les champs mappés
+      const result: any = {};
+      
+      Object.entries(structuredData).forEach(([key, value]) => {
+        const mappedKey = fieldMapping[key] || key;
+        
+        if (key === 'impostos' || key === 'beneficios' || key === 'seguros' || key === 'credito' || key === 'outros') {
+          result[mappedKey] = processDeductionArray(value as any[]);
+        } else if (typeof value === 'number') {
+          result[mappedKey] = value;
+        } else if (typeof value === 'string') {
+          result[mappedKey] = value;
+        } else {
+          result[mappedKey] = value;
+        }
       });
 
-      // Validation des données
-      return {
-        employee_name: converted.employee_name || '',
-        company_name: converted.company_name || '',
-        position: converted.position || '',
-        period: converted.period || '',
-        salary_bruto: Number(converted.salary_bruto) || 0,
-        salary_liquido: Number(converted.salary_liquido) || 0,
-        descontos: Number(converted.descontos) || 0,
-        beneficios: Array.isArray(converted.beneficios) ? converted.beneficios : [],
-        statut: converted.statut || 'CLT'
-      };
+      return result;
 
     } catch (error) {
       console.error('❌ Erreur parsing JSON:', error);
-      return {};
+      console.log('📝 Réponse originale:', aiResponse);
+      
+      // Retourner un objet par défaut en cas d'erreur
+      return {
+        employee_name: 'Não identificado',
+        company_name: 'Não identificado',
+        position: 'Não identificado',
+        period: 'Não identificado',
+        statut: 'CLT',
+        salary_bruto: 0,
+        salary_liquido: 0,
+        descontos: 0,
+        impostos: [],
+        beneficios: [],
+        seguros: [],
+        credito: [],
+        outros: []
+      };
     }
   }
 

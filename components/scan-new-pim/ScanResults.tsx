@@ -119,6 +119,23 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
         <p className="text-gray-600">
           Sua folha de pagamento foi analisada e as recomendações estão prontas
         </p>
+        
+        {/* Information sur les pages dupliquées */}
+        {results.ocr.duplicateInfo && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm text-blue-700 font-medium">
+                {results.ocr.duplicateInfo}
+              </span>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -228,6 +245,100 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
                 </span>
               </div>
             </div>
+
+            {/* Déductions détaillées */}
+            {structuredData.descontos > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 border-b pb-2">
+                  Deduções Detalhadas
+                </h4>
+                
+                {/* Impostos */}
+                {structuredData.impostos && structuredData.impostos.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-red-600 mb-2">💰 Impostos</h5>
+                    <div className="space-y-1">
+                      {structuredData.impostos.map((item: any, index: number) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{item.nome}</span>
+                          <span className="font-medium text-red-600">
+                            {formatCurrency(item.valor)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Benefícios */}
+                {structuredData.beneficios && structuredData.beneficios.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-blue-600 mb-2">🎁 Benefícios</h5>
+                    <div className="space-y-1">
+                      {structuredData.beneficios.map((item: any, index: number) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{item.nome}</span>
+                          <span className="font-medium text-blue-600">
+                            {formatCurrency(item.valor)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Seguros */}
+                {structuredData.seguros && structuredData.seguros.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-green-600 mb-2">🛡️ Seguros</h5>
+                    <div className="space-y-1">
+                      {structuredData.seguros.map((item: any, index: number) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{item.nome}</span>
+                          <span className="font-medium text-green-600">
+                            {formatCurrency(item.valor)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Crédito */}
+                {structuredData.credito && structuredData.credito.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-purple-600 mb-2">💳 Crédito</h5>
+                    <div className="space-y-1">
+                      {structuredData.credito.map((item: any, index: number) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{item.nome}</span>
+                          <span className="font-medium text-purple-600">
+                            {formatCurrency(item.valor)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Outros */}
+                {structuredData.outros && structuredData.outros.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-orange-600 mb-2">📋 Outros</h5>
+                    <div className="space-y-1">
+                      {structuredData.outros.map((item: any, index: number) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{item.nome}</span>
+                          <span className="font-medium text-orange-600">
+                            {formatCurrency(item.valor)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
 
