@@ -118,7 +118,7 @@ export async function parseWithOCRSpaceEnhanced(file: File | Buffer, enableFallb
     form.append("filetype", "jpg"); // Spécifier le type de fichier
     form.append("detectOrientation", "true"); // Détecter l'orientation
     form.append("removeTextLayer", "false"); // Garder la couche de texte
-    form.append("file", buf, "image.jpg");
+    form.append("file", new Blob([buf]), "image.jpg");
 
     console.log('🚀 Envoi vers OCR.Space...');
     

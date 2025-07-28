@@ -239,7 +239,7 @@ async function testUploadProcess() {
 
       console.log('\n📋 Répartition par profil:');
       Object.entries(byProfile || {}).forEach(([profile, holerites]) => {
-        console.log(`   - ${profile}: ${holerites?.length || 0} holerites`);
+        console.log(`   - ${profile}: ${(holerites as any[])?.length || 0} holerites`);
       });
     }
 
