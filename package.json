@@ -1,6 +1,6 @@
 {
   "name": "my-v0-project",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,14 @@
     "lint": "next lint",
     "start": "next start",
     "test": "vitest",
+    "test:validation": "vitest lib/validation/payslipValidator.test.ts",
+    "test:analysis": "vitest lib/ia/payslipAnalysisService.test.ts",
+    "test:integration": "tsx scripts/test-integration.ts",
+    "test:optimized": "tsx scripts/test-optimized-process.ts",
+    "test:ai-analysis": "npx tsx scripts/test-ai-analysis.ts",
+    "test:holerite-upload": "npx tsx scripts/test-holerite-upload.ts",
+    "test:recommendations": "npx tsx scripts/test-recommendations-storage.ts",
+    "test:all": "npm run test:validation && npm run test:analysis && npm run test:integration",
     "prebuild": "echo 'SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL' && echo 'SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY'"
   },
   "dependencies": {
@@ -68,6 +76,7 @@
     "@types/react-responsive": "^9.0.0",
     "@vitejs/plugin-react": "^4.6.0",
     "cross-env": "^7.0.3",
+    "dotenv": "^17.2.1",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.3.4",
     "eslint-plugin-jsx-a11y": "^6.10.2",

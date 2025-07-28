@@ -30,7 +30,7 @@ function AuthCallbackContent() {
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
             setLoading(false);
-            window.location.href = '/dashboard';
+            router.replace('/dashboard');
             return;
           } else {
             setError(error.message);

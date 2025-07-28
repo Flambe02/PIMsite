@@ -1,0 +1,32 @@
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "country": "br",
+  "statut": "CLT",
+  "raw_ocr_text": "HOLERITE - JANEIRO/2025\nEMPRESA: TechCorp Brasil Ltda\nFUNCIONÁRIO: João Silva Santos\nCARGO: Desenvolvedor Senior\n\nSALÁRIO BRUTO: R$ 5.000,00\nINSS: R$ 550,00\nIRRF: R$ 450,00\nSALÁRIO LÍQUIDO: R$ 4.000,00\n\nBENEFÍCIOS:\nVale Refeição: R$ 500,00\nVale Transporte: R$ 200,00\nPlano de Saúde: R$ 200,00\n\nTOTAL DE DESCONTOS: R$ 1.000,00\nTOTAL DE BENEFÍCIOS: R$ 900,00",
+  "extracted_data": {
+    "salario_bruto": 5000,
+    "salario_liquido": 4000,
+    "descontos": 1000,
+    "beneficios": 900,
+    "seguros": 200,
+    "statut": "CLT",
+    "pays": "br",
+    "incoherence_detectee": false,
+    "period": "Janeiro/2025",
+    "employee_name": "João Silva Santos",
+    "company_name": "TechCorp Brasil Ltda",
+    "position": "Desenvolvedor Senior"
+  },
+  "validation_result": {
+    "isValid": true,
+    "confidence": 95,
+    "warnings": [],
+    "corrections": {},
+    "confidence": 95
+  },
+  "confidence_score": 95,
+  "validated": true,
+  "created_at": "2025-01-20T10:30:00Z",
+  "updated_at": "2025-01-20T10:30:00Z"
+} 

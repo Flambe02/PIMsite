@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Info, UploadCloud, FileText, Loader2, XCircle } from "lucide-react";
+import { Info, UploadCloud, FileText, Loader2, XCircle, Scan, Brain } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -29,6 +29,8 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -69,29 +71,65 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
     return '';
   }
 
+  const getLoadingMessage = () => {
+    if (ocrLoading) return "Scan de l'holerite en cours...";
+    if (aiLoading) return "Analyse IA en cours...";
+    return "Traitement en cours...";
+  }
+
+  const getLoadingIcon = () => {
+    if (ocrLoading) return <Scan className="animate-pulse w-5 h-5 mr-2" />;
+    if (aiLoading) return <Brain className="animate-pulse w-5 h-5 mr-2" />;
+    return <Loader2 className="animate-spin w-5 h-5 mr-2" />;
+  }
+
   const onAnalyze = async () => {
     if (!file) return;
     setLoading(true);
+    setOcrLoading(false);
+    setAiLoading(false);
+    setError(null);
+    
     const controller = new AbortController();
     setAbortController(controller);
     const formData = new FormData();
     formData.append('file', file);
+    
     try {
+      // Simuler les étapes OCR et IA avec des indicateurs visuels
+      setOcrLoading(true);
+      
       const res = await fetch('/api/process-payslip', {
         method: 'POST',
         body: formData,
         signal: controller.signal,
         credentials: 'include',
       });
+      
+      // Simuler la fin de l'OCR et le début de l'IA
+      setOcrLoading(false);
+      setAiLoading(true);
+      
       console.log('Réponse brute:', res);
       const data = await res.json();
       console.log('Données reçues:', data);
+      console.log('Structure analysisData:', data.analysisData);
+      console.log('Structure structured_data:', data.analysisData?.structured_data);
+      
+      // Fin de l'analyse IA
+      setAiLoading(false);
       setLoading(false);
       setAbortController(null);
+      
       if (data.success && onResult) {
         // --- ENRICHISSEMENT PJ ---
-        let analysis = data.analysisData.analysis || {};
-        const raw = data.analysisData;
+        // Nouvelle structure de données avec structured_data
+        const structuredData = data.data?.structured_data || {};
+        const analysisResult = structuredData?.analysis_result || {};
+        const finalData = structuredData?.final_data || {};
+        
+        let analysis = analysisResult || {};
+        const raw = finalData;
         const nowYear = new Date().getFullYear();
         let periodYear = null;
         if (raw.period) {
@@ -104,7 +142,7 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
           analysis.optimization_opportunities.push(`Atenção: Este holerite é de ${periodYear}. Alguns valores (salário mínimo, INSS, faixas de impostos) podem não ser comparáveis com as regras atuais.`);
         }
         // 2. Analyse pro-labore, INSS, autres prélèvements
-        if (raw.profile_type === 'PJ') {
+        if (raw.statut === 'PJ') {
           analysis.optimization_opportunities = analysis.optimization_opportunities || [];
           // Normalização helper (remove acentos e pontuações)
           const normalize = (txt: string) =>
@@ -137,8 +175,8 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
           }
           // 3. Efficacité financière
           let eficiencia = null;
-          if (raw.gross_salary && raw.net_salary) {
-            eficiencia = (raw.net_salary / raw.gross_salary) * 100;
+          if (raw.salario_bruto && raw.salario_liquido) {
+            eficiencia = (raw.salario_liquido / raw.salario_bruto) * 100;
             if (eficiencia < 75) {
               analysis.optimization_opportunities.push('Eficiência abaixo de 75%: Sua estrutura fiscal pode ser otimizada para reduzir descontos e aumentar o valor líquido recebido.');
             }
@@ -159,18 +197,35 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
           analysis.efficiency_tooltip = 'Eficiência representa quanto do seu salário bruto você realmente recebe. Uma eficiência abaixo de 75% pode indicar excesso de descontos ou estrutura fiscal ineficiente.';
         }
         // --- FIN ENRICHISSEMENT PJ ---
+        // Extraire les recommandations de la nouvelle structure
+        const recommendations = structuredData?.recommendations || {};
+        const resumeSituation = recommendations?.resume_situation || "";
+        const recommendationsList = recommendations?.recommendations || [];
+        
         const result = {
-          salarioBruto: extractValorField(data.analysisData.gross_salary),
-          salarioLiquido: extractValorField(data.analysisData.net_salary),
-          eficiencia: data.analysisData.gross_salary && data.analysisData.net_salary
-            ? ((Number(extractValorField(data.analysisData.net_salary)) / Number(extractValorField(data.analysisData.gross_salary))) * 100).toFixed(1)
+          salarioBruto: extractValorField(finalData.salario_bruto),
+          salarioLiquido: extractValorField(finalData.salario_liquido),
+          descontos: extractValorField(finalData.descontos),
+          eficiencia: finalData.salario_bruto && finalData.salario_liquido
+            ? ((Number(extractValorField(finalData.salario_liquido)) / Number(extractValorField(finalData.salario_bruto))) * 100).toFixed(1)
             : null,
+          raw: finalData,
           insights: [
-            { label: "Resumo", value: analysis.summary || "" },
-            ...((analysis.optimization_opportunities || []).map((v: string) => ({ label: "Oportunidade", value: v })))
+            { label: "Resumo", value: resumeSituation },
+            ...(recommendationsList.map((rec: any) => ({ 
+              label: rec.categorie || "Recomendação", 
+              value: `${rec.titre}: ${rec.description}` 
+            })))
           ]
         };
-        console.log('onResult', result);
+        console.log('📊 Résultat final:', result);
+        console.log('📊 Données extraites:', {
+          salarioBruto: result.salarioBruto,
+          salarioLiquido: result.salarioLiquido,
+          descontos: result.descontos,
+          eficiencia: result.eficiencia,
+          insights: result.insights
+        });
         onResult(result);
         // --- REFRESH DASHBOARD ---
         queryClient.invalidateQueries({ queryKey: ["payslips"] });
@@ -207,7 +262,7 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4 md:p-6">
+    <div className="w-full max-w-2xl mx-auto p-4 md:p-6 min-h-[60vh] flex items-start justify-center">
       {/* Loader global */}
       {loading && (
         <div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center z-50 rounded-2xl">
@@ -224,23 +279,23 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
           </AlertDescription>
         </Alert>
       )}
-      <Card className="rounded-2xl shadow-xl border-0 bg-[var(--offwhite)]" style={{ background: pastel.offwhite }}>
-        <div className="p-6 md:p-8 flex flex-col gap-6">
+      <Card className="rounded-2xl shadow-xl border-0 bg-[var(--offwhite)] w-full max-w-lg" style={{ background: pastel.offwhite }}>
+        <div className="p-4 md:p-6 flex flex-col gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-emerald-900 mb-2">Faça upload do seu holerite e receba 5 insights personalizados</h1>
-            <p className="text-emerald-700 text-base md:text-lg mb-2">Entenda seu salário, descontos e benefícios em 2 minutos.</p>
+            <h1 className="text-lg md:text-xl font-bold text-emerald-900 mb-1">Faça upload do seu holerite e receba 5 insights personalizados</h1>
+            <p className="text-emerald-700 text-xs md:text-sm mb-1">Entenda seu salário, descontos e benefícios em 2 minutos.</p>
           </div>
           {/* Zone d'upload */}
           {!file && (
             <div
-              className="flex flex-col items-center justify-center border-2 border-dashed border-emerald-200 rounded-xl bg-white hover:bg-emerald-50 transition p-8 cursor-pointer text-center relative"
+              className="flex flex-col items-center justify-center border-2 border-dashed border-emerald-200 rounded-xl bg-white hover:bg-emerald-50 transition p-4 cursor-pointer text-center relative"
               onDrop={onDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => inputRef.current?.click()}
             >
-              <UploadCloud className="w-12 h-12 text-emerald-400 mb-2" />
-              <div className="font-semibold text-emerald-900">Arraste e solte seu holerite aqui</div>
-              <div className="text-emerald-700 text-sm mb-2">ou clique para selecionar um arquivo</div>
+              <UploadCloud className="w-8 h-8 text-emerald-400 mb-1" />
+              <div className="font-semibold text-emerald-900 text-xs">Arraste e solte seu holerite aqui</div>
+              <div className="text-emerald-700 text-xs mb-1">ou clique para selecionar um arquivo</div>
               <input
                 ref={inputRef}
                 type="file"
@@ -276,25 +331,25 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
           )}
           {/* CTA */}
           <Button
-            className="w-full py-3 text-lg font-bold rounded-xl bg-emerald-400 hover:bg-emerald-500 text-white shadow-md transition disabled:opacity-60"
+            className="w-full py-2 text-sm font-bold rounded-xl bg-emerald-400 hover:bg-emerald-500 text-white shadow-md transition disabled:opacity-60"
             disabled={!file || loading}
             onClick={onAnalyze}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <Loader2 className="animate-spin w-5 h-5" /> Analisando...
+                {getLoadingIcon()} {getLoadingMessage()}
               </span>
             ) : (
               "Analisar agora"
             )}
           </Button>
           {/* Checklist */}
-          <div className="mt-4 bg-[var(--aqua)]/30 rounded-xl p-4 flex flex-col gap-2">
-            <div className="font-semibold text-emerald-900 mb-1">Você receberá:</div>
-            <ul className="space-y-1">
+          <div className="mt-2 bg-[var(--aqua)]/30 rounded-xl p-2 flex flex-col gap-1">
+            <div className="font-semibold text-emerald-900 mb-1 text-xs">Você receberá:</div>
+            <ul className="space-y-0.5">
               {checklist.map((item) => (
-                <li key={item} className="flex items-center gap-2 text-emerald-800 text-sm">
-                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
+                <li key={item} className="flex items-center gap-1 text-emerald-800 text-xs">
+                  <span className="inline-block w-1 h-1 rounded-full bg-emerald-400" />
                   {item}
                 </li>
               ))}

@@ -1,131 +1,227 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-import { payslipAnalysisPrompt } from '@/lib/prompts';
-import { extractText } from '@/lib/ocrClient';
+import { createClient } from '@/lib/supabase/server';
+import { PayslipAnalysisService } from '@/lib/ia/payslipAnalysisService';
+import { OCRLearningService } from '@/lib/learning/ocrLearningService';
 import { extractBenefitsFromParsedData } from '@/lib/benefits';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-export const dynamic = 'force-dynamic';
-
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 401 });
-  }
-  
   try {
-    console.log('🚀 Début du traitement du holerite...');
+    const supabase = await createClient();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
+    if (sessionError || !session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
     const formData = await req.formData();
-    const file = formData.get('file') as File | null;
-    if (!file) throw new Error('Fichier manquant.');
+    const file = formData.get('file') as File;
     
-    console.log('📁 Fichier reçu:', file.name, 'Taille:', file.size, 'Type:', file.type);
+    if (!file) {
+      return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
+    }
+
+    // Validation du fichier
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ 
+        error: 'Type de fichier non supporté. Utilisez JPEG, PNG ou PDF.' 
+      }, { status: 400 });
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      return NextResponse.json({ 
+        error: 'Fichier trop volumineux. Taille maximale: 10MB.' 
+      }, { status: 400 });
+    }
+
+    console.log('📁 Fichier reçu:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+
+    // 1. OCR - Extraction du texte
+    console.log('🔍 Début OCR...');
     
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    // Mode test optionnel (seulement en dev)
+    const enableTestMode = process.env.NODE_ENV === 'development' && 
+                          req.nextUrl.searchParams.get('test') === 'true';
+    
+    const { parseWithOCRSpaceEnhanced } = await import('@/lib/ocr');
+    const ocrResult = await parseWithOCRSpaceEnhanced(file, enableTestMode);
+    
+    // VÉRIFICATION CRITIQUE : Si OCR échoue, arrêter le process
+    if (!ocrResult || !ocrResult.ParsedText || ocrResult.ParsedText.trim().length === 0) {
+      console.log('❌ OCR échoué - Aucun texte extrait');
+      return NextResponse.json({ 
+        error: 'OCR_FAILED', 
+        message: 'Impossible d\'extraire le texte du document. Veuillez réessayer avec une image plus claire.' 
+      }, { status: 400 });
+    }
 
-    // === DEBUG OCR BUFFER ===
-    console.log('Taille du buffer envoyé à OCR:', fileBuffer.length);
-    console.log('Premiers octets:', fileBuffer.slice(0, 16));
-    console.log('Nom du fichier original:', file.name, 'Type:', file.type);
-    // ========================
+    const ocrText = ocrResult.ParsedText;
 
-    if (!fileBuffer || fileBuffer.length === 0) throw new Error('Le fichier est vide ou non lisible.');
+    // Vérifier si c'est du texte de fallback (mode dev uniquement)
+    const isFallbackText = ocrText.includes('FALLBACK_TEXT') || ocrText.includes('Test User');
+    if (isFallbackText) {
+      console.log('❌ OCR échoué - Utilisation du texte de fallback détectée');
+      return NextResponse.json({ 
+        error: 'OCR_FAILED', 
+        message: 'Le service OCR est temporairement indisponible. Veuillez réessayer plus tard.' 
+      }, { status: 503 });
+    }
 
-    console.log('🔍 Début de l\'extraction OCR...');
-    // --- FORCER LE PROVIDER OCR À OCR.SPACE POUR RAPIDITÉ ---
-    console.log('🔄 Utilisation du provider OCR: ocrspace');
-    let ocrResult;
+    console.log('✅ OCR terminé, longueur du texte:', ocrText.length);
+    
+    if (!ocrText || ocrText.trim().length < 20) {
+      return NextResponse.json({ 
+        error: "L'OCR n'a pas pu extraire suffisamment de texte. Le fichier pourrait être illisible ou protégé.", 
+        details: ocrText 
+      }, { status: 400 });
+    }
+
+    // 2. Analyse IA optimisée avec le nouveau service
+    console.log('🤖 Début de l\'analyse IA optimisée...');
+    const analysisService = new PayslipAnalysisService();
+    
+    // Détection automatique du pays
+    const detectedCountry = await analysisService.detectCountry(ocrText);
+    console.log('🌍 Pays détecté:', detectedCountry);
+    
+    // Analyse complète avec validation et recommandations
+    const analysisResult = await analysisService.analyzePayslip(ocrText, detectedCountry, session.user.id);
+    
+    console.log('✅ Analyse IA terminée:', {
+      confidence: analysisResult.validation.confidence,
+      warnings: analysisResult.validation.warnings.length,
+      recommendations: analysisResult.recommendations.recommendations.length
+    });
+
+    // 3. Apprentissage automatique - Stockage des données
+    console.log('🧠 Stockage des données d\'apprentissage...');
+    let learningInsights: any[] | null = null;
     try {
-      ocrResult = await extractText(fileBuffer, 'ocrspace', file.name);
-      console.log('🟡 Réponse brute OCR.space:', JSON.stringify(ocrResult));
-    } catch (err) {
-      console.error('Erreur OCR.space:', err);
-      // Fallback automatique sur Tesseract
+      const learningData = {
+        user_id: session.user.id,
+        country: detectedCountry,
+        statut: analysisResult.finalData.statut || 'Autre',
+        raw_ocr_text: ocrText,
+        extracted_data: analysisResult.finalData,
+        validation_result: analysisResult.validation,
+        confidence_score: analysisResult.validation.confidence,
+        validated: analysisResult.validation.isValid
+      };
+
+      const learningId = await OCRLearningService.storeLearningData(learningData);
+      console.log('✅ Données d\'apprentissage stockées:', learningId);
+
+      // Amélioration de la confiance basée sur l'apprentissage
       try {
-        ocrResult = await extractText(fileBuffer, 'tesseract', file.name);
-        console.log('🟢 Fallback Tesseract réussi:', JSON.stringify(ocrResult));
-      } catch (err2) {
-        console.error('Erreur Tesseract:', err2);
-        return NextResponse.json({ error: "OCR: Aucun texte lisible extrait. Vérifiez la qualité du fichier ou essayez un autre moteur.", details: String(err2) }, { status: 400 });
+        const enhancedConfidence = await OCRLearningService.enhanceConfidenceWithLearning(
+          detectedCountry,
+          analysisResult.finalData.statut || 'Autre',
+          analysisResult.validation.confidence
+        );
+
+        if (enhancedConfidence > analysisResult.validation.confidence) {
+          console.log(`📈 Confiance améliorée: ${analysisResult.validation.confidence} → ${enhancedConfidence}`);
+          analysisResult.validation.confidence = enhancedConfidence;
+        }
+      } catch (confidenceError) {
+        console.error('⚠️ Erreur lors de l\'amélioration de confiance (non bloquant):', confidenceError);
       }
+
+      // Génération d'insights d'apprentissage
+      try {
+        learningInsights = await OCRLearningService.generateLearningInsights(
+          detectedCountry,
+          analysisResult.finalData.statut || 'Autre'
+        );
+        console.log('💡 Insights d\'apprentissage:', learningInsights);
+      } catch (insightsError) {
+        console.error('⚠️ Erreur lors de la génération d\'insights (non bloquant):', insightsError);
+        learningInsights = ['Apprentissage en cours de configuration'];
+      }
+
+    } catch (learningError) {
+      console.error('⚠️ Erreur lors du stockage d\'apprentissage (non bloquant):', learningError);
+      learningInsights = ['Apprentissage temporairement indisponible'];
+      // L'erreur d'apprentissage ne bloque pas le processus principal
     }
-    const payslipText = ocrResult.text;
-    console.log('✅ OCR terminé, longueur du texte:', payslipText.length);
-    console.log('📊 Métriques OCR:', {
-      provider: ocrResult.provider,
-      confidence: ocrResult.confidence,
-      duration_ms: ocrResult.duration_ms
-    });
-    if (!payslipText || payslipText.trim().length < 20) {
-      return NextResponse.json({ error: "L'OCR n'a pas pu extraire suffisamment de texte. Le fichier pourrait être illisible ou protégé.", details: payslipText }, { status: 400 });
-    }
-    
-    console.log('🤖 Début de l\'analyse IA...');
-    const model = "gpt-4o";
-    const llmResponse = await openai.chat.completions.create({
-      model,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: payslipAnalysisPrompt },
-        { role: "user", content: `Voici le texte du bulletin à analyser:\n\n${payslipText}` }
-      ],
-    });
-    
-    console.log('✅ Réponse IA reçue');
-    
-    const jsonResponse = llmResponse.choices[0].message.content;
-    if (!jsonResponse) throw new Error("Le LLM a retourné une réponse vide.");
-    
-    console.log('🔧 Parsing de la réponse JSON...');
-    const parsedData = JSON.parse(jsonResponse);
-    console.log('✅ Données parsées avec succès');
-    
+
+    // 4. Sauvegarde dans Supabase avec les nouvelles données
     console.log('💾 Sauvegarde dans Supabase...');
+    
     // Enregistrement dans la table analyses (historique)
     const { data: analysisRecord, error } = await supabase
       .from('analyses')
       .insert({ 
         user_id: session.user.id, 
         file_name: file.name, 
-        raw_text: payslipText, 
-        model_used: model, 
-        data: parsedData,
+        raw_text: ocrText, 
+        model_used: 'gpt-4o-optimized', 
+        data: {
+          extraction: analysisResult.extraction,
+          validation: analysisResult.validation,
+          recommendations: analysisResult.recommendations,
+          final_data: analysisResult.finalData,
+          learning_insights: learningInsights || []
+        },
         created_at: new Date().toISOString()
       })
       .select('id')
       .single();
+      
     if (error) {
-      console.error('❌ Erreur Supabase:', error);
+      console.error('❌ Erreur Supabase analyses:', error);
       throw error;
     }
 
-    // Log du JSON analysé avant insertion dans holerites
-    console.log('�� JSON analysé à insérer dans holerites:', JSON.stringify(parsedData, null, 2));
     // Enregistrement dans la table holerites (pour dashboard)
+    const finalData = analysisResult.finalData;
     const { data: holeriteData, error: holeriteError } = await supabase
       .from('holerites')
       .insert({
         user_id: session.user.id,
-        structured_data: parsedData,
-        nome: parsedData['Identificação']?.employee_name || '',
-        empresa: parsedData['Identificação']?.company_name || '',
-        perfil: parsedData['Identificação']?.profile_type || '',
-        salario_bruto: parsedData['Salários']?.gross_salary || null,
-        salario_liquido: parsedData['Salários']?.net_salary || null,
+        structured_data: {
+          // Données structurées pour compatibilité
+          Identificação: {
+            employee_name: finalData.employee_name,
+            company_name: finalData.company_name,
+            position: finalData.position,
+            profile_type: finalData.statut
+          },
+          Salários: {
+            gross_salary: finalData.salario_bruto,
+            net_salary: finalData.salario_liquido
+          },
+          // Nouvelles données optimisées
+          analysis_result: analysisResult,
+          validation_warnings: analysisResult.validation.warnings,
+          confidence_score: analysisResult.validation.confidence,
+          learning_insights: learningInsights || [],
+          // Recommandations IA directement accessibles
+          recommendations: analysisResult.recommendations,
+          final_data: analysisResult.finalData,
+          descontos: finalData.descontos
+        },
+        nome: finalData.employee_name || '',
+        empresa: finalData.company_name || '',
+        perfil: finalData.statut || '',
+        salario_bruto: finalData.salario_bruto,
+        salario_liquido: finalData.salario_liquido,
         created_at: new Date().toISOString(),
       })
       .select('id')
       .single();
+      
     if (holeriteError) {
       console.error('❌ Erreur insertion holerites:', holeriteError);
-      // On ne bloque pas la réponse, mais on peut l'indiquer côté client si besoin
     }
 
+    // 5. Traitement des bénéfices détectés
     try {
-      const detectedBenefits = extractBenefitsFromParsedData(parsedData);
+      const detectedBenefits = extractBenefitsFromParsedData(analysisResult.finalData);
       if (detectedBenefits.length > 0) {
         const rows = detectedBenefits.map((b) => ({
           user_id: session.user.id,
@@ -139,21 +235,20 @@ export async function POST(req: NextRequest) {
       console.error('Erro ao processar benefícios:', err);
     }
 
-    // Insertion des résultats OCR dans la table ocr_results
+    // 6. Insertion des résultats OCR dans la table ocr_results
     if (holeriteData?.id) {
       const { error: ocrError } = await supabase
         .from('ocr_results')
         .insert({
           holerite_id: holeriteData.id,
-          provider: ocrResult.provider,
-          raw_text: ocrResult.text,
-          confidence: ocrResult.confidence,
-          duration_ms: ocrResult.duration_ms,
+          provider: 'ocrspace',
+          raw_text: ocrText,
+          confidence: null, // OCR.Space ne fournit pas de score de confiance
+          duration_ms: null, // Pas de mesure de durée disponible
         });
       
       if (ocrError) {
         console.error('❌ Erreur insertion ocr_results:', ocrError);
-        // On ne bloque pas la réponse, mais on log l'erreur
       } else {
         console.log('✅ Résultats OCR sauvegardés avec succès');
       }
@@ -161,16 +256,27 @@ export async function POST(req: NextRequest) {
     
     console.log('✅ Analyse complète avec succès, ID:', analysisRecord.id);
     
+    // 7. Réponse optimisée avec toutes les données
     return NextResponse.json({ 
       success: true, 
-      analysisId: analysisRecord.id, 
-      analysisData: parsedData 
+      analysisId: analysisRecord.id,
+      data: {
+        extraction: analysisResult.extraction,
+        validation: {
+          isValid: analysisResult.validation.isValid,
+          confidence: analysisResult.validation.confidence,
+          warnings: analysisResult.validation.warnings
+        },
+        recommendations: analysisResult.recommendations,
+        finalData: analysisResult.finalData,
+        learningInsights: learningInsights || []
+      },
+      country: detectedCountry
     });
     
   } catch (error) {
     console.error('❌ Erreur détaillée dans /api/process-payslip:', error);
     
-    // Gestion spécifique des erreurs OCR
     let errorMessage = 'Erreur interne du serveur.';
     if (error instanceof Error) {
       if (error.message.includes('E101')) {

@@ -2,15 +2,20 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function PayslipDetailPage({ params }: any) {
+interface PayslipDetailPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function PayslipDetailPage({ params }: PayslipDetailPageProps) {
   const supabase = await createClient()
+  const { id } = await params
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     redirect('/login')
   }
-
-  const { id } = params // Correction: Pas de await ici
 
   // On récupère le bulletin spécifique ET ses lignes de gains/déductions associées en une seule requête !
   const { data: payslip, error } = await supabase

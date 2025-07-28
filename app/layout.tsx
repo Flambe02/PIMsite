@@ -39,7 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SupabaseProvider initialSession={session}>
           <ReactQueryProvider>
             {children}
-            <Analytics />
+            {process.env.NODE_ENV === 'production' && <Analytics />}
           </ReactQueryProvider>
         </SupabaseProvider>
       </body>

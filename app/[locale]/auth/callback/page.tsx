@@ -31,9 +31,9 @@ export default function AuthCallback() {
             .single();
           const onboardingComplete = onboarding && onboarding.profile_completed && onboarding.checkup_completed && onboarding.holerite_uploaded;
           if (!onboardingComplete) {
-            window.location.href = `/${locale}/onboarding?step=1`;
+            router.replace(`/${locale}/onboarding?step=1`);
           } else {
-            window.location.href = `/${locale}/dashboard`;
+            router.replace(`/${locale}/dashboard`);
           }
           return;
         } else {

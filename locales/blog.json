@@ -1,0 +1,110 @@
+{
+  "br": {
+    "blog": {
+      "title": "Blog PIM",
+      "subtitle": "Artigos e guias sobre holerites e finanças",
+      "noArticles": "Nenhum artigo disponível no momento",
+      "readMore": "Ler mais",
+      "publishedOn": "Publicado em",
+      "backToList": "Voltar à lista",
+      "share": "Compartilhar",
+      "relatedArticles": "Artigos relacionados",
+      "searchPlaceholder": "Buscar artigos...",
+      "filterByCategory": "Filtrar por categoria",
+      "allCategories": "Todas as categorias",
+      "holerite": "Holerite",
+      "finances": "Finanças",
+      "taxes": "Impostos",
+      "benefits": "Benefícios",
+      "tips": "Dicas",
+      "loading": "Carregando artigos...",
+      "error": "Erro ao carregar artigos"
+    },
+    "country": {
+      "selectCountry": "Selecionar país",
+      "currentCountry": "País atual",
+      "changeCountry": "Alterar país"
+    }
+  },
+  "fr": {
+    "blog": {
+      "title": "Blog PIM",
+      "subtitle": "Articles et guides sur les fiches de paie et finances",
+      "noArticles": "Aucun article disponible pour le moment",
+      "readMore": "Lire la suite",
+      "publishedOn": "Publié le",
+      "backToList": "Retour à la liste",
+      "share": "Partager",
+      "relatedArticles": "Articles connexes",
+      "searchPlaceholder": "Rechercher des articles...",
+      "filterByCategory": "Filtrer par catégorie",
+      "allCategories": "Toutes les catégories",
+      "holerite": "Fiche de paie",
+      "finances": "Finances",
+      "taxes": "Impôts",
+      "benefits": "Avantages",
+      "tips": "Conseils",
+      "loading": "Chargement des articles...",
+      "error": "Erreur lors du chargement des articles"
+    },
+    "country": {
+      "selectCountry": "Sélectionner le pays",
+      "currentCountry": "Pays actuel",
+      "changeCountry": "Changer de pays"
+    }
+  },
+  "es": {
+    "blog": {
+      "title": "Blog PIM",
+      "subtitle": "Artículos y guías sobre nóminas y finanzas",
+      "noArticles": "No hay artículos disponibles en este momento",
+      "readMore": "Leer más",
+      "publishedOn": "Publicado el",
+      "backToList": "Volver a la lista",
+      "share": "Compartir",
+      "relatedArticles": "Artículos relacionados",
+      "searchPlaceholder": "Buscar artículos...",
+      "filterByCategory": "Filtrar por categoría",
+      "allCategories": "Todas las categorías",
+      "holerite": "Nómina",
+      "finances": "Finanzas",
+      "taxes": "Impuestos",
+      "benefits": "Beneficios",
+      "tips": "Consejos",
+      "loading": "Cargando artículos...",
+      "error": "Error al cargar artículos"
+    },
+    "country": {
+      "selectCountry": "Seleccionar país",
+      "currentCountry": "País actual",
+      "changeCountry": "Cambiar país"
+    }
+  },
+  "en": {
+    "blog": {
+      "title": "PIM Blog",
+      "subtitle": "Articles and guides about payslips and finances",
+      "noArticles": "No articles available at the moment",
+      "readMore": "Read more",
+      "publishedOn": "Published on",
+      "backToList": "Back to list",
+      "share": "Share",
+      "relatedArticles": "Related articles",
+      "searchPlaceholder": "Search articles...",
+      "filterByCategory": "Filter by category",
+      "allCategories": "All categories",
+      "holerite": "Payslip",
+      "finances": "Finances",
+      "taxes": "Taxes",
+      "benefits": "Benefits",
+      "tips": "Tips",
+      "loading": "Loading articles...",
+      "error": "Error loading articles"
+    },
+    "country": {
+      "selectCountry": "Select country",
+      "currentCountry": "Current country",
+      "changeCountry": "Change country"
+    }
+  }
+} 
