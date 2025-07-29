@@ -15,7 +15,7 @@ const requiredVars = [
 console.log('📋 Variables d\'environnement actuelles:');
 console.log('========================================');
 
-let missingVars = [];
+let missingVars: string[] = [];
 
 requiredVars.forEach(varName => {
   const value = process.env[varName];

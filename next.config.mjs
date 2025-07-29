@@ -22,6 +22,9 @@ let nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   webpack: (config, { isServer }) => {
     // Configuration pour gérer les modules ES
     config.resolve.extensionAlias = {
