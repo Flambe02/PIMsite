@@ -79,14 +79,14 @@ function testAutoCalculation() {
   
   // Somme des impostos
   if (testData.impostos && Array.isArray(testData.impostos)) {
-    totalImpostos = testData.impostos.reduce((sum, item) => {
+    totalImpostos = testData.impostos.reduce((sum, item: any) => {
       return sum + (item.valor || item.value || 0);
     }, 0);
   }
   
   // Somme des seguros
   if (testData.seguros && Array.isArray(testData.seguros)) {
-    totalSeguros = testData.seguros.reduce((sum, item) => {
+    totalSeguros = testData.seguros.reduce((sum, item: any) => {
       return sum + (item.valor || item.value || item.amount || 0);
     }, 0);
   }
