@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, TrendingUp, Lightbulb, RefreshCw, FileText, User, Building, GraduationCap, Briefcase } from 'lucide-react';
+import { CheckCircle, TrendingUp, Lightbulb, RefreshCw, FileText, User, Building, GraduationCap, Briefcase, Info } from 'lucide-react';
 import { ScanResults as ScanResultsType } from '@/hooks/useScanNewPIM';
 
 export interface ScanResultsProps {
@@ -124,9 +124,39 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Scan concluído com sucesso !
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-3">
           Sua folha de pagamento foi analisada e as recomendações estão prontas
         </p>
+        
+        {/* Indicateur de confiance discret */}
+        <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
+          <span>Confiança da extração:</span>
+          <span className={`font-medium ${getConfidenceColor(analysis.confidence)}`}>
+            {Math.round(analysis.confidence * 100)}%
+          </span>
+          <button
+            onClick={() => {
+              alert(`Índice de Confiança da Extração:
+
+Este indicador mostra a fiabilidade da extração dos dados da sua folha de pagamento pela nossa IA.
+
+• 80-100%: Extração muito confiável
+• 60-79%: Extração confiável com algumas incertezas
+• 40-59%: Extração moderada, verificação recomendada
+• 0-39%: Extração baixa, análise manual necessária
+
+Fatores que influenciam a confiança:
+- Qualidade da imagem escaneada
+- Clareza do texto
+- Formato padrão da folha
+- Presença de todos os campos obrigatórios`);
+            }}
+            className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+            title="Clique para mais informações sobre o índice de confiança"
+          >
+            <Info className="w-3 h-3 text-gray-600" />
+          </button>
+        </div>
         
         {/* Information sur les pages dupliquées */}
         {results.ocr.duplicateInfo && (
@@ -235,15 +265,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
               </div>
             )}
 
-            {/* Score de confiance */}
-            <div className="pt-3 border-t border-gray-200">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Confiança</span>
-                <span className={`font-medium ${getConfidenceColor(analysis.confidence)}`}>
-                  {Math.round(analysis.confidence * 100)}%
-                </span>
-              </div>
-            </div>
+
 
             {/* Déductions détaillées */}
             {structuredData.descontos > 0 && (

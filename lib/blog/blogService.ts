@@ -4,165 +4,222 @@
 import { createClient } from '@/lib/supabase/server';
 
 export interface BlogArticle {
-  id?: string;
-  country: string;
+  id: string;
   title: string;
   slug: string;
-  content_markdown: string;
-  excerpt?: string;
-  featured_image_url?: string;
-  author?: string;
-  published_at?: string;
-  created_at?: string;
-  updated_at?: string;
+  content: string;
+  excerpt: string;
+  country: string;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BlogArticleListParams {
+  country: string;
+  limit?: number;
+  offset?: number;
 }
 
 export class BlogService {
+  private async getSupabase() {
+    return await createClient();
+  }
+
   /**
-   * Récupère tous les articles de blog par pays
+   * Récupère tous les articles publiés pour un pays donné
    */
-  static async getArticles(country?: string): Promise<BlogArticle[]> {
-    const supabase = await createClient();
-    
-    let query = supabase
-      .from('blog_articles')
-      .select('*')
-      .order('published_at', { ascending: false });
+  async getArticlesByCountry({ country, limit = 10, offset = 0 }: BlogArticleListParams): Promise<BlogArticle[]> {
+    try {
+      const supabase = await this.getSupabase();
+      const { data, error } = await supabase
+        .from('blog_articles')
+        .select('*')
+        .eq('country', country)
+        .not('published_at', 'is', null)
+        .order('published_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
-    if (country) {
-      query = query.eq('country', country);
-    }
+      if (error) {
+        console.error('Erreur lors de la récupération des articles:', error);
+        throw error;
+      }
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('❌ Erreur lors de la récupération des articles:', error);
+      return data || [];
+    } catch (error) {
+      console.error('Erreur BlogService.getArticlesByCountry:', error);
       return [];
     }
-
-    return data || [];
   }
 
   /**
-   * Récupère un article par son slug
+   * Récupère un article par son slug et pays
    */
-  static async getArticleBySlug(slug: string): Promise<BlogArticle | null> {
-    const supabase = await createClient();
-    
-    const { data, error } = await supabase
-      .from('blog_articles')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+  async getArticleBySlug(slug: string, country: string): Promise<BlogArticle | null> {
+    try {
+      const supabase = await this.getSupabase();
+      const { data, error } = await supabase
+        .from('blog_articles')
+        .select('*')
+        .eq('slug', slug)
+        .eq('country', country)
+        .not('published_at', 'is', null)
+        .single();
 
-    if (error) {
-      console.error('❌ Erreur lors de la récupération de l\'article:', error);
+      if (error) {
+        console.error('Erreur lors de la récupération de l\'article:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erreur BlogService.getArticleBySlug:', error);
       return null;
     }
-
-    return data;
   }
 
   /**
-   * Récupère les articles par pays
+   * Récupère les articles les plus récents pour un pays
    */
-  static async getArticlesByCountry(country: string): Promise<BlogArticle[]> {
-    return this.getArticles(country);
+  async getRecentArticles(country: string, limit: number = 3): Promise<BlogArticle[]> {
+    try {
+      const supabase = await this.getSupabase();
+      const { data, error } = await supabase
+        .from('blog_articles')
+        .select('*')
+        .eq('country', country)
+        .not('published_at', 'is', null)
+        .order('published_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Erreur lors de la récupération des articles récents:', error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Erreur BlogService.getRecentArticles:', error);
+      return [];
+    }
   }
 
   /**
-   * Crée un nouvel article (admin seulement)
+   * Recherche d'articles par mot-clé
    */
-  static async createArticle(article: Omit<BlogArticle, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
-    const supabase = await createClient();
-    
-    const { data, error } = await supabase
-      .from('blog_articles')
-      .insert(article)
-      .select('id')
-      .single();
+  async searchArticles(country: string, query: string, limit: number = 10): Promise<BlogArticle[]> {
+    try {
+      const supabase = await this.getSupabase();
+      const { data, error } = await supabase
+        .from('blog_articles')
+        .select('*')
+        .eq('country', country)
+        .not('published_at', 'is', null)
+        .or(`title.ilike.%${query}%,content.ilike.%${query}%,excerpt.ilike.%${query}%`)
+        .order('published_at', { ascending: false })
+        .limit(limit);
 
-    if (error) {
-      console.error('❌ Erreur lors de la création de l\'article:', error);
-      throw new Error('Impossible de créer l\'article');
+      if (error) {
+        console.error('Erreur lors de la recherche d\'articles:', error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Erreur BlogService.searchArticles:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Compte le nombre total d'articles pour un pays
+   */
+  async getArticleCount(country: string): Promise<number> {
+    try {
+      const supabase = await this.getSupabase();
+      const { count, error } = await supabase
+        .from('blog_articles')
+        .select('*', { count: 'exact', head: true })
+        .eq('country', country)
+        .not('published_at', 'is', null);
+
+      if (error) {
+        console.error('Erreur lors du comptage des articles:', error);
+        throw error;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('Erreur BlogService.getArticleCount:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Génère un slug unique à partir d'un titre
+   */
+  async generateUniqueSlug(title: string, country: string): Promise<string> {
+    const baseSlug = this.generateSlug(title);
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const existingArticle = await this.getArticleBySlug(slug, country);
+      if (!existingArticle) {
+        break;
+      }
+      slug = `${baseSlug}-${counter}`;
+      counter++;
     }
 
-    console.log('✅ Article créé avec succès:', data.id);
-    return data.id;
+    return slug;
   }
 
   /**
-   * Met à jour un article (admin seulement)
+   * Génère un slug à partir d'un titre
    */
-  static async updateArticle(id: string, updates: Partial<BlogArticle>): Promise<void> {
-    const supabase = await createClient();
-    
-    const { error } = await supabase
-      .from('blog_articles')
-      .update(updates)
-      .eq('id', id);
-
-    if (error) {
-      console.error('❌ Erreur lors de la mise à jour de l\'article:', error);
-      throw new Error('Impossible de mettre à jour l\'article');
-    }
-
-    console.log('✅ Article mis à jour avec succès:', id);
-  }
-
-  /**
-   * Supprime un article (admin seulement)
-   */
-  static async deleteArticle(id: string): Promise<void> {
-    const supabase = await createClient();
-    
-    const { error } = await supabase
-      .from('blog_articles')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('❌ Erreur lors de la suppression de l\'article:', error);
-      throw new Error('Impossible de supprimer l\'article');
-    }
-
-    console.log('✅ Article supprimé avec succès:', id);
-  }
-
-  /**
-   * Génère un slug à partir du titre
-   */
-  static generateSlug(title: string): string {
+  private generateSlug(title: string): string {
     return title
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[\u0300-\u036f]/g, '') // Supprime les accents
+      .replace(/[^a-z0-9\s-]/g, '') // Garde seulement lettres, chiffres, espaces et tirets
+      .replace(/\s+/g, '-') // Remplace les espaces par des tirets
+      .replace(/-+/g, '-') // Remplace les tirets multiples par un seul
       .trim();
   }
 
   /**
-   * Récupère les statistiques du blog
+   * Génère un extrait à partir du contenu
    */
-  static async getBlogStats(): Promise<{ [country: string]: number }> {
-    const supabase = await createClient();
-    
-    const { data, error } = await supabase
-      .from('blog_articles')
-      .select('country');
+  generateExcerpt(content: string, maxLength: number = 150): string {
+    // Supprime les balises Markdown
+    const plainText = content
+      .replace(/#{1,6}\s+/g, '') // Supprime les titres
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Supprime le gras
+      .replace(/\*(.*?)\*/g, '$1') // Supprime l'italique
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Supprime les liens
+      .replace(/`([^`]+)`/g, '$1') // Supprime le code inline
+      .replace(/```[\s\S]*?```/g, '') // Supprime les blocs de code
+      .replace(/\n+/g, ' ') // Remplace les sauts de ligne par des espaces
+      .trim();
 
-    if (error) {
-      console.error('❌ Erreur lors de la récupération des stats du blog:', error);
-      return {};
+    if (plainText.length <= maxLength) {
+      return plainText;
     }
 
-    const stats: { [country: string]: number } = {};
-    data?.forEach(article => {
-      stats[article.country] = (stats[article.country] || 0) + 1;
-    });
+    // Coupe à la dernière phrase complète
+    const truncated = plainText.substring(0, maxLength);
+    const lastPeriod = truncated.lastIndexOf('.');
+    const lastSpace = truncated.lastIndexOf(' ');
 
-    return stats;
+    if (lastPeriod > maxLength * 0.8) {
+      return truncated.substring(0, lastPeriod + 1);
+    }
+
+    return truncated.substring(0, lastSpace) + '...';
   }
-} 
+}
+
+// Instance singleton
+export const blogService = new BlogService(); 
