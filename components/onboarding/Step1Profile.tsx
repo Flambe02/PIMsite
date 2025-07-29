@@ -1,12 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function Step1Profile({ onNext, locale }: { onNext: () => void, locale: string }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Pré-remplissage depuis le profil utilisateur (robuste)
+  useEffect(() => {
+    async function fetchProfile() {
+      setFetching(true);
+      try {
+        const res = await fetch("/api/profile", { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Profil reçu:", data);
+          if (data) {
+            // Mapping robuste
+            if (data.nome) {
+              const parts = String(data.nome).trim().split(" ");
+              setFirstName(parts[0] || "");
+              setLastName(parts.slice(1).join(" ") || "");
+            } else if (data.firstName || data.lastName) {
+              setFirstName(data.firstName || "");
+              setLastName(data.lastName || "");
+            } else if (data.email) {
+              setFirstName(data.email.split("@")[0]);
+              setLastName("");
+            }
+          }
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        setFetching(false);
+      }
+    }
+    fetchProfile();
+  }, []);
 
   const handleSave = async () => {
     setLoading(true); setError(""); setSuccess(false);
@@ -27,6 +61,10 @@ export default function Step1Profile({ onNext, locale }: { onNext: () => void, l
       setLoading(false);
     }
   };
+
+  if (fetching) {
+    return <div className="flex justify-center items-center min-h-[200px]">Carregando...</div>;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[300px] w-full px-2">
