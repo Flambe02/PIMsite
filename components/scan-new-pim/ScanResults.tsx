@@ -5,10 +5,12 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, TrendingUp, Lightbulb, RefreshCw, FileText, User, Building, GraduationCap, Briefcase, Info } from 'lucide-react';
+import { CheckCircle, TrendingUp, Lightbulb, RefreshCw, FileText, User, Building, GraduationCap, Briefcase, Info, Edit3 } from 'lucide-react';
 import { ScanResults as ScanResultsType } from '@/hooks/useScanNewPIM';
+import { DataEditModal } from './DataEditModal';
+import { payslipEditService } from '@/lib/services/payslipEditService';
 
 export interface ScanResultsProps {
   results: ScanResultsType;
@@ -21,6 +23,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
   onReset,
   className = ''
 }) => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { analysis } = results;
   const { structuredData, recommendations } = analysis;
 
@@ -96,6 +99,29 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
 
   const recommendationsList = getRecommendationsList();
   const scoreOptimisation = recommendations?.score_optimisation || 75;
+
+  // Fonctions pour gérer l'édition
+  const handleEditData = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditedData = async (editedData: any, customFields: any[]) => {
+    try {
+      // Pour l'instant, on simule la sauvegarde sans ID
+      // TODO: Implémenter la récupération de l'ID depuis le contexte ou les props
+      console.log('Données éditées:', editedData);
+      console.log('Champs personnalisés:', customFields);
+      
+      // Simulation de sauvegarde
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Données éditées sauvegardées avec succès');
+      
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      throw error;
+    }
+  };
 
   // DEBUG: Afficher la structure des recommandations
   console.log('🔍 DEBUG ScanResults - Structure des recommandations:', {
@@ -184,10 +210,19 @@ Fatores que influenciam a confiança:
           transition={{ delay: 0.3 }}
           className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <FileText className="w-5 h-5 mr-2" />
-            Dados extraídos
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Dados extraídos
+            </h3>
+            <button
+              onClick={handleEditData}
+              className="rounded-full p-2 bg-gray-100 hover:bg-gray-200 transition-colors"
+              title="Editar dados extraídos"
+            >
+              <Edit3 className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
 
           <div className="space-y-3">
             {structuredData.employee_name && structuredData.employee_name.trim() !== '' && (
@@ -452,6 +487,15 @@ Fatores que influenciam a confiança:
           <span>Novo scan</span>
         </motion.button>
       </motion.div>
+
+      {/* Modal d'édition des données */}
+      <DataEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        initialData={structuredData}
+        onSave={handleSaveEditedData}
+        country="br"
+      />
     </div>
   );
 }; 

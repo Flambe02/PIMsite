@@ -8,6 +8,50 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react';
 // Can be imported from a shared config
 const locales = ['br', 'fr', 'en', 'fr-ca', 'pt-pt', 'en-gb'];
 
+// Articles de démonstration temporaires
+const demoArticles = [
+  {
+    id: '1',
+    title: 'Entenda seu holerite: Guia completo para funcionários CLT',
+    slug: 'entenda-seu-holerite-guia-completo-funcionarios-clt',
+    excerpt: 'Receber o holerite parece simples, mas muitos trabalhadores têm dúvidas sobre seus detalhes. Neste artigo, explicamos os principais elementos que compõem sua folha de pagamento e como interpretá-los corretamente.',
+    published_at: new Date().toISOString(),
+    country: 'br'
+  },
+  {
+    id: '2',
+    title: 'Vale refeição: Tudo que você precisa saber sobre este benefício',
+    slug: 'vale-refeicao-tudo-que-voce-precisa-saber-beneficio',
+    excerpt: 'O vale refeição é um dos benefícios mais valorizados pelos trabalhadores brasileiros. Mas você sabe como ele funciona e quais são seus direitos? Vamos esclarecer todas as dúvidas.',
+    published_at: new Date().toISOString(),
+    country: 'br'
+  },
+  {
+    id: '3',
+    title: 'Impostos na folha de pagamento: INSS e IRRF explicados',
+    slug: 'impostos-folha-pagamento-inss-irrf-explicados',
+    excerpt: 'Os impostos descontados na folha de pagamento são uma das maiores dúvidas dos trabalhadores. Vamos explicar como funcionam o INSS e o IRRF, os principais impostos que afetam seu salário.',
+    published_at: new Date().toISOString(),
+    country: 'br'
+  },
+  {
+    id: '4',
+    title: 'Benefícios trabalhistas: Como maximizar seus ganhos',
+    slug: 'beneficios-trabalhistas-como-maximizar-ganhos',
+    excerpt: 'Os benefícios trabalhistas podem representar uma parte significativa da sua remuneração total. Vamos explorar os principais benefícios e como otimizá-los para maximizar seus ganhos.',
+    published_at: new Date().toISOString(),
+    country: 'br'
+  },
+  {
+    id: '5',
+    title: 'Planejamento de carreira: Como aumentar seu salário',
+    slug: 'planejamento-carreira-como-aumentar-salario',
+    excerpt: 'Aumentar o salário é um objetivo comum entre os profissionais. Mas como fazer isso de forma estratégica e sustentável? Vamos explorar as melhores práticas.',
+    published_at: new Date().toISOString(),
+    country: 'br'
+  }
+];
+
 interface BlogPageProps {
   params: Promise<{ locale: string }>;
 }
@@ -44,11 +88,20 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
   const country = locale as string;
   
-  // Récupérer les articles depuis la base de données
-  const articles = await blogService.getArticlesByCountry({ 
-    country, 
-    limit: 20 
-  });
+  // Essayer de récupérer les articles depuis la base de données
+  let articles: any[] = [];
+  let useDemoArticles = false;
+  
+  try {
+    articles = await blogService.getArticlesByCountry({ 
+      country, 
+      limit: 20 
+    });
+  } catch (error) {
+    console.log('Utilisation des articles de démonstration - Base de données non configurée');
+    useDemoArticles = true;
+    articles = demoArticles.filter(article => article.country === country);
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -72,6 +125,13 @@ export default async function BlogPage({ params }: BlogPageProps) {
               Descubra artigos especializados sobre folha de pagamento, benefícios trabalhistas, 
               impostos e otimização salarial. Dicas práticas para maximizar seus ganhos.
             </p>
+            {useDemoArticles && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800">
+                  🎯 Mode de démonstration : Articles de test affichés
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
