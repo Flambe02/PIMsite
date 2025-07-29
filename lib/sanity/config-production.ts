@@ -2,15 +2,33 @@ import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 import { projectId, dataset, apiVersion } from '../../sanity/env';
 
-export const config = {
+// Configuration pour la production (lecture publique)
+export const configProduction = {
   projectId,
   dataset,
   apiVersion,
-  useCdn: process.env.NODE_ENV === 'production', // `false` if you want to ensure fresh data
+  useCdn: true, // Utilise le CDN pour de meilleures performances
 };
 
-// Create a Sanity client
-export const sanityClient = createClient(config);
+// Configuration pour le développement (avec token)
+export const configDevelopment = {
+  projectId,
+  dataset,
+  apiVersion,
+  useCdn: false,
+  token: process.env.SANITY_API_TOKEN,
+};
+
+// Client de production (lecture publique)
+export const sanityClientProduction = createClient(configProduction);
+
+// Client de développement (avec token pour écriture)
+export const sanityClientDevelopment = createClient(configDevelopment);
+
+// Client à utiliser selon l'environnement
+export const sanityClient = process.env.NODE_ENV === 'production' 
+  ? sanityClientProduction 
+  : sanityClientDevelopment;
 
 // Create an image builder
 const builder = imageUrlBuilder(sanityClient);
@@ -19,11 +37,11 @@ export const urlFor = (source: any) => {
   return builder.image(source);
 };
 
-// GROQ queries
+// GROQ queries optimisées pour la production
 export const queries = {
   // Get all published articles for a specific country
   getArticlesByCountry: `
-    *[_type == "post" && publishedAt != null && (country == $country || country == lower($country))] | order(publishedAt desc) {
+    *[_type == "post" && publishedAt != null && country == $country] | order(publishedAt desc) {
       _id,
       title,
       "slug": slug.current,
@@ -68,7 +86,7 @@ export const queries = {
 
   // Get articles for RSS feed
   getArticlesForRSS: `
-    *[_type == "post" && publishedAt != null && (country == $country || country == lower($country))] | order(publishedAt desc)[0...20] {
+    *[_type == "post" && publishedAt != null && country == $country] | order(publishedAt desc)[0...20] {
       _id,
       title,
       "slug": slug.current,

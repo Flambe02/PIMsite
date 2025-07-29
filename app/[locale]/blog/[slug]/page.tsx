@@ -227,7 +227,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             </p>
 
             {article.tags && article.tags.length > 0 && (
-              <div className="flex flex-wrap gap-3 mb-8">
+              <div className="flex flex-wrap gap-3 mb-4">
                 {article.tags.map((tag, index) => (
                   <span
                     key={index}
@@ -238,6 +238,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 ))}
               </div>
             )}
+            
+            {/* Trait de séparation */}
+            <div className="border-t border-gray-200 mb-0"></div>
           </div>
 
           {/* Image principale si présente */}
@@ -253,7 +256,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           )}
 
           {/* Contenu de l'article */}
-          <div className="p-8 md:p-12 pt-6">
+          <div className="p-8 md:p-12 pt-0">
             <div className="article-content">
               <PortableText value={article.body} components={components} />
             </div>
