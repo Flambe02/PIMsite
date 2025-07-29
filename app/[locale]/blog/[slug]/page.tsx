@@ -1,152 +1,14 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { blogService } from '@/lib/blog/blogService';
 import Link from 'next/link';
-import { Calendar, ArrowLeft, Share2 } from 'lucide-react';
-import { marked } from 'marked';
+import { Calendar, Clock, ArrowLeft, Globe, User } from 'lucide-react';
+import { sanityClient, queries } from '@/lib/sanity/config';
+import { urlFor } from '@/lib/sanity/config';
+import { BlogArticleDetail } from '@/hooks/useSanityBlog';
+import { PortableText } from '@portabletext/react';
 
 // Can be imported from a shared config
 const locales = ['br', 'fr', 'en', 'fr-ca', 'pt-pt', 'en-gb'];
-
-// Articles de démonstration temporaires
-const demoArticles = [
-  {
-    id: '1',
-    title: 'Entenda seu holerite: Guia completo para funcionários CLT',
-    slug: 'entenda-seu-holerite-guia-completo-funcionarios-clt',
-    content: `# Entenda seu holerite: Guia completo para funcionários CLT
-
-Receber o holerite parece simples, mas muitos trabalhadores têm dúvidas sobre seus detalhes. Neste artigo, explicamos os principais elementos que compõem sua folha de pagamento e como interpretá-los corretamente.
-
-## O que é o holerite?
-
-O holerite (ou contracheque) é o documento que detalha todos os valores recebidos e descontados do seu salário no mês. É um direito do trabalhador receber este documento mensalmente.
-
-## Principais seções do holerite
-
-### 1. Cabeçalho
-- **Nome do funcionário**: Seu nome completo
-- **Cargo**: Sua função na empresa
-- **Período**: Mês/ano de referência
-- **Empresa**: Nome da empresa contratante
-
-### 2. Proventos (Vencimentos)
-São os valores que você recebe:
-
-- **Salário base**: Valor do seu salário contratado
-- **Adicionais**: Horas extras, comissões, bonificações
-- **Benefícios**: Vale refeição, vale transporte, plano de saúde
-
-### 3. Descontos
-Valores descontados do seu salário:
-
-- **INSS**: Previdência Social (7,5% a 14%)
-- **IRRF**: Imposto de Renda Retido na Fonte
-- **Outros**: Plano de saúde, vale refeição, etc.
-
-### 4. Totais
-- **Base de cálculo**: Valor usado para calcular impostos
-- **Líquido**: Valor que você recebe efetivamente
-
-## Como calcular seu salário líquido
-
-\`\`\`
-Salário Líquido = Proventos - Descontos
-\`\`\`
-
-## Dicas importantes
-
-1. **Guarde sempre**: Mantenha todos os seus holerites organizados
-2. **Verifique os valores**: Confirme se os descontos estão corretos
-3. **Consulte dúvidas**: Em caso de divergências, procure o RH
-4. **Use ferramentas**: Aproveite o PIM para analisar seu holerite automaticamente
-
-## Conclusão
-
-Entender seu holerite é fundamental para ter controle sobre suas finanças. Com o PIM, você pode analisar automaticamente sua folha de pagamento e receber recomendações personalizadas para otimizar seus ganhos.
-
-**Quer analisar seu holerite agora?** [Faça o upload da sua folha de pagamento](/br/scan-new-pim) e receba insights personalizados!`,
-    excerpt: 'Receber o holerite parece simples, mas muitos trabalhadores têm dúvidas sobre seus detalhes. Neste artigo, explicamos os principais elementos que compõem sua folha de pagamento e como interpretá-los corretamente.',
-    country: 'br',
-    published_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    title: 'Vale refeição: Tudo que você precisa saber sobre este benefício',
-    slug: 'vale-refeicao-tudo-que-voce-precisa-saber-beneficio',
-    content: `# Vale refeição: Tudo que você precisa saber sobre este benefício
-
-O vale refeição é um dos benefícios mais valorizados pelos trabalhadores brasileiros. Mas você sabe como ele funciona e quais são seus direitos? Vamos esclarecer todas as dúvidas.
-
-## O que é o vale refeição?
-
-O vale refeição é um benefício oferecido pelas empresas para ajudar os funcionários com as despesas de alimentação durante o trabalho. Pode ser fornecido em dinheiro ou através de cartões específicos.
-
-## Tipos de vale refeição
-
-### 1. Vale Refeição (VR)
-- **Objetivo**: Cobrir o custo da refeição principal
-- **Valor médio**: R$ 20 a R$ 30 por dia
-- **Isenção de impostos**: Até R$ 26,55 por dia (2024)
-
-### 2. Vale Alimentação (VA)
-- **Objetivo**: Compras em supermercados e estabelecimentos
-- **Valor médio**: R$ 15 a R$ 25 por dia
-- **Isenção de impostos**: Até R$ 26,55 por dia (2024)
-
-## Como funciona o desconto?
-
-### Para o funcionário
-- **VR**: Desconto de até 20% do valor
-- **VA**: Desconto de até 20% do valor
-- **Exemplo**: VR de R$ 30 = desconto de R$ 6
-
-### Para a empresa
-- **Deduções fiscais**: Redução do imposto de renda
-- **Benefício social**: Melhora a qualidade de vida do funcionário
-
-## Valor facial vs. valor recebido
-
-### Valor facial
-- **Definição**: Preço real da refeição no mercado
-- **Média nacional**: R$ 51,61 por refeição (2024)
-- **Variação regional**: R$ 45 a R$ 55 dependendo da região
-
-### Valor recebido
-- **Definição**: Valor que você recebe do vale
-- **Cálculo**: Valor facial - desconto do funcionário
-
-## Como otimizar seu vale refeição
-
-1. **Compare valores**: Verifique se está recebendo um valor adequado
-2. **Analise a rede**: Confirme se o cartão é aceito em bons restaurantes
-3. **Negocie**: Solicite reajustes baseados no custo de vida
-4. **Use ferramentas**: O PIM analisa automaticamente se seu vale está adequado
-
-## Direitos e obrigações
-
-### Direitos do funcionário
-- Receber o benefício mensalmente
-- Escolher onde usar (rede credenciada)
-- Solicitar reajustes baseados na inflação
-
-### Obrigações
-- Usar apenas para alimentação
-- Não transferir para terceiros
-- Respeitar as regras da empresa
-
-## Conclusão
-
-O vale refeição é um benefício importante que pode representar uma economia significativa no seu orçamento. É fundamental entender como funciona e garantir que está recebendo um valor adequado ao mercado.
-
-**Quer analisar se seu vale refeição está adequado?** [Faça o upload do seu holerite](/br/scan-new-pim) e receba uma análise detalhada!`,
-    excerpt: 'O vale refeição é um dos benefícios mais valorizados pelos trabalhadores brasileiros. Mas você sabe como ele funciona e quais são seus direitos? Vamos esclarecer todas as dúvidas.',
-    country: 'br',
-    published_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
 
 interface BlogArticlePageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -159,40 +21,58 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
 
   const country = locale as string;
   
-  // Chercher l'article dans les articles de démonstration
-  const demoArticle = demoArticles.find(article => article.slug === slug && article.country === country);
+  // Récupérer l'article pour les métadonnées
+  const article = await sanityClient.fetch(queries.getArticleBySlug, { slug });
   
-  if (!demoArticle) {
-    notFound();
+  if (!article) {
+    return {
+      title: 'Article non trouvé',
+      description: 'L\'article que vous recherchez n\'existe pas.',
+    };
   }
 
-  const publishedDate = new Date(demoArticle.published_at).toISOString();
-  const modifiedDate = new Date(demoArticle.updated_at).toISOString();
+  const title = article.metaTitle || article.title;
+  const description = article.metaDescription || article.excerpt;
+  const ogImage = article.ogImage || article.image;
 
   return {
-    title: `${demoArticle.title} | Blog PIM`,
-    description: demoArticle.excerpt,
-    keywords: 'folha de pagamento, holerite, benefícios, impostos, salário, carreira, CLT',
-    authors: [{ name: 'PIM' }],
+    title: `${title} | Blog PIM`,
+    description: description,
+    keywords: article.tags?.join(', ') || 'blog, folha de pagamento, holerite, benefícios',
     openGraph: {
-      title: demoArticle.title,
-      description: demoArticle.excerpt,
+      title: title,
+      description: description,
       type: 'article',
-      publishedTime: publishedDate,
-      modifiedTime: modifiedDate,
-      authors: ['PIM'],
       locale: locale,
-      url: `https://pimsite.com/${country}/blog/${slug}`,
+      images: ogImage ? [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        }
+      ] : [],
+      publishedTime: article.publishedAt,
+      authors: article.author ? [article.author] : [],
+      tags: article.tags || [],
     },
     twitter: {
       card: 'summary_large_image',
-      title: demoArticle.title,
-      description: demoArticle.excerpt,
-    },
-    alternates: {
-      canonical: `https://pimsite.com/${country}/blog/${slug}`,
+      title: title,
+      description: description,
+      images: ogImage ? [ogImage] : [],
     },
   };
+}
+
+async function getArticleBySlug(slug: string): Promise<BlogArticleDetail | null> {
+  try {
+    const article = await sanityClient.fetch(queries.getArticleBySlug, { slug });
+    return article || null;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'article:', error);
+    return null;
+  }
 }
 
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
@@ -202,25 +82,11 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const country = locale as string;
   
-  // Chercher l'article dans les articles de démonstration
-  let article: any = demoArticles.find(article => article.slug === slug && article.country === country);
-  let useDemoArticle = false;
-  
+  // Récupérer l'article depuis Sanity
+  const article = await getArticleBySlug(slug);
+
   if (!article) {
-    // Essayer de récupérer depuis la base de données
-    try {
-      const dbArticle = await blogService.getArticleBySlug(slug, country);
-      if (dbArticle) {
-        article = dbArticle;
-      } else {
-        notFound();
-      }
-    } catch (error) {
-      console.log('Article non trouvé dans la base de données');
-      notFound();
-    }
-  } else {
-    useDemoArticle = true;
+    notFound();
   }
 
   const formatDate = (dateString: string) => {
@@ -232,133 +98,190 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     });
   };
 
-  // Convertir le contenu Markdown en HTML
-  const contentHtml = marked(article.content);
-
-  // JSON-LD Schema pour SEO
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": article.title,
-    "description": article.excerpt,
-    "datePublished": article.published_at,
-    "dateModified": article.updated_at,
-    "author": {
-      "@type": "Organization",
-      "name": "PIM"
+  // Composants pour PortableText avec styles améliorés
+  const components = {
+    types: {
+      image: ({ value }: any) => {
+        try {
+          const imageUrl = urlFor(value).url();
+          return (
+            <div className="my-8">
+              <img
+                src={imageUrl}
+                alt={value.alt || 'Image'}
+                className="w-full h-auto rounded-xl shadow-lg"
+              />
+              {value.caption && (
+                <p className="text-sm text-gray-500 mt-3 text-center italic">
+                  {value.caption}
+                </p>
+              )}
+            </div>
+          );
+        } catch (error) {
+          console.warn('Impossible de résoudre l\'image:', error);
+          return null;
+        }
+      },
+      code: ({ value }: any) => {
+        return (
+          <pre className="bg-gray-900 text-green-400 p-6 rounded-xl overflow-x-auto my-6 font-mono text-sm shadow-lg">
+            <code>{value.code}</code>
+          </pre>
+        );
+      },
     },
-    "publisher": {
-      "@type": "Organization",
-      "name": "PIM",
-      "url": "https://pimsite.com"
+    block: {
+      h1: ({ children }: any) => (
+        <h1 className="text-4xl font-bold text-gray-900 mt-12 mb-6 leading-tight border-b-2 border-blue-500 pb-2">
+          {children}
+        </h1>
+      ),
+      h2: ({ children }: any) => (
+        <h2 className="text-3xl font-bold text-gray-800 mt-10 mb-4 leading-tight">
+          {children}
+        </h2>
+      ),
+      h3: ({ children }: any) => (
+        <h3 className="text-2xl font-semibold text-gray-800 mt-8 mb-3 leading-tight">
+          {children}
+        </h3>
+      ),
+      h4: ({ children }: any) => (
+        <h4 className="text-xl font-semibold text-gray-800 mt-6 mb-2 leading-tight">
+          {children}
+        </h4>
+      ),
+      normal: ({ children }: any) => (
+        <p className="text-lg text-gray-700 leading-relaxed mb-6">
+          {children}
+        </p>
+      ),
+      blockquote: ({ children }: any) => (
+        <blockquote className="border-l-4 border-blue-500 pl-6 italic text-gray-700 my-8 bg-blue-50 p-6 rounded-r-lg">
+          <div className="text-lg leading-relaxed">{children}</div>
+        </blockquote>
+      ),
     },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `https://pimsite.com/${country}/blog/${slug}`
+    list: {
+      bullet: ({ children }: any) => (
+        <ul className="list-disc list-inside space-y-2 mb-6 text-lg text-gray-700">
+          {children}
+        </ul>
+      ),
+      number: ({ children }: any) => (
+        <ol className="list-decimal list-inside space-y-2 mb-6 text-lg text-gray-700">
+          {children}
+        </ol>
+      ),
     },
-    "url": `https://pimsite.com/${country}/blog/${slug}`
+    listItem: ({ children }: any) => (
+      <li className="leading-relaxed">{children}</li>
+    ),
   };
 
   return (
-    <>
-      {/* JSON-LD Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Article Content unifié */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <article className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          {/* Header intégré dans l'article */}
+          <div className="p-8 md:p-12 pb-6">
             <Link
               href={`/${country}/blog`}
               className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6 transition-colors duration-200"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar ao blog
+              <span className="font-medium">Retour au blog</span>
             </Link>
-
-            {useDemoArticle && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm text-blue-800">
-                  🎯 Mode de démonstration : Article de test affiché
-                </p>
+            
+            <div className="flex items-center text-sm text-gray-500 mb-6 flex-wrap gap-2">
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1" />
+                <time dateTime={article.publishedAt}>
+                  {formatDate(article.publishedAt)}
+                </time>
               </div>
-            )}
-
-            {/* Article Meta */}
-            <div className="flex items-center text-sm text-gray-500 mb-4">
-              <Calendar className="w-4 h-4 mr-1" />
-              <time dateTime={article.published_at}>
-                {formatDate(article.published_at)}
-              </time>
+              <span className="hidden sm:inline">•</span>
+              <div className="flex items-center">
+                <Globe className="w-4 h-4 mr-1" />
+                <span className="font-medium">{article.country.toUpperCase()}</span>
+              </div>
+              {article.author && (
+                <>
+                  <span className="hidden sm:inline">•</span>
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-1" />
+                    <span className="font-medium">{article.author}</span>
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Article Title */}
-            <h1 className="text-4xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
               {article.title}
             </h1>
-
-            {/* Article Excerpt */}
-            <p className="text-xl text-gray-600 mb-6">
+            
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
               {article.excerpt}
             </p>
 
-            {/* Share Button */}
-            <button
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: article.title,
-                    text: article.excerpt,
-                    url: window.location.href,
-                  });
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  // Vous pouvez ajouter une notification de succès ici
-                }
-              }}
-              className="inline-flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-200"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Compartilhar
-            </button>
+            {article.tags && article.tags.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-8">
+                {article.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-4 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-full hover:bg-blue-200 transition-colors duration-200"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Article Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <article className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <div 
-              className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: contentHtml }}
-            />
-          </article>
-        </div>
-
-        {/* CTA Section */}
-        <div className="bg-blue-600">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-white mb-4">
-                Quer analisar sua folha de pagamento?
-              </h2>
-              <p className="text-blue-100 mb-6">
-                Faça o upload do seu holerite e receba insights personalizados sobre seus benefícios, 
-                impostos e oportunidades de otimização.
-              </p>
-              <Link
-                href={`/${country}/scan-new-pim`}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 transition-colors duration-200"
-              >
-                Analisar meu holerite
-                <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-              </Link>
+          {/* Image principale si présente */}
+          {article.image && (
+            <div className="w-full h-64 md:h-96 bg-gradient-to-r from-blue-400 to-purple-500 relative overflow-hidden">
+              <img
+                src={article.image}
+                alt={article.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-20"></div>
             </div>
+          )}
+
+          {/* Contenu de l'article */}
+          <div className="p-8 md:p-12 pt-6">
+            <div className="article-content">
+              <PortableText value={article.body} components={components} />
+            </div>
+          </div>
+        </article>
+      </div>
+
+      {/* CTA Section amélioré */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Quer analisar sua folha de pagamento?
+            </h2>
+            <p className="text-blue-100 mb-8 max-w-2xl mx-auto text-lg leading-relaxed">
+              Faça o upload do seu holerite e receba insights personalizados sobre seus benefícios, 
+              impostos e oportunidades de otimização.
+            </p>
+            <Link
+              href={`/${country}/scan-new-pim`}
+              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-xl text-blue-600 bg-white hover:bg-gray-50 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              Analisar meu holerite
+              <ArrowLeft className="w-5 h-5 ml-2 rotate-180" />
+            </Link>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 } 

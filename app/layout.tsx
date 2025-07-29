@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { SupabaseProvider } from "@/components/supabase-provider";
 import ReactQueryProvider from "@/components/ReactQueryProvider";
 import { createClient } from "@/lib/supabase/server";
+import { LocaleHandler } from "@/components/LocaleHandler";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,23 +22,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   return (
-    <html>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Définir la langue basée sur l'URL (côté client uniquement)
-              if (typeof window !== 'undefined') {
-                const path = window.location.pathname;
-                const localeMatch = path.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
-                const locale = localeMatch ? localeMatch[1] : 'br';
-                document.documentElement.lang = locale;
-              }
-            `,
-          }}
-        />
-      </head>
+    <html lang="br">
       <body className={inter.className}>
+        <LocaleHandler />
         <SupabaseProvider initialSession={session}>
           <ReactQueryProvider>
             {children}
