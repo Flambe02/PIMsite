@@ -22,6 +22,15 @@ let nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config, { isServer }) => {
+    // Configuration pour gérer les modules ES
+    config.resolve.extensionAlias = {
+      '.js': ['.js', '.ts', '.tsx'],
+      '.mjs': ['.mjs', '.mts', '.mtsx'],
+    };
+    
+    return config;
+  },
   async headers() {
     return [
       {

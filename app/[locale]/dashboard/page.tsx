@@ -322,13 +322,25 @@ function formatValuePT(k: string, v: any): React.ReactNode {
 }
 
 function PayslipBlock({ title, data }: { title: string; data: any }) {
-  if (!data || typeof data !== 'object' || Object.values(data).every((v: any) => v === null || v === undefined || v === '' || v === 'null')) return null;
+  if (!data || typeof data !== 'object') return null;
+  
+  // Filtrer les valeurs significatives
+  const significantEntries = Object.entries(data).filter(([k, v]: [string, any]) => {
+    if (Array.isArray(v)) return false;
+    if (v === null || v === undefined || v === '' || v === 'null') return false;
+    if (typeof v === 'number' && v === 0) return false;
+    if (typeof v === 'string' && v.trim() === '') return false;
+    return true;
+  });
+
+  // Si aucune donnée significative, ne pas afficher le bloc
+  if (significantEntries.length === 0) return null;
+
   return (
     <div className="mb-6 bg-white rounded-xl shadow p-4">
       <div className="font-bold text-blue-800 text-lg mb-2 mt-2">{title}</div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base">
-        {Object.entries(data).map(([k, v]: [string, any]) => {
-          if (Array.isArray(v)) return null;
+        {significantEntries.map(([k, v]: [string, any]) => {
           const label = LABELS_PT[k] || (k.charAt(0).toUpperCase() + k.slice(1));
           return (
             <React.Fragment key={k}>
@@ -452,7 +464,21 @@ function formatMontant(m: any) {
 }
 
 function HoleriteAnalysisDisplay({ raw }: { raw: any }) {
-  // Champs principaux
+  // Fonction pour vérifier si une valeur est significative
+  const hasSignificantValue = (value: any): boolean => {
+    if (value == null || value === undefined || value === '') return false;
+    if (typeof value === 'number') return value > 0;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') {
+      if (value.value !== undefined) return hasSignificantValue(value.value);
+      if (value.valor !== undefined) return hasSignificantValue(value.valor);
+      return Object.values(value).some(v => hasSignificantValue(v));
+    }
+    return true;
+  };
+
+  // Champs principaux - filtrer les valeurs significatives
   const infos = [
     { label: 'Empresa', value: raw.company_name },
     { label: 'Nome', value: raw.employee_name },
@@ -464,8 +490,9 @@ function HoleriteAnalysisDisplay({ raw }: { raw: any }) {
     { label: 'Departamento', value: raw.department },
     { label: 'Horas Trabalhadas', value: raw.work_hours },
     { label: 'Dependentes', value: raw.dependents },
-  ];
-  // Montants principaux (affiche label d'origine si présent)
+  ].filter(i => hasSignificantValue(i.value));
+
+  // Montants principaux - filtrer les valeurs significatives
   const montants = [
     { label: 'Salário Base', value: raw.gross_salary },
     { label: 'Salário Líquido', value: raw.net_salary },
@@ -479,13 +506,22 @@ function HoleriteAnalysisDisplay({ raw }: { raw: any }) {
     { label: 'Base Cálc. IRRF', value: raw.base_calc_irrf },
     { label: 'Faixa IRRF', value: raw.faixa_irrf },
     { label: 'Depósito FGTS', value: raw.fgts_deposit },
-  ];
-  // Earnings/deductions
-  const earnings = Array.isArray(raw.earnings) ? raw.earnings : [];
-  const deductions = Array.isArray(raw.deductions) ? raw.deductions : [];
+  ].filter(m => hasSignificantValue(m.value));
+
+  // Earnings/deductions - filtrer les valeurs significatives
+  const earnings = Array.isArray(raw.earnings) ? raw.earnings.filter((e: any) => 
+    hasSignificantValue(e.amount) || hasSignificantValue(e.valor)
+  ) : [];
+  const deductions = Array.isArray(raw.deductions) ? raw.deductions.filter((d: any) => 
+    hasSignificantValue(d.amount) || hasSignificantValue(d.valor)
+  ) : [];
+
   // Résumé et recommandations
   const summary = raw.analysis?.summary;
-  const oportunidades = Array.isArray(raw.analysis?.optimization_opportunities) ? raw.analysis.optimization_opportunities : [];
+  const oportunidades = Array.isArray(raw.analysis?.optimization_opportunities) ? 
+    raw.analysis.optimization_opportunities.filter((opp: any) => 
+      typeof opp === 'string' && opp.trim().length > 0
+    ) : [];
 
   // Gestion spéciale du net : si c'est un tableau ou plusieurs candidats, afficher tous avec label
   let netCandidates = [];
@@ -495,6 +531,20 @@ function HoleriteAnalysisDisplay({ raw }: { raw: any }) {
     netCandidates = [raw.net_salary];
   } else if (raw.net_salary && typeof raw.net_salary === 'number') {
     netCandidates = [{ label: 'Salário Líquido', valor: raw.net_salary }];
+  }
+
+  // Vérifier s'il y a des données significatives à afficher
+  const hasSignificantData = infos.length > 0 || montants.length > 0 || earnings.length > 0 || deductions.length > 0;
+
+  if (!hasSignificantData) {
+    return (
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="bg-yellow-50 rounded-xl shadow p-6 text-center">
+          <div className="text-xl font-bold text-yellow-800 mb-2">⚠️ Analyse terminée</div>
+          <div className="text-yellow-700">Aucune donnée significative n'a été extraite de ce document.</div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -507,77 +557,116 @@ function HoleriteAnalysisDisplay({ raw }: { raw: any }) {
         {/* Colonne gauche : Infos + montants + earnings/deductions */}
         <div className="bg-white rounded-xl shadow p-6 flex flex-col justify-between">
           <div className="text-lg font-bold text-blue-900 mb-4">Detalhamento do Holerite</div>
-          <div className="mb-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            {infos.filter(i => i.value).map((i, idx) => {
-              let v = i.value;
-              if (typeof v === 'object' && v !== null) v = v.value ?? v.valor ?? '—';
-              return (
-                <React.Fragment key={idx}>
-                  <div className="text-gray-500">{i.label}:</div>
-                  <div className="text-gray-900 font-semibold">{v ?? '—'}</div>
-                </React.Fragment>
-              );
-            })}
-          </div>
-          <div className="mb-2">
-            {montants.filter(m => m.value).map((m, idx) => {
-              let v = m.value;
-              if (typeof v === 'object' && v !== null) v = v.value ?? v.valor ?? '—';
-              return (
-                <div key={idx} className="flex justify-between text-base">
-                  <span>{m.label}:</span>
-                  <span className="font-bold text-blue-900">{formatMontant(v)}</span>
-                </div>
-              );
-            })}
-            {/* Affichage spécial pour le net si plusieurs candidats */}
-            {netCandidates.length > 1 && <div className="mt-2 text-xs text-gray-500">Vários candidatos para o líquido: {netCandidates.map((n: any, i: number) => <span key={i} className="ml-2">{formatMontant(n)}</span>)}</div>}
-          </div>
-          {earnings.length > 0 && <>
-            <div className="font-bold mt-4 mb-1 text-green-700">Vencimentos</div>
-            <table className="w-full text-sm mb-2">
-              <tbody>
-                {earnings.map((e: any, i: number) => (
-                  <tr key={i}>
-                    <td className="text-gray-700">{e.description}</td>
-                    <td className="text-green-700 text-right font-mono">{formatMontant(e.amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>}
-          {deductions.length > 0 && <>
-            <div className="font-bold mt-2 mb-1 text-red-600">Descontos</div>
-            <table className="w-full text-sm">
-              <tbody>
-                {deductions.map((d: any, i: number) => (
-                  <tr key={i}>
-                    <td className="text-gray-700">{d.description}</td>
-                    <td className="text-red-600 text-right font-mono">-{formatMontant(d.amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>}
-        </div>
-        {/* Colonne droite : Oportunidades */}
-        <div className="bg-green-50 rounded-xl shadow p-6 flex flex-col justify-between">
-          <div className="text-lg font-bold text-green-900 mb-4">Oportunidades Identificadas</div>
-          {summary && <div className="mb-4 text-green-900 text-sm bg-green-100 rounded p-2 shadow-inner">{summary}</div>}
-          <div className="space-y-4">
-            {oportunidades.length === 0 && <div className="text-gray-500 italic">Nenhuma oportunidade clara identificada neste holerite.</div>}
-            {oportunidades.map((op: any, i: number) => {
-              const match = op.match(/^([^:]+:)(.*)$/);
-              return (
-                <div key={i} className="flex gap-3 items-start">
-                  <CheckCircle2 className="w-6 h-6 text-green-500 mt-1" />
-                  <div>
-                    {match ? <><span className="font-bold text-green-900">{match[1]}</span>{match[2]}</> : op}
+          
+          {/* Informations de base */}
+          {infos.length > 0 && (
+            <div className="mb-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+              {infos.map((i, idx) => {
+                let v = i.value;
+                if (typeof v === 'object' && v !== null) v = v.value ?? v.valor ?? '—';
+                return (
+                  <React.Fragment key={idx}>
+                    <div className="text-gray-500">{i.label}:</div>
+                    <div className="text-gray-900 font-semibold">{v ?? '—'}</div>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Montants significatifs */}
+          {montants.length > 0 && (
+            <div className="mb-2">
+              {montants.map((m, idx) => {
+                let v = m.value;
+                if (typeof v === 'object' && v !== null) v = v.value ?? v.valor ?? '—';
+                return (
+                  <div key={idx} className="flex justify-between text-base">
+                    <span>{m.label}:</span>
+                    <span className="font-bold text-blue-900">{formatMontant(v)}</span>
                   </div>
+                );
+              })}
+              {/* Affichage spécial pour le net si plusieurs candidats */}
+              {netCandidates.length > 1 && (
+                <div className="mt-2 text-xs text-gray-500">
+                  Vários candidatos para o líquido: {netCandidates.map((n: any, i: number) => 
+                    <span key={i} className="ml-2">{formatMontant(n)}</span>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          )}
+
+          {/* Vencimentos significatifs */}
+          {earnings.length > 0 && (
+            <>
+              <div className="font-bold mt-4 mb-1 text-green-700">Vencimentos</div>
+              <table className="w-full text-sm mb-2">
+                <tbody>
+                  {earnings.map((e: any, i: number) => (
+                    <tr key={i}>
+                      <td className="text-gray-700">{e.description}</td>
+                      <td className="text-right font-mono text-green-700">
+                        {formatMontant(e.amount || e.valor)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {/* Descontos significatifs */}
+          {deductions.length > 0 && (
+            <>
+              <div className="font-bold mt-4 mb-1 text-red-700">Descontos</div>
+              <table className="w-full text-sm mb-2">
+                <tbody>
+                  {deductions.map((d: any, i: number) => (
+                    <tr key={i}>
+                      <td className="text-gray-700">{d.description}</td>
+                      <td className="text-right font-mono text-red-700">
+                        {formatMontant(d.amount || d.valor)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+
+        {/* Colonne droite : Résumé et recommandations */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="text-lg font-bold text-blue-900 mb-4">Análise e Recomendações</div>
+          
+          {/* Résumé */}
+          {summary && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+              <div className="font-semibold text-blue-800 mb-1">Resumo da Situação</div>
+              <div className="text-sm text-blue-700">{summary}</div>
+            </div>
+          )}
+
+          {/* Opportunités d'optimisation */}
+          {oportunidades.length > 0 ? (
+            <div className="space-y-3">
+              <div className="font-semibold text-green-800 mb-2">💡 Oportunidades de Otimização ({oportunidades.length})</div>
+              {oportunidades.map((opp: string, idx: number) => (
+                <div key={idx} className="p-3 bg-green-50 rounded-lg border-l-2 border-green-300">
+                  <div className="text-sm text-green-800">{opp}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <div className="font-semibold text-blue-800 mb-1">📋 Analyse des Recommandations</div>
+              <div className="text-sm text-blue-700">
+                Aucune opportunité d'optimisation spécifique n'a été identifiée pour cette fiche de paie.
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

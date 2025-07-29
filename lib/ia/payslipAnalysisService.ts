@@ -262,8 +262,13 @@ export class PayslipAnalysisService {
       typeof data === 'object' &&
       data !== null &&
       typeof data.resume_situation === 'string' &&
-      Array.isArray(data.recommendations) &&
-      typeof data.score_optimisation === 'number'
+      typeof data.score_optimisation === 'number' &&
+      (
+        // Soit il y a des recommandations
+        (Array.isArray(data.recommendations) && data.recommendations.length > 0) ||
+        // Soit il y a un message no_recommendation
+        (typeof data.no_recommendation === 'string' && data.no_recommendation.length > 0)
+      )
     );
   }
 

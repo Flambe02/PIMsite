@@ -95,7 +95,15 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
   };
 
   const recommendationsList = getRecommendationsList();
-  const scoreOptimisation = recommendations?.score_optimisation || 75; // Valeur par défaut
+  const scoreOptimisation = recommendations?.score_optimisation || 75;
+
+  // DEBUG: Afficher la structure des recommandations
+  console.log('🔍 DEBUG ScanResults - Structure des recommandations:', {
+    recommendations: recommendations,
+    recommendationsList: recommendationsList,
+    recommendationsListLength: recommendationsList.length,
+    firstRecommendation: recommendationsList[0]
+  }); // Valeur par défaut
 
   return (
     <div className={`scan-results ${className}`}>
@@ -207,15 +215,6 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
               </div>
             )}
 
-            {structuredData.beneficios && structuredData.beneficios.length > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Benefícios</span>
-                <span className="font-medium text-purple-600">
-                  {structuredData.beneficios.join(', ')}
-                </span>
-              </div>
-            )}
-
             {structuredData.statut && structuredData.statut.trim() !== '' && (
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Tipo de contrato</span>
@@ -277,9 +276,9 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
                     <div className="space-y-1">
                       {structuredData.beneficios.map((item: any, index: number) => (
                         <div key={index} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{item.nome}</span>
+                          <span className="text-gray-600">{item.label || item.nome}</span>
                           <span className="font-medium text-blue-600">
-                            {formatCurrency(item.valor)}
+                            {formatCurrency(item.value || item.valor)}
                           </span>
                         </div>
                       ))}
@@ -391,10 +390,10 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
                     `} />
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 mb-1">
-                        {rec.title || 'Recomendação'}
+                        {rec.titre || rec.title || 'Recomendação'}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {rec.description || 'Descrição não disponível'}
+                        {rec.description || rec.descricao || 'Descrição não disponível'}
                       </p>
                     </div>
                   </div>

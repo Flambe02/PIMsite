@@ -102,17 +102,13 @@ export const ScanNewPIM: React.FC<ScanNewPIMProps> = ({
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-6 md:mb-8"
       >
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <span className="text-3xl">{countryInfo.flag}</span>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {countryInfo.title}
+        <div className="flex items-center justify-center mb-4 px-4">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 text-center leading-tight">
+            {countryInfo.subtitle} • {countryInfo.name}
           </h1>
         </div>
-        <p className="text-gray-600 text-center">
-          {countryInfo.subtitle} • {countryInfo.name}
-        </p>
       </motion.div>
 
       {/* Zone d'upload */}

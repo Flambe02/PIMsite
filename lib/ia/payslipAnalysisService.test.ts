@@ -17,9 +17,10 @@ describe('PayslipAnalysisService', () => {
   let service: PayslipAnalysisService;
   let mockOpenAI: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     service = new PayslipAnalysisService();
-    mockOpenAI = require('openai').default;
+    const openaiModule = await import('openai');
+    mockOpenAI = openaiModule.default;
   });
 
   describe('detectCountry', () => {

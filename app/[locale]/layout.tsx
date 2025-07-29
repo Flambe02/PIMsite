@@ -36,6 +36,7 @@ export default async function LocaleLayout({
         <a className="hover:underline" href="#">Sobre</a>
         <a className="hover:underline" href="#">Contato</a>
         <a className="hover:underline" href="#">FAQ</a>
+        <a className="hover:underline" href={`/${locale}/cgu`}>CGU</a>
       </footer>
     </div>
   );

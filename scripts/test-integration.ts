@@ -205,13 +205,13 @@ function testDataValidation() {
 }
 
 // Test des prompts par pays
-function testPrompts() {
+async function testPrompts() {
   console.log('\n5️⃣ Test des prompts par pays...');
   
-  const { getPromptForCountry } = require('../lib/ia/prompts');
+  const { getPromptForCountry } = await import('../lib/ia/prompts');
   
   const countries = ['br', 'fr', 'default'];
-  const types = ['extraction', 'recommendations'];
+  const types: ('extraction' | 'recommendations')[] = ['extraction', 'recommendations'];
   
   for (const country of countries) {
     for (const type of types) {

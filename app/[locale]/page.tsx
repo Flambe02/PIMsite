@@ -214,15 +214,11 @@ function HeroSection({ locale }: { locale: string }) {
   }, [supabase])
 
   const handleSignUp = () => {
-    router.push(`/${locale}/signup`);
+    router.push(`/${locale}/scan-new-pim`);
   };
   
   const handleSimule = () => {
-    if (!session) {
-      router.push(`/${locale}/login`); // Rediriger au lieu d'ouvrir le modal
-    } else {
-      router.push(`/${locale}/dashboard`)
-    }
+    router.push(`/${locale}/scan-new-pim`);
   }
 
   const isLoading = loading
@@ -240,14 +236,16 @@ function HeroSection({ locale }: { locale: string }) {
           {content.hero.subtitle}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6">
-            <button
-            className="bg-emerald-500 hover:bg-emerald-400 text-white font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition text-lg"
-            onClick={handleSignUp}
-              type="button"
-            disabled={isLoading}
-            >
-            {content.hero.signupButton}
-            </button>
+            {!session && (
+              <button
+              className="bg-emerald-500 hover:bg-emerald-400 text-white font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition text-lg"
+              onClick={handleSignUp}
+                type="button"
+              disabled={isLoading}
+              >
+              {content.hero.signupButton}
+              </button>
+            )}
             <button
             className="bg-[#223c2c] hover:bg-[#2e4a38] text-emerald-200 font-semibold px-8 py-3 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 transition text-lg border border-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
             onClick={handleSimule}
@@ -345,6 +343,29 @@ function TestimonialsSection({ locale }: { locale: string }) {
 
 export default function Home() {
   const pathname = usePathname();
+  const [session, setSession] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient();
+
+  useEffect(() => {
+    let mounted = true
+    async function fetchSession() {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!mounted) return
+      setSession(session)
+      setLoading(false)
+    }
+    fetchSession()
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    return () => {
+      mounted = false
+      listener?.subscription.unsubscribe()
+    }
+  }, [supabase])
+
   const getCurrentLocale = () => {
     const localeMatch = pathname!.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
     return localeMatch ? localeMatch[1] : 'br';
@@ -385,26 +406,28 @@ export default function Home() {
           </div>
         </section>
         <TestimonialsSection locale={currentLocale} />
-        <section className="w-full py-12 md:py-20 bg-emerald-50">
-          <div className="max-w-4xl mx-auto px-4 md:px-6 flex flex-col items-center text-center">
-            <div className="space-y-2 mb-6">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                {content.cta.title}
-              </h2>
-              <p className="max-w-[700px] text-gray-600 md:text-xl/relaxed mx-auto">
-                {content.cta.subtitle}
-              </p>
+        {!session && (
+          <section className="w-full py-12 md:py-20 bg-emerald-50">
+            <div className="max-w-4xl mx-auto px-4 md:px-6 flex flex-col items-center text-center">
+              <div className="space-y-2 mb-6">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+                  {content.cta.title}
+                </h2>
+                <p className="max-w-[700px] text-gray-600 md:text-xl/relaxed mx-auto">
+                  {content.cta.subtitle}
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                <Link href={`/${currentLocale}/scan-new-pim`}>
+                  <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 rounded-lg shadow-sm">
+                    {content.cta.button}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Link href={`/${currentLocale}/login`}>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 rounded-lg shadow-sm">
-                  {content.cta.button}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
       {/* Back to Top Button - Shows after scrolling */}
       <div className="fixed bottom-6 left-6 z-50 hidden" id="back-to-top">
