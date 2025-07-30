@@ -2,7 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { Globe, Filter, Search } from 'lucide-react';
-import { BlogArticle } from '@/hooks/useSanityBlog';
+// import { BlogArticle } from '@/hooks/useSanityBlog';
+
+// Temporary interface while Sanity is disabled
+interface BlogArticle {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: string;
+  author: {
+    name: string;
+  };
+  image?: string;
+  tags?: string[];
+  country: string;
+}
 import BlogCard from './BlogCard';
 
 interface BlogListProps {

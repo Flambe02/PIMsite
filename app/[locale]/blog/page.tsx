@@ -2,8 +2,26 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, Globe } from 'lucide-react';
-import { sanityClient, queries } from '@/lib/sanity/config';
-import { BlogArticle } from '@/hooks/useSanityBlog';
+// import { sanityClient, queries } from '@/lib/sanity/config';
+// import { BlogArticle } from '@/hooks/useSanityBlog';
+
+// Temporary interface while Sanity is disabled
+interface BlogArticle {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: string;
+  author: {
+    name: string;
+  };
+  mainImage?: {
+    asset: {
+      _ref: string;
+    };
+  };
+  country: string;
+}
 import BlogList from '@/components/blog/BlogList';
 
 // Can be imported from a shared config
@@ -39,13 +57,18 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 }
 
 async function getArticlesByCountry(country: string): Promise<BlogArticle[]> {
-  try {
-    const articles = await sanityClient.fetch(queries.getArticlesByCountry, { country });
-    return articles || [];
-  } catch (error) {
-    console.error('Erreur lors de la récupération des articles:', error);
-    return [];
-  }
+  // Temporary: return empty array while Sanity is disabled
+  console.log('Blog temporarily disabled - Sanity integration paused');
+  return [];
+  
+  // Original code (commented out):
+  // try {
+  //   const articles = await sanityClient.fetch(queries.getArticlesByCountry, { country });
+  //   return articles || [];
+  // } catch (error) {
+  //   console.error('Erreur lors de la récupération des articles:', error);
+  //   return [];
+  // }
 }
 
 export default async function BlogPage({ params }: BlogPageProps) {

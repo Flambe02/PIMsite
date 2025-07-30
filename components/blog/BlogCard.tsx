@@ -1,6 +1,21 @@
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, Tag } from 'lucide-react';
-import { BlogArticle } from '@/hooks/useSanityBlog';
+// import { BlogArticle } from '@/hooks/useSanityBlog';
+
+// Temporary interface while Sanity is disabled
+interface BlogArticle {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: string;
+  author: {
+    name: string;
+  };
+  image?: string;
+  tags?: string[];
+  country: string;
+}
 
 interface BlogCardProps {
   article: BlogArticle;
