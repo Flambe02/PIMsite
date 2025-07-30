@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit3, X, User, Plus, Trash2, Calculator } from 'lucide-react';
+import { Edit3, X, User, Plus, Trash2, Calculator, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,12 +32,25 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
   const [editedData, setEditedData] = useState<any>({});
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [isAutoCalculating, setIsAutoCalculating] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Initialiser les données éditées quand le modal s'ouvre
   useEffect(() => {
     if (isOpen) {
       setEditedData(initialData);
       setIsAutoCalculating(true);
+      
+      // Parse existing period if it exists
+      if (initialData.period || initialData.periodo) {
+        const periodValue = initialData.period || initialData.periodo;
+        const parts = periodValue.split('/');
+        if (parts.length === 2) {
+          setSelectedMonth(parts[0].toLowerCase());
+          setSelectedYear(parts[1]);
+        }
+      }
     }
   }, [isOpen, initialData]);
 
@@ -63,13 +76,6 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
       }, 0);
     }
 
-    // Somme des seguros
-    if (editedData.seguros && Array.isArray(editedData.seguros)) {
-      totalDescontos += editedData.seguros.reduce((sum: number, item: any) => {
-        return sum + (item.valor || item.value || item.amount || 0);
-      }, 0);
-    }
-
     // Mettre à jour les descontos
     setEditedData((prev: any) => ({
       ...prev,
@@ -91,11 +97,24 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
+      // Update period field with combined month/year
+      if (selectedMonth && selectedYear) {
+        const periodValue = `${selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1)}/${selectedYear}`;
+        setEditedData((prev: any) => ({
+          ...prev,
+          period: periodValue,
+          periodo: periodValue
+        }));
+      }
+      
       await onSave(editedData, customFields);
       onClose();
     } catch (error) {
       console.error('Erro ao salvar:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -151,8 +170,6 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
       total_earnings: 'Total de Vencimentos',
       total_deductions: 'Total de Descontos',
       impostos: 'Impostos',
-      beneficios: 'Benefícios',
-      seguros: 'Seguros',
       descontos: 'Descontos'
     };
     return labels[field] || field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -178,27 +195,33 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
     }).join(', ');
   };
 
-  // Générer les options de mois et années
-  const generatePeriodOptions = () => {
+  // Générer les options de mois
+  const generateMonthOptions = () => {
     const months = [
-      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+      { value: 'janeiro', label: 'Janeiro' },
+      { value: 'fevereiro', label: 'Fevereiro' },
+      { value: 'março', label: 'Março' },
+      { value: 'abril', label: 'Abril' },
+      { value: 'maio', label: 'Maio' },
+      { value: 'junho', label: 'Junho' },
+      { value: 'julho', label: 'Julho' },
+      { value: 'agosto', label: 'Agosto' },
+      { value: 'setembro', label: 'Setembro' },
+      { value: 'outubro', label: 'Outubro' },
+      { value: 'novembro', label: 'Novembro' },
+      { value: 'dezembro', label: 'Dezembro' }
     ];
-    
+    return months;
+  };
+
+  // Générer les options d'années
+  const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
-    
-    const options = [];
-    for (const year of years) {
-      for (const month of months) {
-        options.push({
-          value: `${month}/${year}`,
-          label: `${month.charAt(0).toUpperCase() + month.slice(1)}/${year}`
-        });
-      }
-    }
-    
-    return options;
+    return years.map(year => ({
+      value: year.toString(),
+      label: year.toString()
+    }));
   };
 
   if (!isOpen) return null;
@@ -251,7 +274,7 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
                   const isEdited = isFieldEdited(field);
                   
                   // Ignorer les champs complexes et les champs supprimés
-                  if (fieldType === 'complex_array' || field === 'credito' || field === 'outros') return null;
+                  if (fieldType === 'complex_array' || field === 'credito' || field === 'outros' || field === 'beneficios' || field === 'seguros') return null;
                   
                   return (
                     <div key={field} className="space-y-2">
@@ -266,21 +289,38 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
                       </Label>
                       
                       {fieldType === 'period_select' ? (
-                        <Select
-                          value={editedData[field] || ''}
-                          onValueChange={(value) => handleInputChange(field, value)}
-                        >
-                          <SelectTrigger className={isEdited ? 'border-blue-500 bg-blue-50' : ''}>
-                            <SelectValue placeholder="Selecione o período..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {generatePeriodOptions().map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Select
+                            value={selectedMonth}
+                            onValueChange={setSelectedMonth}
+                          >
+                            <SelectTrigger className={isEdited ? 'border-blue-500 bg-blue-50' : ''}>
+                              <SelectValue placeholder="Mês" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {generateMonthOptions().map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select
+                            value={selectedYear}
+                            onValueChange={setSelectedYear}
+                          >
+                            <SelectTrigger className={isEdited ? 'border-blue-500 bg-blue-50' : ''}>
+                              <SelectValue placeholder="Ano" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {generateYearOptions().map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       ) : fieldType === 'auto_calculated' ? (
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
@@ -309,7 +349,7 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
                             <Calculator className="w-3 h-3" />
                             <span>
                               {isAutoCalculating 
-                                ? 'Calculado automaticamente (soma de impostos + seguros)'
+                                ? 'Calculado automaticamente (soma de impostos)'
                                 : 'Edição manual ativada'
                               }
                             </span>
@@ -414,124 +454,6 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
               </div>
             )}
 
-            {/* Detailed Fields - Beneficios */}
-            {initialData.beneficios && Array.isArray(initialData.beneficios) && initialData.beneficios.length > 0 && (
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <span className="text-blue-600 mr-2">🎁</span>
-                  Benefícios
-                </h3>
-                <div className="space-y-3">
-                  {initialData.beneficios.map((item: any, index: number) => {
-                    const itemKey = `beneficio_${index}`;
-                    const label = item.label || item.nome || `Benefício ${index + 1}`;
-                    const currentValue = editedData.beneficios?.[index]?.value || editedData.beneficios?.[index]?.valor || item.value || item.valor || 0;
-                    
-                    return (
-                      <div key={itemKey} className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <div className="flex-1">
-                          <Label className="text-sm font-medium text-blue-700">{label}</Label>
-                        </div>
-                        <div className="w-32">
-                          <Input
-                            type="number"
-                            value={currentValue}
-                            onChange={(e) => {
-                              const newValue = parseFloat(e.target.value) || 0;
-                              const newBeneficios = [...(editedData.beneficios || initialData.beneficios)];
-                              newBeneficios[index] = { ...item, value: newValue, valor: newValue };
-                              handleInputChange('beneficios', newBeneficios);
-                            }}
-                            className="text-right"
-                            placeholder="0.00"
-                            step="0.01"
-                          />
-                        </div>
-                        <button
-                          onClick={() => {
-                            const newBeneficios = (editedData.beneficios || initialData.beneficios).filter((_: any, i: number) => i !== index);
-                            handleInputChange('beneficios', newBeneficios);
-                          }}
-                          className="p-1 hover:bg-blue-100 rounded transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-blue-500" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                  <button
-                    onClick={() => {
-                      const newBeneficios = [...(editedData.beneficios || initialData.beneficios), { label: 'Novo Benefício', value: 0 }];
-                      handleInputChange('beneficios', newBeneficios);
-                    }}
-                    className="w-full p-2 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 inline mr-2" />
-                    Adicionar Benefício
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Detailed Fields - Seguros */}
-            {initialData.seguros && Array.isArray(initialData.seguros) && initialData.seguros.length > 0 && (
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <span className="text-green-600 mr-2">🛡️</span>
-                  Seguros
-                </h3>
-                <div className="space-y-3">
-                  {initialData.seguros.map((item: any, index: number) => {
-                    const itemKey = `seguro_${index}`;
-                    const label = item.label || item.nome || item.description || `Seguro ${index + 1}`;
-                    const currentValue = editedData.seguros?.[index]?.value || editedData.seguros?.[index]?.valor || editedData.seguros?.[index]?.amount || item.value || item.valor || item.amount || 0;
-                    
-                    return (
-                      <div key={itemKey} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                        <div className="flex-1">
-                          <Label className="text-sm font-medium text-green-700">{label}</Label>
-                        </div>
-                        <div className="w-32">
-                          <Input
-                            type="number"
-                            value={currentValue}
-                            onChange={(e) => {
-                              const newValue = parseFloat(e.target.value) || 0;
-                              const newSeguros = [...(editedData.seguros || initialData.seguros)];
-                              newSeguros[index] = { ...item, value: newValue, valor: newValue, amount: newValue };
-                              handleInputChange('seguros', newSeguros);
-                            }}
-                            className="text-right"
-                            placeholder="0.00"
-                            step="0.01"
-                          />
-                        </div>
-                        <button
-                          onClick={() => {
-                            const newSeguros = (editedData.seguros || initialData.seguros).filter((_: any, i: number) => i !== index);
-                            handleInputChange('seguros', newSeguros);
-                          }}
-                          className="p-1 hover:bg-green-100 rounded transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-green-500" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                  <button
-                    onClick={() => {
-                      const newSeguros = [...(editedData.seguros || initialData.seguros), { label: 'Novo Seguro', value: 0 }];
-                      handleInputChange('seguros', newSeguros);
-                    }}
-                    className="w-full p-2 border-2 border-dashed border-green-300 rounded-lg text-green-600 hover:bg-green-50 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 inline mr-2" />
-                    Adicionar Seguro
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Empty Arrays - Add if they don't exist */}
             {(!initialData.impostos || !Array.isArray(initialData.impostos) || initialData.impostos.length === 0) && (
               <div className="border-t border-gray-200 pt-6">
@@ -547,24 +469,6 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
                 >
                   <Plus className="w-4 h-4 inline mr-2" />
                   Adicionar Primeiro Imposto
-                </button>
-              </div>
-            )}
-
-            {(!initialData.beneficios || !Array.isArray(initialData.beneficios) || initialData.beneficios.length === 0) && (
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <span className="text-blue-600 mr-2">🎁</span>
-                  Benefícios
-                </h3>
-                <button
-                  onClick={() => {
-                    handleInputChange('beneficios', [{ label: 'Vale Refeição', value: 0 }]);
-                  }}
-                  className="w-full p-2 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
-                >
-                  <Plus className="w-4 h-4 inline mr-2" />
-                  Adicionar Primeiro Benefício
                 </button>
               </div>
             )}
@@ -622,11 +526,22 @@ export const DataEditModal: React.FC<DataEditModalProps> = ({
 
           {/* Footer */}
           <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSaving}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-              Salvar e Reanalisar
+            <Button 
+              onClick={handleSave} 
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar e Reanalisar'
+              )}
             </Button>
           </div>
         </motion.div>

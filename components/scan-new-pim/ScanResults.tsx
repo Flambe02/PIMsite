@@ -11,6 +11,8 @@ import { CheckCircle, TrendingUp, Lightbulb, RefreshCw, FileText, User, Building
 import { ScanResults as ScanResultsType } from '@/hooks/useScanNewPIM';
 import { DataEditModal } from './DataEditModal';
 import { payslipEditService } from '@/lib/services/payslipEditService';
+import { useSupabase } from '@/components/supabase-provider';
+import { useToast } from '@/hooks/use-toast';
 
 export interface ScanResultsProps {
   results: ScanResultsType;
@@ -24,8 +26,11 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
   className = ''
 }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { analysis } = results;
   const { structuredData, recommendations } = analysis;
+  const { session } = useSupabase();
+  const { toast } = useToast();
 
   // Calcul automatique des déductions si non fourni
   const calculatedDescontos = structuredData.descontos || 
@@ -106,20 +111,66 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
   };
 
   const handleSaveEditedData = async (editedData: any, customFields: any[]) => {
+    if (!session?.user?.id) {
+      toast({
+        title: "Erreur d'authentification",
+        description: "Vous devez être connecté pour sauvegarder les modifications.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!results.data?.scanId) {
+      toast({
+        title: "Erreur de données",
+        description: "Impossible de récupérer l'ID du scan. Veuillez réessayer.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    
     try {
-      // Pour l'instant, on simule la sauvegarde sans ID
-      // TODO: Implémenter la récupération de l'ID depuis le contexte ou les props
-      console.log('Données éditées:', editedData);
-      console.log('Champs personnalisés:', customFields);
-      
-      // Simulation de sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Données éditées sauvegardées avec succès');
-      
+      console.log('💾 Sauvegarde des données éditées...', {
+        scanId: results.data.scanId,
+        editedData,
+        customFields,
+        userId: session.user.id
+      });
+
+      // Utiliser le vrai service de sauvegarde
+      const savedData = await payslipEditService.saveEditedPayslip(
+        results.data.scanId,
+        editedData,
+        customFields,
+        session.user.id
+      );
+
+      console.log('✅ Données sauvegardées avec succès:', savedData);
+
+      toast({
+        title: "Sauvegarde réussie",
+        description: "Les données ont été sauvegardées et la réanalyse IA a été déclenchée.",
+        variant: "default"
+      });
+
+      // Fermer le modal
+      setIsEditModalOpen(false);
+
+      // Optionnel : recharger les données ou afficher un indicateur de mise à jour
+      // onReset(); // Si on veut recharger complètement
+
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      throw error;
+      console.error('❌ Erreur lors de la sauvegarde:', error);
+      
+      toast({
+        title: "Erreur de sauvegarde",
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la sauvegarde.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -129,7 +180,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
     recommendationsList: recommendationsList,
     recommendationsListLength: recommendationsList.length,
     firstRecommendation: recommendationsList[0]
-  }); // Valeur par défaut
+  });
 
   return (
     <div className={`scan-results ${className}`}>
@@ -160,48 +211,10 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
           <span className={`font-medium ${getConfidenceColor(analysis.confidence)}`}>
             {Math.round(analysis.confidence * 100)}%
           </span>
-          <button
-            onClick={() => {
-              alert(`Índice de Confiança da Extração:
-
-Este indicador mostra a fiabilidade da extração dos dados da sua folha de pagamento pela nossa IA.
-
-• 80-100%: Extração muito confiável
-• 60-79%: Extração confiável com algumas incertezas
-• 40-59%: Extração moderada, verificação recomendada
-• 0-39%: Extração baixa, análise manual necessária
-
-Fatores que influenciam a confiança:
-- Qualidade da imagem escaneada
-- Clareza do texto
-- Formato padrão da folha
-- Presença de todos os campos obrigatórios`);
-            }}
-            className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
-            title="Clique para mais informações sobre o índice de confiança"
-          >
-            <Info className="w-3 h-3 text-gray-600" />
-          </button>
         </div>
-        
-        {/* Information sur les pages dupliquées */}
-        {results.ocr.duplicateInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
-          >
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-blue-700 font-medium">
-                {results.ocr.duplicateInfo}
-              </span>
-            </div>
-          </motion.div>
-        )}
       </motion.div>
 
+      {/* Grille principale */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Données extraites */}
         <motion.div
@@ -225,176 +238,70 @@ Fatores que influenciam a confiança:
           </div>
 
           <div className="space-y-3">
-            {structuredData.employee_name && structuredData.employee_name.trim() !== '' && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Funcionário</span>
-                <span className="font-medium">{structuredData.employee_name}</span>
+            {/* Informations de base */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500">Funcionário</p>
+                <p className="font-medium">{structuredData.employee_name || 'N/A'}</p>
               </div>
-            )}
-
-            {structuredData.company_name && structuredData.company_name.trim() !== '' && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Empresa</span>
-                <span className="font-medium">{structuredData.company_name}</span>
+              <div>
+                <p className="text-sm text-gray-500">Empresa</p>
+                <p className="font-medium">{structuredData.company_name || 'N/A'}</p>
               </div>
-            )}
-
-            {structuredData.position && structuredData.position.trim() !== '' && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Cargo</span>
-                <span className="font-medium">{structuredData.position}</span>
+              <div>
+                <p className="text-sm text-gray-500">Cargo</p>
+                <p className="font-medium">{structuredData.position || 'N/A'}</p>
               </div>
-            )}
-
-            {structuredData.period && structuredData.period.trim() !== '' && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Período</span>
-                <span className="font-medium">{structuredData.period}</span>
+              <div>
+                <p className="text-sm text-gray-500">Período</p>
+                <p className="font-medium">{structuredData.period || structuredData.periodo || 'N/A'}</p>
               </div>
-            )}
+            </div>
 
-            {structuredData.salary_bruto && structuredData.salary_bruto > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Salário bruto</span>
-                <span className="font-medium text-green-600">
-                  {formatCurrency(structuredData.salary_bruto)}
-                </span>
-              </div>
-            )}
-
-            {structuredData.salary_liquido && structuredData.salary_liquido > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Salário líquido</span>
-                <span className="font-medium text-blue-600">
-                  {formatCurrency(structuredData.salary_liquido)}
-                </span>
-              </div>
-            )}
-
-            {calculatedDescontos > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Descontos</span>
-                <span className="font-medium text-red-600">
-                  {formatCurrency(calculatedDescontos)}
-                </span>
-              </div>
-            )}
-
-            {structuredData.statut && structuredData.statut.trim() !== '' && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Tipo de contrato</span>
-                <div className="flex items-center space-x-2">
-                  {(() => {
-                    const statusInfo = getStatusInfo(structuredData.statut);
-                    const StatusIcon = statusInfo.icon;
-                    return (
-                      <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${statusInfo.bgColor}`}>
-                        <StatusIcon className={`w-4 h-4 ${statusInfo.color}`} />
-                        <span className={`text-sm font-medium ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
-                    );
-                  })()}
+            {/* Salaires */}
+            <div className="border-t pt-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Salário Bruto</p>
+                  <p className="font-semibold text-lg text-green-600">
+                    {structuredData.salary_bruto ? formatCurrency(structuredData.salary_bruto) : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Salário Líquido</p>
+                  <p className="font-semibold text-lg text-blue-600">
+                    {structuredData.salary_liquido ? formatCurrency(structuredData.salary_liquido) : 'N/A'}
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
 
-
-
-            {/* Déductions détaillées */}
-            {structuredData.descontos > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 border-b pb-2">
-                  Deduções Detalhadas
-                </h4>
-                
-                {/* Impostos */}
-                {structuredData.impostos && structuredData.impostos.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-red-600 mb-2">💰 Impostos</h5>
-                    <div className="space-y-1">
-                      {structuredData.impostos.map((item: any, index: number) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{item.nome}</span>
-                          <span className="font-medium text-red-600">
-                            {formatCurrency(item.valor)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Benefícios */}
-                {structuredData.beneficios && structuredData.beneficios.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-blue-600 mb-2">🎁 Benefícios</h5>
-                    <div className="space-y-1">
-                      {structuredData.beneficios.map((item: any, index: number) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{item.label || item.nome}</span>
-                          <span className="font-medium text-blue-600">
-                            {formatCurrency(item.value || item.valor)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Seguros */}
-                {structuredData.seguros && structuredData.seguros.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-green-600 mb-2">🛡️ Seguros</h5>
-                    <div className="space-y-1">
-                      {structuredData.seguros.map((item: any, index: number) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{item.nome}</span>
-                          <span className="font-medium text-green-600">
-                            {formatCurrency(item.valor)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Crédito */}
-                {structuredData.credito && structuredData.credito.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-purple-600 mb-2">💳 Crédito</h5>
-                    <div className="space-y-1">
-                      {structuredData.credito.map((item: any, index: number) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{item.nome}</span>
-                          <span className="font-medium text-purple-600">
-                            {formatCurrency(item.valor)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Outros */}
-                {structuredData.outros && structuredData.outros.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-orange-600 mb-2">📋 Outros</h5>
-                    <div className="space-y-1">
-                      {structuredData.outros.map((item: any, index: number) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{item.nome}</span>
-                          <span className="font-medium text-orange-600">
-                            {formatCurrency(item.valor)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            {/* Déductions */}
+            <div className="border-t pt-3">
+              <div>
+                <p className="text-sm text-gray-500">Descontos</p>
+                <p className="font-semibold text-lg text-red-600">
+                  {calculatedDescontos ? formatCurrency(calculatedDescontos) : 'N/A'}
+                </p>
               </div>
-            )}
+            </div>
+
+            {/* Type de contrat */}
+            <div className="border-t pt-3">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Tipo de Contrato</p>
+                {(() => {
+                  const statusInfo = getStatusInfo(structuredData.statut || structuredData.profile_type);
+                  const StatusIcon = statusInfo.icon;
+                  return (
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.bgColor} ${statusInfo.color}`}>
+                      <StatusIcon className="w-4 h-4 mr-2" />
+                      {statusInfo.label}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
         </motion.div>
 
@@ -405,66 +312,39 @@ Fatores que influenciam a confiança:
           transition={{ delay: 0.4 }}
           className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Lightbulb className="w-5 h-5 mr-2" />
-            Recomendações IA
-          </h3>
-
-          {/* Score d'optimisation */}
-          <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Score de otimização</span>
-              <span className="text-lg font-bold text-green-600">
-                {scoreOptimisation}%
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />
+              Recomendações IA
+            </h3>
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="w-4 h-4 text-green-500" />
+              <span className="text-sm font-medium text-green-600">
+                Score: {scoreOptimisation}%
               </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <motion.div
-                className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${scoreOptimisation}%` }}
-                transition={{ duration: 1, delay: 0.5 }}
-              />
             </div>
           </div>
 
-          {/* Liste des recommandations */}
           <div className="space-y-3">
             {recommendationsList.length > 0 ? (
-              recommendationsList.map((rec: any, index: number) => (
-                <motion.div
-                  key={rec.id || index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + index * 0.1 }}
-                  className="p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className={`
-                      w-2 h-2 rounded-full mt-2
-                      ${rec.impact === 'high' ? 'bg-red-500' : 
-                        rec.impact === 'medium' ? 'bg-yellow-500' : 'bg-green-500'}
-                    `} />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 mb-1">
-                        {rec.titre || rec.title || 'Recomendação'}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {rec.description || rec.descricao || 'Descrição não disponível'}
-                      </p>
-                    </div>
+              recommendationsList.map((recommendation: any, index: number) => (
+                <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">
+                      {recommendation.title || recommendation.titulo || `Recomendação ${index + 1}`}
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      {recommendation.description || recommendation.descricao || recommendation.content || 'Descrição não disponível'}
+                    </p>
                   </div>
-                </motion.div>
+                </div>
               ))
             ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-4 text-center text-gray-500"
-              >
-                <p>Nenhuma recomendação disponível no momento.</p>
-                <p className="text-sm mt-1">A análise foi concluída com sucesso.</p>
-              </motion.div>
+              <div className="text-center py-8 text-gray-500">
+                <Info className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p>Nenhuma recomendação disponível no momento</p>
+              </div>
             )}
           </div>
         </motion.div>

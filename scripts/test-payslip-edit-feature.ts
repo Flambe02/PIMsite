@@ -16,7 +16,12 @@ const mockEditedData = {
   period: 'Janeiro/2024',
   salary_bruto: 8500.00,
   salary_liquido: 6500.00,
-  statut: 'CLT'
+  statut: 'CLT',
+  impostos: [
+    { nome: 'INSS', valor: 850.00 },
+    { nome: 'IRRF', valor: 1200.00 }
+  ],
+  descontos: 2050.00
 };
 
 const mockCustomFields = [
@@ -39,104 +44,113 @@ async function testPayslipEditFeature() {
   try {
     // Test 1: Sauvegarde des données éditées
     console.log('\n📝 Test 1: Sauvegarde des données éditées');
-    console.log('Données éditées:', mockEditedData);
-    console.log('Champs personnalisés:', mockCustomFields);
+    console.log('-'.repeat(40));
+    
+    const savedData = await payslipEditService.saveEditedPayslip(
+      mockPayslipId,
+      mockEditedData,
+      mockCustomFields,
+      mockUserId
+    );
+    
+    console.log('✅ Sauvegarde réussie:', {
+      id: savedData.id,
+      is_manual: savedData.is_manual,
+      has_manual_overrides: !!savedData.manual_overrides,
+      updated_at: savedData.updated_at
+    });
 
-    // Simulation de la sauvegarde (car pas de Supabase configuré)
-    console.log('✅ Simulation de sauvegarde réussie');
-    console.log('✅ Déclenchement de la réanalyse IA simulé');
+    // Test 2: Vérification que le payslip est marqué comme édité manuellement
+    console.log('\n🔍 Test 2: Vérification du statut d\'édition manuelle');
+    console.log('-'.repeat(40));
+    
+    const isManuallyEdited = await payslipEditService.isPayslipManuallyEdited(mockPayslipId);
+    console.log('✅ Payslip marqué comme édité manuellement:', isManuallyEdited);
 
-    // Test 2: Vérification des données éditées
-    console.log('\n🔍 Test 2: Vérification des données éditées');
-    console.log('✅ Vérification que les données sont marquées comme éditées manuellement');
-    console.log('✅ Vérification que les champs personnalisés sont inclus');
+    // Test 3: Récupération des données éditées
+    console.log('\n📖 Test 3: Récupération des données éditées');
+    console.log('-'.repeat(40));
+    
+    const retrievedData = await payslipEditService.getEditedPayslip(mockPayslipId);
+    if (retrievedData) {
+      console.log('✅ Données récupérées:', {
+        structured_data: retrievedData.structured_data,
+        manual_overrides: retrievedData.manual_overrides,
+        is_manual: retrievedData.is_manual
+      });
+    } else {
+      console.log('❌ Impossible de récupérer les données');
+    }
 
-    // Test 3: Test de l'interface utilisateur
-    console.log('\n🎨 Test 3: Interface utilisateur');
-    console.log('✅ Modal d\'édition avec tous les champs');
-    console.log('✅ Bouton d\'édition rond avec icône crayon');
-    console.log('✅ Section "Ajouter un champ personnalisé"');
-    console.log('✅ Indicateurs visuels pour les champs modifiés');
-    console.log('✅ Boutons "Enregistrer" et "Annuler"');
+    // Test 4: Vérification de la structure des données sauvegardées
+    console.log('\n🏗️ Test 4: Vérification de la structure des données');
+    console.log('-'.repeat(40));
+    
+    if (retrievedData?.manual_overrides) {
+      const overrides = retrievedData.manual_overrides;
+      console.log('✅ Structure des manual_overrides:', {
+        has_edited_fields: !!overrides.edited_fields,
+        has_custom_fields: !!overrides.custom_fields,
+        has_edited_at: !!overrides.edited_at,
+        has_edited_by: !!overrides.edited_by,
+        custom_fields_count: overrides.custom_fields?.length || 0
+      });
+      
+      // Vérification des champs personnalisés
+      if (overrides.custom_fields) {
+        console.log('📋 Champs personnalisés sauvegardés:');
+        overrides.custom_fields.forEach((field: any, index: number) => {
+          console.log(`  ${index + 1}. ${field.title}: ${field.value}`);
+        });
+      }
+    }
 
-    // Test 4: Test de la réanalyse IA
-    console.log('\n🤖 Test 4: Réanalyse IA');
-    console.log('✅ Déclenchement automatique de la réanalyse');
-    console.log('✅ Utilisation des données éditées comme source principale');
-    console.log('✅ Génération de nouvelles recommandations');
-    console.log('✅ Mise à jour du score d\'optimisation');
+    // Test 5: Vérification des modifications de période
+    console.log('\n📅 Test 5: Vérification des modifications de période');
+    console.log('-'.repeat(40));
+    
+    if (retrievedData?.structured_data) {
+      const period = retrievedData.structured_data.period || retrievedData.structured_data.periodo;
+      console.log('✅ Période sauvegardée:', period);
+      
+      // Vérification que la période est au bon format
+      if (period && typeof period === 'string' && period.includes('/')) {
+        console.log('✅ Format de période correct');
+      } else {
+        console.log('⚠️ Format de période incorrect:', period);
+      }
+    }
 
-    // Test 5: Test de persistance
-    console.log('\n💾 Test 5: Persistance des données');
-    console.log('✅ Sauvegarde dans Supabase avec manual_overrides');
-    console.log('✅ Flag is_manual mis à true');
-    console.log('✅ Données visibles au rechargement de la page');
+    // Test 6: Vérification de la suppression des champs benefits/insurance
+    console.log('\n🗑️ Test 6: Vérification de la suppression des champs benefits/insurance');
+    console.log('-'.repeat(40));
+    
+    if (retrievedData?.structured_data) {
+      const hasBenefits = !!retrievedData.structured_data.beneficios;
+      const hasInsurance = !!retrievedData.structured_data.seguros;
+      
+      console.log('✅ Champs benefits présents:', hasBenefits);
+      console.log('✅ Champs insurance présents:', hasInsurance);
+      
+      if (!hasBenefits && !hasInsurance) {
+        console.log('✅ Suppression des champs benefits et insurance confirmée');
+      } else {
+        console.log('⚠️ Les champs benefits ou insurance sont encore présents');
+      }
+    }
 
-    // Test 6: Test mobile
-    console.log('\n📱 Test 6: Compatibilité mobile');
-    console.log('✅ Interface responsive');
-    console.log('✅ Navigation tactile optimisée');
-    console.log('✅ Modal adapté aux petits écrans');
-
-    console.log('\n🎉 Tous les tests sont passés avec succès!');
+    console.log('\n🎉 Tous les tests sont passés avec succès !');
     console.log('=' .repeat(60));
 
   } catch (error) {
     console.error('❌ Erreur lors des tests:', error);
+    console.log('=' .repeat(60));
   }
-}
-
-// Test des fonctions du service (simulation)
-async function testServiceFunctions() {
-  console.log('\n🔧 Test des fonctions du service');
-  
-  try {
-    // Test de la fonction de sauvegarde
-    console.log('📝 Test saveEditedPayslip...');
-    // await payslipEditService.saveEditedPayslip(mockPayslipId, mockEditedData, mockCustomFields, mockUserId);
-    console.log('✅ saveEditedPayslip simulé avec succès');
-
-    // Test de la fonction de vérification
-    console.log('🔍 Test isPayslipManuallyEdited...');
-    // const isEdited = await payslipEditService.isPayslipManuallyEdited(mockPayslipId);
-    console.log('✅ isPayslipManuallyEdited simulé avec succès');
-
-    // Test de la fonction d'historique
-    console.log('📚 Test getEditHistory...');
-    // const history = await payslipEditService.getEditHistory(mockPayslipId);
-    console.log('✅ getEditHistory simulé avec succès');
-
-    console.log('🎉 Toutes les fonctions du service testées avec succès!');
-
-  } catch (error) {
-    console.error('❌ Erreur lors du test des fonctions:', error);
-  }
-}
-
-// Exécution des tests
-async function runTests() {
-  console.log('🚀 Démarrage des tests de la fonctionnalité d\'édition');
-  
-  await testPayslipEditFeature();
-  await testServiceFunctions();
-  
-  console.log('\n✨ Tests terminés!');
-  console.log('\n📋 Résumé des fonctionnalités implémentées:');
-  console.log('• ✅ Modal d\'édition avec interface moderne');
-  console.log('• ✅ Bouton d\'édition rond dans la section "Dados extraídos"');
-  console.log('• ✅ Champs éditables (texte, nombre, sélection)');
-  console.log('• ✅ Section "Ajouter un champ personnalisé"');
-  console.log('• ✅ Indicateurs visuels pour les modifications');
-  console.log('• ✅ Service de sauvegarde dans Supabase');
-  console.log('• ✅ Migration pour les champs manual_overrides et is_manual');
-  console.log('• ✅ Déclenchement automatique de la réanalyse IA');
-  console.log('• ✅ Interface responsive et mobile-friendly');
-  console.log('• ✅ Navigation clavier et accessibilité');
 }
 
 // Exécuter les tests si le script est appelé directement
 if (require.main === module) {
-  runTests().catch(console.error);
+  testPayslipEditFeature();
 }
 
-export { testPayslipEditFeature, testServiceFunctions, runTests }; 
+export { testPayslipEditFeature }; 

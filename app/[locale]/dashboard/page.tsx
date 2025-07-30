@@ -18,6 +18,7 @@ import { useRouter, useParams } from "next/navigation"; // Importer useParams
 import { createClient } from "@/lib/supabase/client";
 import InvestimentosComp from "@/components/investimentos/Investimentos";
 import useInvestimentos from "@/hooks/useInvestimentos";
+import { useFinancialCheckup } from "@/hooks/useFinancialCheckup";
 // Temporairement désactivé pour éviter les erreurs next-intl
 // import { useTranslations, useLocale } from 'next-intl';
 import { useMediaQuery } from 'react-responsive';
@@ -29,16 +30,7 @@ const UploadHolerite = dynamic(() => import("@/app/[locale]/calculadora/upload-h
 });
 
 // Composant de debug pour afficher les données JSON
-function DebugJson({ data, title = "Debug Data" }: { data: any; title?: string }) {
-  return (
-    <div className="bg-gray-100 p-4 rounded-lg mb-4">
-      <h3 className="font-bold text-gray-800 mb-2">{title}</h3>
-      <pre style={{background:'#eee',padding:16,overflow:'auto',maxHeight:'400px'}}>
-        {JSON.stringify(data, null, 2)}
-      </pre>
-    </div>
-  );
-}
+
 
 const navItems = [
   { label: "Compensação", icon: <BarChart3 className="w-6 h-6" /> },
@@ -57,6 +49,12 @@ const quickActions = [
     desc: "Analise sua folha de pagamento",
     color: "bg-green-50 text-green-700",
     icon: <Upload className="w-4 h-4 text-green-400" />,
+  },
+  {
+    label: "Financial Check-up 360°",
+    desc: "Avalie sua saúde financeira",
+    color: "bg-purple-50 text-purple-700",
+    icon: <BarChart3 className="w-4 h-4 text-purple-400" />,
   },
   {
     label: "Coaching Live",
@@ -1158,6 +1156,7 @@ export default function DashboardFullWidth() {
   };
 
   const { data: investimentos = [] } = useInvestimentos(userId, holeriteResult?.raw);
+  const { latestCheckup, loading: checkupLoading } = useFinancialCheckup(userId);
 
   const DashboardPerfilView = dynamic(() => import("@/components/dashboard/DashboardPerfilView"), {
     loading: () => <div className="py-8 text-center text-emerald-900">Chargement du profil...</div>,
@@ -1187,6 +1186,11 @@ const Seguros = dynamic(() => import("@/components/seguros/Seguros").then(m => m
 })
 const InvestimentosComp = dynamic(() => import("@/components/investimentos/Investimentos").then(m => m.default), {
   loading: () => <div className="py-8 text-center text-emerald-900">Chargement des investissements...</div>,
+  ssr: false
+})
+
+const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial-checkup/FinancialCheckupSummaryCard"), {
+  loading: () => <div className="py-8 text-center text-emerald-900">Chargement du Financial Check-up...</div>,
   ssr: false
 })
 
@@ -1367,55 +1371,6 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
           
           {activeTab === "Compensação" && (
             <>
-              {/* Section Perfil do Colaborador (version unifiée) */}
-              <div ref={perfilRef} className="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-6">
-                <div className="font-semibold text-lg mb-2 text-emerald-900 flex items-center gap-2">
-                  <UserCircle className="w-6 h-6 text-emerald-600" /> Perfil do Colaborador
-                  {holeriteResult?.raw?.profile_type && (
-                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200`}>
-                      {holeriteResult.raw.profile_type}
-                    </span>
-                  )}
-                </div>
-                {holeriteResult && holeriteResult.raw && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-500 font-medium">Nome</span>
-                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.employee_name || 'Não identificado'}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-500 font-medium">Empresa</span>
-                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.company_name || 'Não identificado'}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-500 font-medium">Cargo</span>
-                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.position || 'Não identificado'}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-500 font-medium">Perfil</span>
-                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.profile_type || 'Não identificado'}</span>
-                    </div>
-                  </div>
-                )}
-                {(!holeriteResult || !holeriteResult.raw) && (
-                  <div className="text-gray-400">Aucune donnée extraite d'un holerite pour le moment.</div>
-                )}
-              </div>
-              
-              {/* DEBUG: Affichage des données brutes */}
-              <DebugJson data={holeriteResult} title="DEBUG: holeriteResult" />
-              {holeriteResult?.raw && <DebugJson data={holeriteResult.raw} title="DEBUG: holeriteResult.raw" />}
-              
-              {/* DEBUG: Affichage forcé des recommandations */}
-              <div className="bg-yellow-100 p-4 rounded-lg mb-4">
-                <h3 className="font-bold text-yellow-800 mb-2">DEBUG: Recommandations forcées</h3>
-                <p>holeriteResult existe: {holeriteResult ? 'OUI' : 'NON'}</p>
-                <p>holeriteResult.raw existe: {holeriteResult?.raw ? 'OUI' : 'NON'}</p>
-                <p>recommendations count: {holeriteResult?.raw?.recommendations?.recommendations?.length || 0}</p>
-                <p>aiRecommendations count: {holeriteResult?.raw?.aiRecommendations?.length || 0}</p>
-                <p>resumeSituation: {holeriteResult?.raw?.recommendations?.resume_situation ? 'PRÉSENT' : 'ABSENT'}</p>
-                <p>scoreOptimisation: {holeriteResult?.raw?.recommendations?.score_optimisation || 0}</p>
-              </div>
               {/* Résumé cards */}
               {summaryCardsData.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1461,19 +1416,8 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
               ) : (
                 <NoDataMessage onUpload={() => setShowUploadModal(true)} />
               )}
-              {/* Recommandations IA basées sur l'analyse du holerite */}
-              {/* DEBUG: Affichage des données passées à AIRecommendations */}
-              <div className="bg-blue-100 p-4 rounded-lg mb-4">
-                <h3 className="font-bold text-blue-800 mb-2">DEBUG: Données passées à AIRecommendations</h3>
-                <p>recommendations count: {holeriteResult?.raw?.recommendations?.recommendations?.length || 0}</p>
-                <p>analysis_result count: {holeriteResult?.raw?.analysis_result?.recommendations?.recommendations?.length || 0}</p>
-                <p>aiRecommendations count: {holeriteResult?.raw?.aiRecommendations?.length || 0}</p>
-                <p>resume_situation: {holeriteResult?.raw?.recommendations?.resume_situation ? 'PRÉSENT' : 'ABSENT'}</p>
-                <p>analysis_result resume: {holeriteResult?.raw?.analysis_result?.recommendations?.resume_situation ? 'PRÉSENT' : 'ABSENT'}</p>
-                <p>score_optimisation: {holeriteResult?.raw?.recommendations?.score_optimisation || 0}</p>
-                <p>analysis_result score: {holeriteResult?.raw?.analysis_result?.recommendations?.score_optimisation || 0}</p>
-              </div>
               
+              {/* Recommandations IA basées sur l'analyse du holerite */}
               <AIRecommendations 
                 recommendations={holeriteResult?.raw?.recommendations?.recommendations || 
                               holeriteResult?.raw?.analysis_result?.recommendations?.recommendations || 
@@ -1535,6 +1479,55 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
             <InvestimentosComp status={employmentStatus} investimentos={investimentos} />
           )}
           
+          {activeTab === "Dados" && (
+            <>
+              {/* Section Perfil do Colaborador */}
+              <div ref={perfilRef} className="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-6">
+                <div className="font-semibold text-lg mb-2 text-emerald-900 flex items-center gap-2">
+                  <UserCircle className="w-6 h-6 text-emerald-600" /> Perfil do Colaborador
+                  {holeriteResult?.raw?.profile_type && (
+                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200`}>
+                      {holeriteResult.raw.profile_type}
+                    </span>
+                  )}
+                </div>
+                {holeriteResult && holeriteResult.raw && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500 font-medium">Nome</span>
+                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.employee_name || 'Não identificado'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500 font-medium">Empresa</span>
+                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.company_name || 'Não identificado'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500 font-medium">Cargo</span>
+                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.position || 'Não identificado'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500 font-medium">Perfil</span>
+                      <span className="text-base font-semibold text-gray-900">{holeriteResult.raw.profile_type || 'Não identificado'}</span>
+                    </div>
+                  </div>
+                )}
+                {(!holeriteResult || !holeriteResult.raw) && (
+                  <div className="text-gray-400">Aucune donnée extraite d'un holerite pour le moment.</div>
+                )}
+              </div>
+              
+              {/* Section Dados do Holerite */}
+              {holeriteResult && holeriteResult.raw && (
+                <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
+                  <div className="font-semibold text-lg mb-4 text-emerald-900 flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-emerald-600" /> Dados do Holerite
+                  </div>
+                  <HoleriteAnalysisDisplay raw={holeriteResult.raw} />
+                </div>
+              )}
+            </>
+          )}
+          
           {/* Pour les autres onglets, afficher un message temporaire */}
           {activeTab !== "Dados" && activeTab !== "Compensação" && activeTab !== "Benefícios" && activeTab !== "Bem-estar" && activeTab !== "Seguros" && activeTab !== "Investimentos" && (
             <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 text-center">
@@ -1556,6 +1549,16 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
                 <div className="flex flex-col items-start">
                   <span>Upload Holerite</span>
                   <span className="text-sm text-gray-500 font-normal">Analise sua folha de pagamento</span>
+                </div>
+              </button>
+              <button
+                className="flex items-center gap-2 px-3 py-3 rounded-lg font-semibold text-base bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all duration-200 focus:ring-2 focus:ring-emerald-400"
+                                 onClick={() => router.push(`/${locale === 'br' ? 'pt' : (locale || 'fr')}/financial-checkup`)}
+              >
+                <BarChart3 className="w-4 h-4 text-purple-400" />
+                <div className="flex flex-col items-start">
+                  <span>Financial Check-up 360°</span>
+                  <span className="text-sm text-gray-500 font-normal">Avalie sua saúde financeira</span>
                 </div>
               </button>
               <button
@@ -1601,33 +1604,41 @@ const InvestimentosComp = dynamic(() => import("@/components/investimentos/Inves
             </div>
           )}
           {/* Bloc résultat holerite (synthétique, cliquable) */}
+                    {/* Financial Check-up Summary */}
+          {latestCheckup && !checkupLoading && (
+            <FinancialCheckupSummaryCard 
+              checkup={latestCheckup} 
+              locale={locale as string || 'br'} 
+            />
+          )}
+
           {holeriteResult && (
-            <div className="bg-emerald-50 rounded-2xl shadow border border-emerald-200 p-6 cursor-pointer hover:bg-emerald-100 transition" onClick={() => setShowAnalysisDetail(true)}>
-              <div className="font-semibold text-lg mb-3 text-emerald-900 flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-emerald-500" />
-                Oportunidades Identificadas
-              </div>
-              <ul className="flex flex-col gap-2">
-                {(holeriteResult.raw?.analysis?.optimization_opportunities && holeriteResult.raw.analysis.optimization_opportunities.length > 0
-                  ? holeriteResult.raw.analysis.optimization_opportunities
-                  : getDefaultOpportunities(holeriteResult.raw?.profile_type || 'PJ')
-                ).slice(0, 5).map((op: string, i: number) => {
-                  // Extraction améliorée du titre du thème (avant les deux-points, sans suffixe)
-                  let keyword = op.match(/^([^:]+):/)?.[1] || op.split(' ').slice(0,3).join(' ');
-                  // Nettoie les suffixes éventuels (ex: 'PME', 'Privada', etc.) pour ne garder que le thème principal
-                  keyword = keyword.replace(/\b(PME|Privada|com cobertura por invalidez\/doenças graves|Fiscal)\b/gi, '').replace(/\s{2,}/g, ' ').trim();
-                  // Capitalise la première lettre de chaque mot
-                  keyword = keyword.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-                  return (
-                    <li key={i} className="flex items-center gap-2 text-emerald-800 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span className="font-bold text-xs whitespace-nowrap">{keyword}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-              <button className="w-full flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-4 rounded-2xl shadow text-base transition-all duration-200 focus:ring-2 focus:ring-emerald-400 mt-6"><Download className="w-5 h-5" /> Baixar Relatório</button>
+          <div className="bg-emerald-50 rounded-2xl shadow border border-emerald-200 p-6 cursor-pointer hover:bg-emerald-100 transition" onClick={() => setShowAnalysisDetail(true)}>
+            <div className="font-semibold text-lg mb-3 text-emerald-900 flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-emerald-500" />
+              Oportunidades Identificadas
             </div>
+            <ul className="flex flex-col gap-2">
+              {(holeriteResult.raw?.analysis?.optimization_opportunities && holeriteResult.raw.analysis.optimization_opportunities.length > 0
+                ? holeriteResult.raw.analysis.optimization_opportunities
+                : getDefaultOpportunities(holeriteResult.raw?.profile_type || 'PJ')
+              ).slice(0, 5).map((op: string, i: number) => {
+                // Extraction améliorée du titre du thème (avant les deux-points, sans suffixe)
+                let keyword = op.match(/^([^:]+):/)?.[1] || op.split(' ').slice(0,3).join(' ');
+                // Nettoie les suffixes éventuels (ex: 'PME', 'Privada', etc.) pour ne garder que le thème principal
+                keyword = keyword.replace(/\b(PME|Privada|com cobertura por invalidez\/doenças graves|Fiscal)\b/gi, '').replace(/\s{2,}/g, ' ').trim();
+                // Capitalise la première lettre de chaque mot
+                keyword = keyword.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                return (
+                  <li key={i} className="flex items-center gap-2 text-emerald-800 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span className="font-bold text-xs whitespace-nowrap">{keyword}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            <button className="w-full flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-4 rounded-2xl shadow text-base transition-all duration-200 focus:ring-2 focus:ring-emerald-400 mt-6"><Download className="w-5 h-5" /> Baixar Relatório</button>
+          </div>
           )}
           {/* Modal détail analyse */}
           {showAnalysisDetail && holeriteResult && (

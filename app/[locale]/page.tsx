@@ -214,7 +214,7 @@ function HeroSection({ locale }: { locale: string }) {
   }, [supabase])
 
   const handleSignUp = () => {
-    router.push(`/${locale}/scan-new-pim`);
+    router.push(`/${locale}/signup`);
   };
   
   const handleSimule = () => {
