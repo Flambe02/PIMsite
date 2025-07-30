@@ -58,7 +58,7 @@ export default function DashboardClient() {
             Envie seu primeiro holerite para começar a analisar sua folha de pagamento e receber recomendações personalizadas.
           </p>
           <div className="flex gap-4">
-            <Link href="/calculadora?tab=upload">
+            <Link href="/br/scan-new-pim">
               <Button className="bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 text-lg">
                 <Upload size={20} /> Upload de Holerite
               </Button>
@@ -102,7 +102,7 @@ export default function DashboardClient() {
             })}
           </div>
           <div className="flex gap-4 mt-8">
-            <Link href="/calculadora?tab=upload">
+            <Link href="/br/scan-new-pim">
               <Button className="bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 text-lg">
                 <Upload size={20} /> Upload de Holerite
               </Button>

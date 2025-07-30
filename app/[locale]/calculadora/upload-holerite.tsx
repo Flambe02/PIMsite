@@ -99,7 +99,7 @@ export default function UploadHolerite({ onResult }: { onResult?: (result: any) 
       // Simuler les étapes OCR et IA avec des indicateurs visuels
       setOcrLoading(true);
       
-      const res = await fetch('/api/process-payslip', {
+      const res = await fetch('/api/scan-new-pim', {
         method: 'POST',
         body: formData,
         signal: controller.signal,

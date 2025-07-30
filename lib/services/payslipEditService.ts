@@ -28,78 +28,76 @@ export class PayslipEditService {
     customFields: CustomField[],
     userId: string
   ): Promise<PayslipEditData> {
-    const supabase = await this.getSupabase();
-
-    // Préparer les données à sauvegarder
-    const manualOverrides = {
-      edited_fields: editedData,
-      custom_fields: customFields,
-      edited_at: new Date().toISOString(),
-      edited_by: userId
-    };
-
-    // Fusionner les données éditées avec les données originales
-    const updatedStructuredData = {
-      ...editedData,
-      // Ajouter les champs personnalisés
-      custom_fields: customFields.reduce((acc, field) => {
-        acc[field.title] = field.value;
-        return acc;
-      }, {} as any)
-    };
-
-    // Mettre à jour dans Supabase
-    const { data, error } = await supabase
-      .from('scan_results')
-      .update({
-        structured_data: updatedStructuredData,
-        manual_overrides: manualOverrides,
-        is_manual: true,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', payslipId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erreur lors de la sauvegarde des données éditées:', error);
-      throw new Error('Erreur lors de la sauvegarde des données éditées');
-    }
-
-    // Déclencher une nouvelle analyse IA avec les données éditées
-    await this.triggerReanalysis(payslipId, updatedStructuredData);
-
-    return data;
-  }
-
-  /**
-   * Déclenche une nouvelle analyse IA avec les données éditées
-   */
-  private async triggerReanalysis(payslipId: string, editedData: any): Promise<void> {
     try {
-      // Appeler l'API de réanalyse avec les données éditées
-      const response = await fetch('/api/process-payslip', {
-        method: 'POST',
+      console.log('💾 Début sauvegarde des données éditées...', {
+        payslipId,
+        editedDataKeys: Object.keys(editedData),
+        customFieldsCount: customFields.length,
+        userId
+      });
+
+      // Fusionner les données éditées avec les champs personnalisés
+      const mergedData = {
+        ...editedData,
+        // Ajouter les champs personnalisés
+        custom_fields: customFields.reduce((acc, field) => {
+          acc[field.title] = field.value;
+          return acc;
+        }, {} as any)
+      };
+
+      // Utiliser la nouvelle route API pour la mise à jour complète
+      const response = await fetch('/api/scan-new-pim/update', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          payslipId,
-          editedData,
-          isManualEdit: true
+          scanId: payslipId,
+          editedData: mergedData,
+          userId: userId,
+          country: 'br' // Par défaut pour le Brésil
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la réanalyse IA');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erreur lors de la mise à jour');
       }
 
-      console.log('Réanalyse IA déclenchée avec succès');
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la mise à jour');
+      }
+
+      console.log('✅ Sauvegarde réussie:', {
+        reanalysisTriggered: result.data?.reanalysisTriggered,
+        hasNewRecommendations: !!result.data?.newRecommendations
+      });
+
+      // Retourner les données mises à jour
+      return {
+        id: payslipId,
+        structured_data: result.data?.updatedScan?.structured_data || mergedData,
+        manual_overrides: {
+          edited_fields: mergedData,
+          custom_fields: customFields,
+          edited_at: new Date().toISOString(),
+          edited_by: userId,
+          reanalysis_performed: result.data?.reanalysisTriggered || false
+        },
+        is_manual: true,
+        updated_at: new Date().toISOString()
+      };
+
     } catch (error) {
-      console.error('Erreur lors de la réanalyse IA:', error);
-      // Ne pas faire échouer la sauvegarde si la réanalyse échoue
+      console.error('❌ Erreur lors de la sauvegarde des données éditées:', error);
+      throw new Error(`Erreur lors de la sauvegarde des données éditées: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     }
   }
+
+
 
   /**
    * Récupère les données éditées d'un payslip

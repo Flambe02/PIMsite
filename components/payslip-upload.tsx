@@ -63,7 +63,7 @@ export function PayslipUpload() {
     try {
       console.log('📤 Upload du fichier:', file.name);
       
-      const response = await fetch('/api/process-payslip', {
+      const response = await fetch('/api/scan-new-pim', {
         method: 'POST',
         body: formData,
       });

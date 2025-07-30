@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, TrendingUp, Lightbulb, RefreshCw, FileText, User, Building, GraduationCap, Briefcase, Info, Edit3 } from 'lucide-react';
+import { CheckCircle, TrendingUp, Lightbulb, RefreshCw, FileText, User, Building, GraduationCap, Briefcase, Info, Edit3, BarChart3 } from 'lucide-react';
 import { ScanResults as ScanResultsType } from '@/hooks/useScanNewPIM';
 import { DataEditModal } from './DataEditModal';
 import { payslipEditService } from '@/lib/services/payslipEditService';
@@ -149,9 +149,19 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
 
       console.log('✅ Données sauvegardées avec succès:', savedData);
 
+      // Déterminer le message selon le type de modification
+      const hasNumericChanges = Object.keys(editedData).some(key => 
+        ['gross_salary', 'net_salary', 'salario_bruto', 'salario_liquido', 'total_deductions', 'descontos'].includes(key) ||
+        (key === 'impostos' && Array.isArray(editedData[key]))
+      );
+
+      const message = hasNumericChanges 
+        ? "Les données ont été sauvegardées et la réanalyse IA a été déclenchée pour les nouvelles valeurs."
+        : "Les données ont été sauvegardées avec succès.";
+
       toast({
         title: "Sauvegarde réussie",
-        description: "Les données ont été sauvegardées et la réanalyse IA a été déclenchée.",
+        description: message,
         variant: "default"
       });
 
@@ -180,6 +190,14 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
     recommendationsList: recommendationsList,
     recommendationsListLength: recommendationsList.length,
     firstRecommendation: recommendationsList[0]
+  });
+
+  // DEBUG: Afficher la structure complète des données reçues
+  console.log('🔍 DEBUG ScanResults - Données complètes reçues:', {
+    results: results,
+    structuredData: structuredData,
+    analysis: analysis,
+    scanId: results.data?.scanId
   });
 
   return (
@@ -355,7 +373,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="mt-8 flex justify-center"
+        className="mt-8 flex justify-center space-x-4"
       >
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -365,6 +383,15 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
         >
           <RefreshCw className="w-5 h-5" />
           <span>Novo scan</span>
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => window.location.href = '/br/dashboard'}
+          className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <BarChart3 className="w-5 h-5" />
+          <span>Dashboard</span>
         </motion.button>
       </motion.div>
 

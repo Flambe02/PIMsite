@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useSupabase } from "@/components/supabase-provider";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import DashHeader from "@/components/dash/DashHeader";
+import DashSidebar from "@/components/dash/DashSidebar";
 import DashHeroSection from "@/components/dash/DashHeroSection";
 import DashMobileNavigation from "@/components/dash/DashMobileNavigation";
 import DashHoleriteBlock from "@/components/dash/DashHoleriteBlock";
@@ -143,7 +144,7 @@ export default function DashPage() {
   const { latestCheckup, loading: checkupLoading } = useFinancialCheckup(user?.id);
 
   const handleUploadHolerite = () => {
-    window.location.href = `/${params.locale}/scan-new-pim`;
+    window.location.href = `/br/scan-new-pim`;
   };
 
   const handleStartCheckup = () => {
@@ -199,30 +200,39 @@ export default function DashPage() {
   const hasCheckup = !!latestCheckup;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Modern Header */}
-      <DashHeader
-        user={user}
-        onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
-        sidebarOpen={sidebarOpen}
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Desktop Sidebar */}
+      <DashSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         locale={params.locale as string}
+        onUploadHolerite={handleUploadHolerite}
       />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <DashHeroSection
-          moneyScore={moneyScore}
-          hasHolerite={hasHolerite}
-          hasCheckup={hasCheckup}
-          onUploadHolerite={handleUploadHolerite}
-          onStartCheckup={handleStartCheckup}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <DashHeader
+          user={user}
+          onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+          sidebarOpen={sidebarOpen}
           locale={params.locale as string}
         />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-          <AnimatePresence>
+        {/* Main Content */}
+        <div className="flex-1 p-8">
+          {/* Hero Section */}
+          <DashHeroSection
+            moneyScore={moneyScore}
+            hasHolerite={hasHolerite}
+            hasCheckup={hasCheckup}
+            onUploadHolerite={handleUploadHolerite}
+            onStartCheckup={handleStartCheckup}
+            locale={params.locale as string}
+          />
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mt-8">
             {/* Payslip Analysis */}
             <motion.div
               key="holerite-block"
@@ -301,7 +311,7 @@ export default function DashPage() {
                 userId={user?.id}
               />
             </motion.div>
-          </AnimatePresence>
+          </div>
         </div>
       </div>
 

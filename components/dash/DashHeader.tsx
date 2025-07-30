@@ -55,18 +55,18 @@ export default function DashHeader({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm"
+      className="bg-white border-b border-gray-200 shadow-sm"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Left side - Logo and Menu */}
+          {/* Left side - Mobile menu button and title */}
           <div className="flex items-center gap-4">
             {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="sm"
               onClick={onSidebarToggle}
-              className="md:hidden p-2"
+              className="lg:hidden p-2"
             >
               {sidebarOpen ? (
                 <X className="w-5 h-5" />
@@ -75,16 +75,11 @@ export default function DashHeader({
               )}
             </Button>
 
-            {/* Logo/Brand */}
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  {locale === 'fr' ? 'Financial' : 'Financial'}
-                </h1>
-              </div>
+            {/* Page title */}
+            <div className="hidden lg:block">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {locale === 'fr' ? 'Financial' : 'Financial'}
+              </h1>
             </div>
           </div>
 
