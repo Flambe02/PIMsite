@@ -70,14 +70,24 @@ async function getArticleBySlug(slug: string): Promise<BlogArticleDetail | null>
     const article = await getArticleBySlug(slug);
     
     if (!article) {
-      console.error('Article non trouvé:', slug);
+      console.warn(`🚨 Article non trouvé pour le slug: ${slug}`);
       return null;
     }
 
-    console.log(`Article récupéré: ${article.slug}`);
+    // Validation supplémentaire côté page
+    if (!article.title || !article.slug) {
+      console.warn('🚨 Article invalide détecté côté page:', {
+        _id: article._id,
+        title: article.title,
+        slug: article.slug
+      });
+      return null;
+    }
+
+    console.log(`✅ Article valide récupéré: ${article.slug}`);
     return article;
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'article:', error);
+    console.error('❌ Erreur lors de la récupération de l\'article:', error);
     return null;
   }
 }
@@ -85,18 +95,19 @@ async function getArticleBySlug(slug: string): Promise<BlogArticleDetail | null>
 
 
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
-  const { locale, slug } = await params;
-  
-  if (!locales.includes(locale as any)) notFound();
+  try {
+    const { locale, slug } = await params;
+    
+    if (!locales.includes(locale as any)) notFound();
 
-  const country = locale as string;
-  
-  // Récupérer l'article depuis Supabase
-  const article = await getArticleBySlug(slug);
+    const country = locale as string;
+    
+    // Récupérer l'article depuis Sanity
+    const article = await getArticleBySlug(slug);
 
-  if (!article) {
-    notFound();
-  }
+    if (!article) {
+      notFound();
+    }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -297,4 +308,27 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('❌ Erreur critique dans BlogArticlePage:', error);
+    
+    // Fallback en cas d'erreur - page avec message d'erreur mais pas de crash
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Article temporairement indisponible
+          </h1>
+          <p className="text-gray-600 mb-8">
+            Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard.
+          </p>
+          <a 
+            href="/" 
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retour à l'accueil
+          </a>
+        </div>
+      </div>
+    );
+  }
 } 

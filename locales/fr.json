@@ -8,7 +8,7 @@
     }
   },
   "france": {
-    "specialOffer": "Offre exclusive pour la France : bénéficiez d’un accompagnement personnalisé sur la fiscalité française.",
+    "specialOffer": "Offre exclusive pour la France : bénéficiez d'un accompagnement personnalisé sur la fiscalité française.",
     "guide": "Consultez notre guide complet sur la protection sociale et les avantages en France.",
     "cta": "Découvrir les avantages français"
   },
@@ -16,5 +16,39 @@
     "specialOffer": "Offre exclusive pour le Canada : découvrez les avantages sociaux canadiens et la fiscalité locale.",
     "guide": "Consultez notre guide sur la retraite, la santé et les bénéfices au Canada.",
     "cta": "Voir les avantages canadiens"
+  },
+  "blog": {
+    "title": "Blog PIM",
+    "subtitle": "Conseils et insights sur la paie, les avantages et la carrière",
+    "searchPlaceholder": "Rechercher des articles...",
+    "filterByCategory": "Filtrer par catégorie",
+    "allCategories": "Toutes les catégories",
+    "noArticles": "Aucun article trouvé",
+    "backToBlog": "Retour au blog",
+    "readFullArticle": "Lire l'article complet",
+    "minutesRead": "min de lecture",
+    "articlesFound": "articles trouvés",
+    "of": "sur",
+    "total": "au total",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page",
+    "clearFilters": "Effacer les filtres",
+    "noArticlesMessage": "Bientôt nous aurons des articles intéressants pour vous. Explorez nos ressources !",
+    "noArticlesWithFilters": "Essayez d'ajuster vos filtres de recherche ou explorez d'autres catégories.",
+    "analyzePayslip": "Voulez-vous analyser votre bulletin de paie ?",
+    "analyzePayslipDescription": "Téléchargez votre bulletin de paie et recevez des insights personnalisés sur vos avantages, impôts et opportunités d'optimisation.",
+    "analyzeMyPayslip": "Analyser mon bulletin de paie",
+    "blogUnavailable": "Blog temporairement indisponible",
+    "technicalDifficulties": "Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard.",
+    "backToHome": "Retour à l'accueil",
+    "articleUnavailable": "Article temporairement indisponible",
+    "invalidDate": "Date invalide",
+    "noTitle": "Sans titre",
+    "noExcerpt": "Aucun résumé disponible",
+    "moreTags": "autres"
+  },
+  "country": {
+    "currentCountry": "Pays actuel"
   }
 } 

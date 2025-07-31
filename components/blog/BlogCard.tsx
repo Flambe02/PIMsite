@@ -20,23 +20,49 @@ interface BlogArticle {
 interface BlogCardProps {
   article: BlogArticle;
   locale: string;
+  dict: any;
 }
 
-export default function BlogCard({ article, locale }: BlogCardProps) {
+export default function BlogCard({ article, locale, dict }: BlogCardProps) {
+  // Validation de l'article
+  if (!article || !article.title || !article.slug) {
+    console.warn('🚨 Article invalide dans BlogCard:', article);
+    return null;
+  }
+
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      const date = new Date(dateString);
+      const localeMap: { [key: string]: string } = {
+        'br': 'pt-BR',
+        'fr': 'fr-FR',
+        'en': 'en-US',
+        'fr-ca': 'fr-CA',
+        'pt-pt': 'pt-PT',
+        'en-gb': 'en-GB'
+      };
+      
+      return date.toLocaleDateString(localeMap[locale] || 'pt-BR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.warn('🚨 Date invalide dans BlogCard:', dateString);
+      return locale === 'br' ? 'Data inválida' : locale === 'fr' ? 'Date invalide' : 'Invalid date';
+    }
   };
 
   const getReadingTime = () => {
-    // Estimation basée sur le nombre de mots dans l'excerpt
-    const words = article.excerpt?.split(' ').length || 0;
-    const readingTime = Math.ceil(words / 200); // 200 mots par minute
-    return Math.max(1, readingTime); // Minimum 1 minute
+    try {
+      // Estimation basée sur le nombre de mots dans l'excerpt
+      const words = (article.excerpt || '').split(' ').length || 0;
+      const readingTime = Math.ceil(words / 200); // 200 mots par minute
+      return Math.max(1, readingTime); // Minimum 1 minute
+    } catch (error) {
+      console.warn('🚨 Erreur calcul temps de lecture:', error);
+      return 1;
+    }
   };
 
   return (
@@ -66,7 +92,7 @@ export default function BlogCard({ article, locale }: BlogCardProps) {
             </div>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-1" />
-              <span>{getReadingTime()} min</span>
+              <span>{getReadingTime()} {locale === 'br' ? 'min' : locale === 'fr' ? 'min' : 'min'}</span>
             </div>
           </div>
           <div className="flex items-center">
@@ -79,13 +105,13 @@ export default function BlogCard({ article, locale }: BlogCardProps) {
         {/* Title */}
         <h2 className="text-xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
           <Link href={`/${locale}/blog/${article.slug}`}>
-            {article.title}
+            {article.title || (locale === 'br' ? 'Sem título' : locale === 'fr' ? 'Sans titre' : 'No title')}
           </Link>
         </h2>
 
         {/* Excerpt */}
         <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed text-base">
-          {article.excerpt}
+          {article.excerpt || (locale === 'br' ? 'Nenhum resumo disponível' : locale === 'fr' ? 'Aucun résumé disponible' : 'No summary available')}
         </p>
 
         {/* Tags */}
@@ -102,7 +128,7 @@ export default function BlogCard({ article, locale }: BlogCardProps) {
             ))}
             {article.tags.length > 3 && (
               <span className="text-xs text-gray-500 flex items-center">
-                +{article.tags.length - 3} autres
+                +{article.tags.length - 3} {locale === 'br' ? 'outros' : locale === 'fr' ? 'autres' : 'more'}
               </span>
             )}
           </div>
@@ -114,7 +140,7 @@ export default function BlogCard({ article, locale }: BlogCardProps) {
             href={`/${locale}/blog/${article.slug}`}
             className="inline-flex items-center text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200 group/link"
           >
-            Lire l'article complet
+            {dict.blog.readMore}
             <ArrowRight className="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform duration-200" />
           </Link>
         </div>

@@ -4,6 +4,17 @@
 
 Le nouveau processus d'analyse IA optimisée a été **intégré avec succès** dans le backend PIM, respectant parfaitement la structure d'output proposée.
 
+## 🛡️ Blog Sanity - Système Robuste
+
+**Un article incomplet dans Sanity n'empêche plus le build, il est simplement ignoré côté Next.js.**
+
+Le système blog a été entièrement sécurisé avec :
+- **Requêtes GROQ filtrées** : Seuls les articles avec titre, slug et date de publication passée sont récupérés
+- **Validation côté client** : Chaque article est vérifié avant affichage
+- **Logs détaillés** : Les articles invalides sont loggés avec leur raison d'exclusion
+- **Fallback robuste** : En cas d'erreur, une page d'erreur élégante s'affiche sans casser le build
+- **Mapping sécurisé** : Accès protégé aux propriétés avec valeurs par défaut
+
 ## 📊 Structure d'Output Implémentée
 
 ### Réponse API Optimisée

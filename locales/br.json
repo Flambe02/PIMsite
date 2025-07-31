@@ -16,5 +16,39 @@
     "specialOffer": "Oferta exclusiva para Portugal: descubra os benefícios e impostos portugueses.",
     "guide": "Veja nosso guia sobre segurança social e vantagens em Portugal.",
     "cta": "Ver benefícios em Portugal"
+  },
+  "blog": {
+    "title": "Blog PIM",
+    "subtitle": "Insights e dicas sobre folha de pagamento, benefícios e carreira",
+    "searchPlaceholder": "Buscar artigos...",
+    "filterByCategory": "Filtrar por categoria",
+    "allCategories": "Todas as categorias",
+    "noArticles": "Nenhum artigo encontrado",
+    "backToBlog": "Voltar ao blog",
+    "readFullArticle": "Ler artigo completo",
+    "minutesRead": "min de leitura",
+    "articlesFound": "artigos encontrados",
+    "of": "de",
+    "total": "no total",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page": "Página",
+    "clearFilters": "Limpar filtros",
+    "noArticlesMessage": "Em breve teremos artigos interessantes para você. Explore nossos recursos!",
+    "noArticlesWithFilters": "Tente ajustar seus filtros de busca ou explore outras categorias.",
+    "analyzePayslip": "Quer analisar seu holerite?",
+    "analyzePayslipDescription": "Faça upload do seu holerite e receba insights personalizados sobre seus benefícios, impostos e oportunidades de otimização.",
+    "analyzeMyPayslip": "Analisar meu holerite",
+    "blogUnavailable": "Blog temporariamente indisponível",
+    "technicalDifficulties": "Estamos enfrentando dificuldades técnicas. Tente novamente mais tarde.",
+    "backToHome": "Voltar ao início",
+    "articleUnavailable": "Artigo temporariamente indisponível",
+    "invalidDate": "Data inválida",
+    "noTitle": "Sem título",
+    "noExcerpt": "Nenhum resumo disponível",
+    "moreTags": "outros"
+  },
+  "country": {
+    "currentCountry": "País atual"
   }
 } 

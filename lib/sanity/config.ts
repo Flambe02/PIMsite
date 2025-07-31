@@ -19,11 +19,17 @@ export const urlFor = (source: any) => {
   return builder.image(source);
 };
 
-// GROQ queries
+// GROQ queries SÉCURISÉES - Ne récupère que les articles valides
 export const queries = {
-  // Get all published articles for a specific country
+  // Get all published articles for a specific country (SÉCURISÉ)
   getArticlesByCountry: `
-    *[_type == "post" && publishedAt != null && (country == $country || country == lower($country))] | order(publishedAt desc) {
+    *[_type == "post" 
+      && defined(slug.current) 
+      && defined(title) 
+      && publishedAt != null 
+      && publishedAt < now() 
+      && (country == $country || country == lower($country))
+    ] | order(publishedAt desc) {
       _id,
       title,
       "slug": slug.current,
@@ -38,9 +44,15 @@ export const queries = {
     }
   `,
 
-  // Get a single article by slug
+  // Get a single article by slug (SÉCURISÉ)
   getArticleBySlug: `
-    *[_type == "post" && slug.current == $slug][0] {
+    *[_type == "post" 
+      && slug.current == $slug 
+      && defined(slug.current) 
+      && defined(title) 
+      && publishedAt != null 
+      && publishedAt < now()
+    ][0] {
       _id,
       title,
       "slug": slug.current,
@@ -57,18 +69,29 @@ export const queries = {
     }
   `,
 
-  // Get all articles for sitemap
+  // Get all articles for sitemap (SÉCURISÉ)
   getAllArticles: `
-    *[_type == "post" && publishedAt != null] {
+    *[_type == "post" 
+      && defined(slug.current) 
+      && defined(title) 
+      && publishedAt != null 
+      && publishedAt < now()
+    ] {
       "slug": slug.current,
       publishedAt,
       country
     }
   `,
 
-  // Get articles for RSS feed
+  // Get articles for RSS feed (SÉCURISÉ)
   getArticlesForRSS: `
-    *[_type == "post" && publishedAt != null && (country == $country || country == lower($country))] | order(publishedAt desc)[0...20] {
+    *[_type == "post" 
+      && defined(slug.current) 
+      && defined(title) 
+      && publishedAt != null 
+      && publishedAt < now() 
+      && (country == $country || country == lower($country))
+    ] | order(publishedAt desc)[0...20] {
       _id,
       title,
       "slug": slug.current,

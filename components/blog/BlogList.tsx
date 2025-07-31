@@ -24,29 +24,39 @@ interface BlogListProps {
   articles: BlogArticle[];
   locale: string;
   country: string;
+  dict: any;
 }
 
-export default function BlogList({ articles, locale, country }: BlogListProps) {
-  const [filteredArticles, setFilteredArticles] = useState<BlogArticle[]>(articles);
+export default function BlogList({ articles, locale, country, dict }: BlogListProps) {
+  // Validation des articles reçus
+  const validArticles = articles.filter((article: any) => {
+    if (!article || !article.title || !article.slug) {
+      console.warn('🚨 Article invalide dans BlogList:', article);
+      return false;
+    }
+    return true;
+  });
+
+  const [filteredArticles, setFilteredArticles] = useState<BlogArticle[]>(validArticles);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('');
 
-  // Extraire tous les tags uniques
+  // Extraire tous les tags uniques (seulement des articles valides)
   const allTags = Array.from(
     new Set(
-      articles.flatMap(article => article.tags || [])
+      validArticles.flatMap(article => article.tags || [])
     )
   ).sort();
 
   // Filtrer les articles
   useEffect(() => {
-    let filtered = articles;
+    let filtered = validArticles;
 
     // Filtre par recherche
     if (searchTerm) {
       filtered = filtered.filter(article =>
         article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (article.excerpt && article.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (article.tags && article.tags.some(tag => 
           tag.toLowerCase().includes(searchTerm.toLowerCase())
         ))
@@ -61,7 +71,7 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
     }
 
     setFilteredArticles(filtered);
-  }, [articles, searchTerm, selectedTag]);
+  }, [validArticles, searchTerm, selectedTag]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -76,11 +86,11 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
           <div className="flex items-center">
             <Globe className="w-5 h-5 text-blue-600 mr-2" />
             <h2 className="text-xl font-semibold text-gray-900">
-              Blog PIM - {country.toUpperCase()}
+              {dict.blog.title} - {country.toUpperCase()}
             </h2>
           </div>
           <div className="text-sm text-gray-500">
-            {filteredArticles.length} de {articles.length} artigos
+            {filteredArticles.length} {locale === 'br' ? 'de' : locale === 'fr' ? 'sur' : 'of'} {validArticles.length} {locale === 'br' ? 'artigos' : locale === 'fr' ? 'articles' : 'articles'}
           </div>
         </div>
 
@@ -91,7 +101,7 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Buscar artigos..."
+              placeholder={dict.blog.searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -103,7 +113,7 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
             <div className="space-y-2">
               <div className="flex items-center">
                 <Filter className="w-4 h-4 text-gray-500 mr-2" />
-                <span className="text-sm font-medium text-gray-700">Filtrar por tag:</span>
+                <span className="text-sm font-medium text-gray-700">{dict.blog.filterByCategory}:</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -114,7 +124,7 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  Todos
+                  {dict.blog.allCategories}
                 </button>
                 {allTags.map(tag => (
                   <button
@@ -142,12 +152,16 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
             <Search className="mx-auto h-16 w-16" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            Nenhum artigo encontrado
+            {dict.blog.noArticles}
           </h3>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
             {searchTerm || selectedTag 
-              ? 'Tente ajustar seus filtros de busca ou explore outras categorias.'
-              : 'Em breve teremos artigos interessantes para você. Explore nossos recursos!'
+              ? (locale === 'br' ? 'Tente ajustar seus filtros de busca ou explore outras categorias.' :
+                 locale === 'fr' ? 'Essayez d\'ajuster vos filtres de recherche ou explorez d\'autres catégories.' :
+                 'Try adjusting your search filters or explore other categories.')
+              : (locale === 'br' ? 'Em breve teremos artigos interessantes para você. Explore nossos recursos!' :
+                 locale === 'fr' ? 'Bientôt nous aurons des articles intéressants pour vous. Explorez nos ressources !' :
+                 'Soon we will have interesting articles for you. Explore our resources!')
             }
           </p>
           {(searchTerm || selectedTag) && (
@@ -155,7 +169,7 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
               onClick={clearFilters}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
             >
-              Limpar filtros
+              {locale === 'br' ? 'Limpar filtros' : locale === 'fr' ? 'Effacer les filtres' : 'Clear filters'}
             </button>
           )}
         </div>
@@ -168,6 +182,7 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
                 key={article._id}
                 article={article}
                 locale={locale}
+                dict={dict}
               />
             ))}
           </div>
@@ -176,8 +191,11 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                Affichage de <span className="font-semibold text-blue-600">{filteredArticles.length}</span> 
-                {filteredArticles.length === 1 ? ' article' : ' articles'} sur {articles.length} au total
+                {locale === 'br' ? 'Exibindo' : locale === 'fr' ? 'Affichage de' : 'Showing'} <span className="font-semibold text-blue-600">{filteredArticles.length}</span> 
+                {filteredArticles.length === 1 
+                  ? (locale === 'br' ? ' artigo' : locale === 'fr' ? ' article' : ' article')
+                  : (locale === 'br' ? ' artigos' : locale === 'fr' ? ' articles' : ' articles')
+                } {locale === 'br' ? 'de' : locale === 'fr' ? 'sur' : 'of'} {articles.length} {locale === 'br' ? 'no total' : locale === 'fr' ? 'au total' : 'total'}
               </p>
             </div>
           </div>
@@ -189,13 +207,13 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
         <div className="flex justify-center pt-8">
           <div className="flex items-center space-x-2">
             <button className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-              Anterior
+              {locale === 'br' ? 'Anterior' : locale === 'fr' ? 'Précédent' : 'Previous'}
             </button>
             <span className="px-4 py-2 text-sm font-medium text-gray-700">
-              Página 1 de {Math.ceil(filteredArticles.length / 9)}
+              {locale === 'br' ? 'Página' : locale === 'fr' ? 'Page' : 'Page'} 1 {locale === 'br' ? 'de' : locale === 'fr' ? 'sur' : 'of'} {Math.ceil(filteredArticles.length / 9)}
             </span>
             <button className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-              Próxima
+              {locale === 'br' ? 'Próxima' : locale === 'fr' ? 'Suivant' : 'Next'}
             </button>
           </div>
         </div>
