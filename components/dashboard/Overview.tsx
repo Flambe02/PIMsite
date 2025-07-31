@@ -20,7 +20,10 @@ import {
   CheckCircle2,
   Info,
   Zap,
-  Star
+  Star,
+  Eye,
+  User,
+  ArrowUpRight
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -49,84 +52,116 @@ export default function Overview({
   
   // Calculer le pouvoir d'achat réel (salaire net + bénéfices)
   const beneficios = hasHolerite ? (holeriteResult.raw?.beneficios || 0) : 0;
-  const poderAquisitivoReal = salarioLiquido + beneficios;
+  const poderCompraReal = salarioLiquido + beneficios;
 
-  // Recommandations IA prioritaires
-  const recommendations = hasHolerite ? [
-    {
-      id: 1,
-      title: "Otimização IRRF",
-      description: "Você pode economizar até R$ 180/mês com deduções médicas",
-      priority: "high",
-      category: "fiscal",
-      icon: <PercentCircle className="w-4 h-4" />,
-      color: "bg-red-50 border-red-200",
-      badgeColor: "bg-red-100 text-red-800",
-      action: "Salário"
-    },
-    {
-      id: 2,
-      title: "Plano de Previdência",
-      description: "Considere um PGBL/VGBL para reduzir o IR e garantir o futuro",
-      priority: "medium",
-      category: "previdencia",
-      icon: <PiggyBank className="w-4 h-4" />,
-      color: "bg-blue-50 border-blue-200",
-      badgeColor: "bg-blue-100 text-blue-800",
-      action: "Investimentos"
-    },
-    {
-      id: 3,
-      title: "Seguro de Saúde",
-      description: "Avalie um plano de saúde para complementar o SUS",
-      priority: "medium",
-      category: "seguros",
-      icon: <Shield className="w-4 h-4" />,
-      color: "bg-green-50 border-green-200",
-      badgeColor: "bg-green-100 text-green-800",
-      action: "Seguros"
-    }
-  ] : [];
+  // Extraire les vraies recommandations du holerite
+  const holeriteRecommendations = hasHolerite ? 
+    (holeriteResult.raw?.recommendations?.recommendations || 
+     holeriteResult.raw?.analysis_result?.recommendations?.recommendations || 
+     holeriteResult.raw?.aiRecommendations || []) : [];
 
-  // Badges de synthèse rapide
-  const summaryBadges = hasHolerite ? [
-    {
-      id: "irrf",
-      label: "IRRF",
-      value: hasHolerite ? `R$ ${(holeriteResult.raw?.irrf || 0).toLocaleString('pt-BR')}` : "N/A",
-      icon: <PercentCircle className="w-5 h-5" />,
-      color: "bg-red-50 border-red-200",
-      textColor: "text-red-800",
-      action: "Salário"
-    },
-    {
-      id: "previdencia",
-      label: "Previdência",
-      value: hasHolerite ? `R$ ${(holeriteResult.raw?.inss || 0).toLocaleString('pt-BR')}` : "N/A",
-      icon: <PiggyBank className="w-5 h-5" />,
-      color: "bg-blue-50 border-blue-200",
-      textColor: "text-blue-800",
-      action: "Investimentos"
-    },
-    {
-      id: "beneficios",
-      label: "Benefícios",
-      value: hasHolerite ? `${holeriteResult.raw?.beneficios_count || 0} ativos` : "N/A",
-      icon: <Heart className="w-5 h-5" />,
-      color: "bg-green-50 border-green-200",
-      textColor: "text-green-800",
-      action: "Benefícios"
-    },
-    {
-      id: "seguros",
-      label: "Seguros",
-      value: hasHolerite ? `${holeriteResult.raw?.seguros_count || 0} coberturas` : "N/A",
-      icon: <Shield className="w-5 h-5" />,
-      color: "bg-purple-50 border-purple-200",
-      textColor: "text-purple-800",
-      action: "Seguros"
-    }
-  ] : [];
+  // Prendre les 2 premières recommandations du holerite
+  const topRecommendations = holeriteRecommendations.slice(0, 2).map((rec: any, index: number) => {
+    // Déterminer le titre selon la catégorie et le contenu
+    const getTitleByCategory = (category: string, description: string) => {
+      const desc = description.toLowerCase();
+      
+      switch (category) {
+        case "fiscal":
+        case "impostos":
+          if (desc.includes("irrf") || desc.includes("imposto")) return "Otimização IRRF";
+          if (desc.includes("dedução") || desc.includes("deducao")) return "Deduções Fiscais";
+          return "Impostos";
+        case "previdencia":
+          if (desc.includes("pgbl") || desc.includes("vgbl")) return "Plano PGBL/VGBL";
+          if (desc.includes("aposentadoria") || desc.includes("futuro")) return "Previdência Privada";
+          return "Previdência";
+        case "beneficios":
+          if (desc.includes("vale") || desc.includes("refeição")) return "Vale Refeição";
+          if (desc.includes("transporte")) return "Vale Transporte";
+          if (desc.includes("saúde") || desc.includes("saude")) return "Plano de Saúde";
+          return "Benefícios";
+        case "seguros":
+          if (desc.includes("saúde") || desc.includes("saude")) return "Seguro Saúde";
+          if (desc.includes("vida")) return "Seguro de Vida";
+          if (desc.includes("auto") || desc.includes("carro")) return "Seguro Auto";
+          return "Seguros";
+        case "salario":
+          if (desc.includes("negociação") || desc.includes("negociacao")) return "Negociação Salarial";
+          if (desc.includes("promoção") || desc.includes("promocao")) return "Promoção";
+          return "Salário";
+        default:
+          // Analyser le contenu pour déterminer un titre générique
+          if (desc.includes("economizar") || desc.includes("economia")) return "Economia";
+          if (desc.includes("investir") || desc.includes("investimento")) return "Investimento";
+          if (desc.includes("otimizar") || desc.includes("otimização")) return "Otimização";
+          if (desc.includes("melhorar") || desc.includes("melhoria")) return "Melhoria";
+          return rec.title || rec.recommendation || `Recomendação ${index + 1}`;
+      }
+    };
+
+    const category = rec.category || "geral";
+    const description = rec.description || rec.detail || rec.explanation || "";
+    const title = getTitleByCategory(category, description);
+
+    return {
+      id: index + 1,
+      title: title,
+      description: rec.description || rec.detail || rec.explanation || "Recomendação personalizada baseada na análise do seu holerite",
+      priority: rec.priority || (index === 0 ? "high" : "medium"),
+      category: category,
+      icon: category === "fiscal" || category === "impostos" ? <PercentCircle className="w-4 h-4" /> :
+            category === "previdencia" ? <PiggyBank className="w-4 h-4" /> :
+            category === "seguros" ? <Shield className="w-4 h-4" /> :
+            category === "beneficios" ? <Heart className="w-4 h-4" /> :
+            category === "salario" ? <DollarSign className="w-4 h-4" /> :
+            <Zap className="w-4 h-4" />,
+      color: category === "fiscal" || category === "impostos" ? "bg-red-50 border-red-200" :
+             category === "previdencia" ? "bg-blue-50 border-blue-200" :
+             category === "seguros" ? "bg-green-50 border-green-200" :
+             category === "beneficios" ? "bg-purple-50 border-purple-200" :
+             category === "salario" ? "bg-emerald-50 border-emerald-200" :
+             "bg-orange-50 border-orange-200",
+      badgeColor: category === "fiscal" || category === "impostos" ? "bg-red-100 text-red-800" :
+                 category === "previdencia" ? "bg-blue-100 text-blue-800" :
+                 category === "seguros" ? "bg-green-100 text-green-800" :
+                 category === "beneficios" ? "bg-purple-100 text-purple-800" :
+                 category === "salario" ? "bg-emerald-100 text-emerald-800" :
+                 "bg-orange-100 text-orange-800",
+      action: rec.action || (category === "salario" ? "Salário" : 
+                           category === "beneficios" ? "Benefícios" : 
+                           category === "seguros" ? "Seguros" : 
+                           category === "previdencia" ? "Investimentos" : 
+                           "Salário")
+    };
+  });
+
+  // Utiliser les vraies recommandations si disponibles, sinon les recommandations par défaut
+  const recommendations = hasHolerite ? 
+    (topRecommendations.length > 0 ? topRecommendations : [
+      {
+        id: 1,
+        title: "Vale Refeição",
+        description: "Você não possuí Vale-Refeição – Saiba por que ele é importante.",
+        priority: "high",
+        category: "beneficios",
+        icon: <Heart className="w-4 h-4" />,
+        color: "bg-purple-50 border-purple-200",
+        badgeColor: "bg-purple-100 text-purple-800",
+        action: "Benefícios"
+      },
+      {
+        id: 2,
+        title: "Negociação Salarial",
+        description: "Seu salário bruto está abaixo da média do mercado.",
+        priority: "high",
+        category: "salario",
+        icon: <DollarSign className="w-4 h-4" />,
+        color: "bg-emerald-50 border-emerald-200",
+        badgeColor: "bg-emerald-100 text-emerald-800",
+        action: "Salário"
+      }
+    ]) : [];
 
   const formatPeriod = (period?: string): string => {
     if (!period) return "Período não informado";
@@ -160,9 +195,9 @@ export default function Overview({
 
   if (!hasHolerite) {
     return (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 mt-8">
         {/* Header - Message d'incitation */}
-        <Card className="shadow-lg border-blue-100 rounded-2xl">
+        <Card className="shadow-lg border-gray-100 rounded-2xl bg-white">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Upload className="w-8 h-8 text-blue-600" />
@@ -193,303 +228,242 @@ export default function Overview({
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header - Résumé visuel */}
-      <Card className="shadow-lg border-gray-100 rounded-2xl">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-              <FileText className="w-6 h-6 text-emerald-600" />
+    <div className="flex flex-col gap-6 mt-8">
+      {/* Main Overview Card - Single white card encapsulating everything */}
+      <Card className="shadow-lg border-gray-100 rounded-2xl bg-white">
+        <CardContent className="p-8">
+          {/* Header Row - Profile and Upload Button */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                <User className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {holeriteResult.raw?.employee_name || 'João Almeida'}
+                </h1>
+                <p className="text-xs text-gray-500">
+                  {formatPeriod(holeriteResult.raw?.period)}
+                </p>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-lg font-bold text-gray-900">
-                {locale === 'br' ? 'Holerite Analisado' : 
-                 locale === 'fr' ? 'Bulletin analysé' : 
-                 'Payslip Analyzed'}
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                {formatPeriod(holeriteResult.raw?.period)}
-              </p>
-            </div>
-          </div>
-          <Button 
-            onClick={onUploadClick}
-            variant="outline"
-            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {locale === 'br' ? 'Novo Upload' : 
-             locale === 'fr' ? 'Nouveau upload' : 
-             'New Upload'}
-          </Button>
-        </CardHeader>
-      </Card>
-
-      {/* Section A - Synthèse Financière */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Salaire Brut */}
-        <Card 
-          className="shadow-sm border-gray-200 rounded-xl cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1"
-          onClick={() => handleTabClick("Salário")}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-5 h-5 text-green-600" />
-              <span className="text-sm font-medium text-gray-600">
-                {locale === 'br' ? 'Salário Bruto' : 
-                 locale === 'fr' ? 'Salaire brut' : 
-                 'Gross Salary'}
-              </span>
-            </div>
-            <div className="text-xl font-bold text-gray-900">
-              R$ {salarioBruto.toLocaleString('pt-BR')}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Salaire Net */}
-        <Card 
-          className="shadow-sm border-gray-200 rounded-xl cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1"
-          onClick={() => handleTabClick("Salário")}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-blue-600" />
-              <span className="text-sm font-medium text-gray-600">
-                {locale === 'br' ? 'Salário Líquido' : 
-                 locale === 'fr' ? 'Salaire net' : 
-                 'Net Salary'}
-              </span>
-            </div>
-            <div className="text-xl font-bold text-gray-900">
-              R$ {salarioLiquido.toLocaleString('pt-BR')}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Total Déductions */}
-        <Card 
-          className="shadow-sm border-gray-200 rounded-xl cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1"
-          onClick={() => handleTabClick("Salário")}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <MinusCircle className="w-5 h-5 text-red-600" />
-              <span className="text-sm font-medium text-gray-600">
-                {locale === 'br' ? 'Total Deduções' : 
-                 locale === 'fr' ? 'Total déductions' : 
-                 'Total Deductions'}
-              </span>
-            </div>
-            <div className="text-xl font-bold text-gray-900">
-              R$ {descontos.toLocaleString('pt-BR')}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Efficience */}
-        <Card 
-          className="shadow-sm border-gray-200 rounded-xl cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1"
-          onClick={() => handleTabClick("Salário")}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <PercentCircle className="w-5 h-5 text-purple-600" />
-              <span className="text-sm font-medium text-gray-600">
-                {locale === 'br' ? 'Eficiência' : 
-                 locale === 'fr' ? 'Efficacité' : 
-                 'Efficiency'}
-              </span>
-            </div>
-            <div className="text-xl font-bold text-gray-900">
-              {eficiencia.toFixed(1)}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Pouvoir d'achat réel */}
-      <Card className="shadow-lg border-emerald-100 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-emerald-900 mb-1">
-                {locale === 'br' ? 'Poder de Compra Real' : 
-                 locale === 'fr' ? 'Pouvoir d\'achat réel' : 
-                 'Real Purchasing Power'}
-              </h3>
-              <p className="text-sm text-emerald-700">
-                {locale === 'br' ? 'Salário líquido + benefícios declarados' : 
-                 locale === 'fr' ? 'Salaire net + avantages déclarés' : 
-                 'Net salary + declared benefits'}
-              </p>
-            </div>
-            <div className="text-2xl font-bold text-emerald-900">
-              R$ {poderAquisitivoReal.toLocaleString('pt-BR')}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Section B - Financial Check-up */}
-      <Card className="shadow-lg border-blue-100 rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold text-blue-900 flex items-center gap-2">
-            <Target className="w-5 h-5" />
-            {locale === 'br' ? 'Financial Check-up' : 
-             locale === 'fr' ? 'Check-up financier' : 
-             'Financial Check-up'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-6 items-center">
-            {/* Jauge de santé financière */}
-            <div 
-              className="flex-1 cursor-pointer"
-              onClick={() => router.push(`/${locale}/financial-checkup`)}
+            <Button 
+              onClick={onUploadClick}
+              variant="outline"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
             >
-              <div className={`p-6 rounded-xl border ${getFinancialHealthColor(financialHealthScore)}`}>
-                <div className="text-center">
-                  <div className="text-3xl font-bold mb-2">{financialHealthScore}%</div>
-                  <div className="text-sm font-medium mb-4">
-                    {getFinancialHealthLabel(financialHealthScore)}
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-                    <div 
-                      className="bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${financialHealthScore}%` }}
-                    ></div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                  >
-                    {locale === 'br' ? 'Refazer teste' : 
-                     locale === 'fr' ? 'Refaire le test' : 
-                     'Retake test'}
-                  </Button>
+              <Upload className="w-4 h-4 mr-2" />
+              {locale === 'br' ? 'Novo Holerite' : 
+               locale === 'fr' ? 'Nouveau bulletin' : 
+               'New Payslip'}
+            </Button>
+          </div>
+
+          {/* First Row - Key Info Tiles */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {/* Salário Líquido */}
+            <div className="md:col-span-1">
+              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign className="w-5 h-5 text-gray-600" />
+                  <span className="text-xs text-gray-500">
+                    {locale === 'br' ? 'Salário Líquido' : 
+                     locale === 'fr' ? 'Salaire net' : 
+                     'Net Salary'}
+                  </span>
+                </div>
+                <div className="text-3xl font-black text-black">
+                  R$ {salarioLiquido.toLocaleString('pt-BR')}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {locale === 'br' ? 'Último holerite' : 
+                   locale === 'fr' ? 'Dernier bulletin' : 
+                   'Last payslip'}
                 </div>
               </div>
             </div>
 
-            {/* Labels des dimensions */}
-            <div className="flex-1 grid grid-cols-2 gap-3">
-              {[
-                { label: locale === 'br' ? 'Salário' : locale === 'fr' ? 'Salaire' : 'Salary', action: 'Salário' },
-                { label: locale === 'br' ? 'Benefícios' : locale === 'fr' ? 'Avantages' : 'Benefits', action: 'Benefícios' },
-                { label: locale === 'br' ? 'Seguros' : locale === 'fr' ? 'Assurances' : 'Insurance', action: 'Seguros' },
-                { label: locale === 'br' ? 'Investimentos' : locale === 'fr' ? 'Investissements' : 'Investments', action: 'Investimentos' },
-                { label: locale === 'br' ? 'Well-being' : locale === 'fr' ? 'Bien-être' : 'Well-being', action: 'Well-being' }
-              ].map((item, index) => (
-                <Button
-                  key={index}
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start text-sm h-auto py-2 px-3"
-                  onClick={() => handleTabClick(item.action)}
-                >
-                  <ArrowRight className="w-3 h-3 mr-2" />
-                  {item.label}
-                </Button>
-              ))}
+            {/* Poder de Compra Real */}
+            <div className="md:col-span-1">
+              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="w-5 h-5 text-gray-600" />
+                  <span className="text-xs text-gray-500">
+                    {locale === 'br' ? 'Poder de Compra Real' : 
+                     locale === 'fr' ? 'Pouvoir d\'achat réel' : 
+                     'Real Purchasing Power'}
+                  </span>
+                </div>
+                <div className="text-3xl font-black text-black">
+                  R$ {poderCompraReal.toLocaleString('pt-BR')}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {locale === 'br' ? 'Ajustado pela inflação' : 
+                   locale === 'fr' ? 'Ajusté par l\'inflation' : 
+                   'Inflation adjusted'}
+                </div>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Section C - Recommandations IA */}
-      {recommendations.length > 0 && (
-        <Card className="shadow-lg border-orange-100 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-orange-900 flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              {locale === 'br' ? 'Recomendações IA Prioritárias' : 
-               locale === 'fr' ? 'Recommandations IA prioritaires' : 
-               'Priority AI Recommendations'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recommendations.map((rec) => (
-                <Card 
-                  key={rec.id}
-                  className={`${rec.color} border cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1`}
-                  onClick={() => handleTabClick(rec.action)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        {rec.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge className={`${rec.badgeColor} text-xs`}>
-                            {rec.priority === 'high' ? 'Alta' : 'Média'}
-                          </Badge>
-                        </div>
-                        <h4 className="font-semibold text-gray-900 mb-1">{rec.title}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="text-xs p-0 h-auto"
-                        >
-                          {locale === 'br' ? 'Ver detalhes' : 
-                           locale === 'fr' ? 'Voir détails' : 
-                           'See details'}
-                          <ArrowRight className="w-3 h-3 ml-1" />
-                        </Button>
+            {/* Financial Check-up */}
+            <div className="md:col-span-2">
+              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-medium text-gray-500 mb-2">
+                      {locale === 'br' ? 'Financial Check-up' : 
+                       locale === 'fr' ? 'Check-up financier' : 
+                       'Financial Check-up'}
+                    </span>
+                    <div className="relative">
+                      <svg width="90" height="54" viewBox="0 0 90 54">
+                        <path
+                          d="M10,50 A40,40 0 0,1 80,50"
+                          fill="none"
+                          stroke="#F3F4F6"
+                          strokeWidth="8"
+                        />
+                        <path
+                          d="M10,50 A40,40 0 0,1 80,50"
+                          fill="none"
+                          stroke="#F59E42"
+                          strokeWidth="8"
+                          strokeDasharray="100"
+                          strokeDashoffset={`${100 * (1 - financialHealthScore / 100)}`}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-black text-black leading-none">{financialHealthScore}%</span>
+                        <span className="text-xs font-normal text-gray-400 mt-2">
+                          {locale === 'br' ? 'Bom' : locale === 'fr' ? 'Bon' : 'Good'}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">
+                      {locale === 'br' ? 'Saúde financeira' : 
+                       locale === 'fr' ? 'Santé financière' : 
+                       'Financial health'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
 
-      {/* Section D - Synthèse Rapide (Badges) */}
-      <Card className="shadow-lg border-gray-100 rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Star className="w-5 h-5" />
-            {locale === 'br' ? 'Resumo Rápido' : 
-             locale === 'fr' ? 'Résumé rapide' : 
-             'Quick Summary'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {summaryBadges.map((badge) => (
-              <Card 
-                key={badge.id}
-                className={`${badge.color} border cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1`}
-                onClick={() => handleTabClick(badge.action)}
-              >
-                <CardContent className="p-4 text-center">
-                  <div className="flex justify-center mb-2">
-                    {badge.icon}
-                  </div>
-                  <div className="text-sm font-medium text-gray-600 mb-1">
-                    {badge.label}
-                  </div>
-                  <div className={`text-lg font-bold ${badge.textColor}`}>
-                    {badge.value}
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-xs mt-2 p-0 h-auto"
+          {/* Recommendations & Salary Analysis - Unified Apple/Stripe Style */}
+          <div className="flex flex-col lg:flex-row gap-6 w-full mt-8">
+            {/* Recommendations Block - Left, 2/3 width */}
+            <div className="flex-1 min-w-0">
+              <div className="bg-[#FAFAFA] rounded-2xl shadow-[0_1px_6px_#0000000D] px-7 py-6 h-full flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    {locale === 'br' ? 'Recomendações PIM' : 
+                      locale === 'fr' ? 'Recommandations PIM' : 
+                      'PIM Recommendations'}
+                  </h3>
+                  <button 
+                    className="text-xs text-gray-500 hover:text-gray-700 font-medium transition p-0 bg-transparent shadow-none focus:outline-none"
+                    onClick={() => handleTabClick("Salário")}
                   >
-                    {locale === 'br' ? 'Saiba mais' : 
-                     locale === 'fr' ? 'En savoir plus' : 
-                     'Learn more'}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    {locale === 'br' ? 'Ver todas' : locale === 'fr' ? 'Voir toutes' : 'View all'}
+                  </button>
+                </div>
+                {/* Recommendations List */}
+                <div className="flex flex-col gap-4">
+                  {recommendations.length > 0 ? (
+                    recommendations.slice(0,2).map((rec: any) => (
+                      <div key={rec.id} className="bg-white/80 rounded-xl px-5 py-3 shadow border border-gray-100 flex gap-4 items-start">
+                        <div className="w-6 h-6 flex items-center justify-center bg-gray-50 rounded-lg shrink-0 mt-0.5">
+                          {rec.icon}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-semibold text-gray-900">{rec.title}</span>
+                            <span className={
+                              `px-2 py-0.5 text-xs rounded-full
+                               ${rec.priority === 'high'
+                                  ? 'bg-orange-50 text-orange-600'
+                                  : 'bg-gray-50 text-gray-600'}
+                              `
+                            }>
+                              {rec.priority === 'high'
+                                ? (locale === 'br' ? 'Alta' : locale === 'fr' ? 'Élevée' : 'High')
+                                : (locale === 'br' ? 'Média' : locale === 'fr' ? 'Moyenne' : 'Medium')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">{rec.description}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-400 text-sm py-7 text-center">
+                      {locale === 'br'
+                        ? 'Nenhuma recomendação disponível no momento.'
+                        : locale === 'fr'
+                        ? 'Aucune recommandation disponible pour le moment.'
+                        : 'No recommendations available at the moment.'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Salary Analysis Block - Right, 1/3 width */}
+            <div className="w-full lg:max-w-xs">
+              <div className="bg-[#FAFAFA] rounded-2xl shadow-[0_1px_6px_#0000000D] px-7 py-6 h-full flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    <h3 className="text-base font-semibold text-gray-900">
+                      {locale === 'br'
+                        ? 'Análise Salarial'
+                        : locale === 'fr'
+                        ? 'Analyse salariale'
+                        : 'Salary Analysis'}
+                    </h3>
+                  </div>
+                  <div className="mb-3">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-gray-500">
+                        {locale === 'br' ? 'Salário Bruto:' : locale === 'fr' ? 'Salaire brut:' : 'Gross Salary:'}
+                      </span>
+                      <span className="text-lg font-black text-gray-900">
+                        R$ {salarioBruto.toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-xs text-gray-500">
+                        {locale === 'br' ? 'Eficiência:' : locale === 'fr' ? 'Efficacité:' : 'Efficiency:'}
+                      </span>
+                      <span className="text-lg font-black text-gray-900">
+                        {eficiencia.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-yellow-50 rounded-xl p-3 flex gap-2 items-start mt-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-400 mt-1" />
+                  <div>
+                    <span className="block text-xs font-semibold text-yellow-700 mb-0.5">
+                      {locale === 'br'
+                        ? 'Seu salário bruto está abaixo da média do mercado.'
+                        : locale === 'fr'
+                        ? 'Votre salaire brut est en dessous de la moyenne du marché.'
+                        : 'Your gross salary is below market average.'}
+                    </span>
+                    <span className="text-xs text-yellow-700">
+                      {locale === 'br'
+                        ? 'Considere renegociação'
+                        : locale === 'fr'
+                        ? 'Considérez une renégociation'
+                        : 'Consider renegotiation'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

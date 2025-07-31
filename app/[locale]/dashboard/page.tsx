@@ -782,15 +782,20 @@ export default function DashboardFullWidth() {
       return;
     }
     
+    console.log('🔄 Début syncWithSupabase pour userId:', userId);
     setIsSyncing(true);
     try {
       const { data, error } = await supabase
         .from('holerites')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', userId as string)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+      
+      console.log('🔍 Résultat de la requête Supabase:');
+      console.log('Data:', data);
+      console.log('Error:', error);
       
       if (data && !error) {
         console.log('📊 Données récupérées de Supabase:', data);
@@ -1332,7 +1337,7 @@ export default function DashboardFullWidth() {
   };
 
   const { data: investimentos = [] } = useInvestimentos(userId, holeriteResult?.raw);
-  const { latestCheckup, loading: checkupLoading } = useFinancialCheckup(userId);
+  const { latestCheckup, loading: checkupLoading } = useFinancialCheckup(userId || undefined);
 
   const DashboardPerfilView = dynamic(() => import("@/components/dashboard/DashboardPerfilView"), {
     loading: () => <div className="py-8 text-center text-emerald-900">Chargement du profil...</div>,
@@ -1377,37 +1382,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
         {/* Sidebar Desktop */}
         <aside className="hidden lg:block col-span-2 mb-8 lg:mb-0">
-          <div className="sticky top-8 pr-6">
-            {/* Section Holerite Analisado */}
-            {holeriteResult && holeriteResult.raw?.period ? (
-              <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
-                <div className="text-center mb-3">
-                  <div className="text-sm font-medium text-gray-600 mb-1">Holerite Analisado</div>
-                  <div className="text-lg font-semibold text-gray-900">{formatPeriod(holeriteResult.raw.period)}</div>
-                </div>
-                <button 
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200" 
-                  onClick={() => router.push('/br/scan-new-pim')}
-                >
-                  Novo Upload
-                </button>
-              </div>
-            ) : (
-              <div className="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-200">
-                <div className="text-center mb-3">
-                  <div className="text-sm font-medium text-blue-600 mb-1">Aucun holerite analysé</div>
-                  <div className="text-sm text-blue-500">Uploadez votre premier holerite</div>
-                </div>
-                <button 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200" 
-                  onClick={() => router.push('/br/scan-new-pim')}
-                >
-                  <Upload className="w-4 h-4 mr-2 inline" />
-                  Upload Holerite
-                </button>
-              </div>
-            )}
-
+          <div className="sticky top-8 pr-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
             {/* Navigation principale */}
             <nav className="space-y-1">
               {navItems.map((item, i) => (
@@ -1445,27 +1420,6 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           <div className="fixed inset-0 z-50 bg-black/40 flex">
             <div className="w-72 sm:w-64 bg-white h-full p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 animate-fadeIn">
               <button className="self-end mb-4 text-gray-500" onClick={() => setMobileMenuOpen(false)}>&times;</button>
-              {holeriteResult && holeriteResult.raw?.period ? (
-                <div className="w-full bg-gray-50 text-gray-700 font-medium px-4 py-3 rounded-xl flex flex-col gap-2 shadow-sm text-sm mb-8 border border-gray-200">
-                  <div className="flex items-center justify-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-500" />
-                    <span>Holerite Analisado</span>
-                  </div>
-                  <div className="text-center text-sm">
-                    <div className="font-semibold">{formatPeriod(holeriteResult.raw.period)}</div>
-                  </div>
-                  <button 
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white text-xs font-medium px-3 py-2 rounded-lg mt-2 transition-all duration-200" 
-                    onClick={() => router.push('/br/scan-new-pim')}
-                  >
-                    Novo Upload
-                  </button>
-                </div>
-              ) : (
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2 shadow-sm text-sm mb-8 transition-all duration-200" onClick={() => router.push('/br/scan-new-pim')}>
-                  <Upload className="w-4 h-4" /> Upload Holerite
-                </button>
-              )}
               <nav className="flex flex-col gap-3 sm:gap-2 w-full">
                 {navItems.map((item, i) => (
                   <button
