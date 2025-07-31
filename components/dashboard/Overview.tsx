@@ -350,65 +350,64 @@ export default function Overview({
             </div>
           </div>
 
-          {/* Recommendations & Salary Analysis - Unified Apple/Stripe Style */}
-          <div className="flex flex-col lg:flex-row gap-6 w-full mt-8">
-            {/* Recommendations Block - Left, 2/3 width */}
-            <div className="flex-1 min-w-0">
-              <div className="bg-[#FAFAFA] rounded-2xl shadow-[0_1px_6px_#0000000D] px-7 py-6 h-full flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-semibold text-gray-900">
-                    {locale === 'br' ? 'Recomendações PIM' : 
-                      locale === 'fr' ? 'Recommandations PIM' : 
-                      'PIM Recommendations'}
-                  </h3>
-                  <button 
-                    className="text-xs text-gray-500 hover:text-gray-700 font-medium transition p-0 bg-transparent shadow-none focus:outline-none"
-                    onClick={() => handleTabClick("Salário")}
-                  >
-                    {locale === 'br' ? 'Ver todas' : locale === 'fr' ? 'Voir toutes' : 'View all'}
-                  </button>
-                </div>
-                {/* Recommendations List */}
-                <div className="flex flex-col gap-4">
-                  {recommendations.length > 0 ? (
-                    recommendations.slice(0,2).map((rec: any) => (
-                      <div key={rec.id} className="bg-white/80 rounded-xl px-5 py-3 shadow border border-gray-100 flex gap-4 items-start">
-                        <div className="w-6 h-6 flex items-center justify-center bg-gray-50 rounded-lg shrink-0 mt-0.5">
-                          {rec.icon}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-semibold text-gray-900">{rec.title}</span>
-                            <span className={
-                              `px-2 py-0.5 text-xs rounded-full
-                               ${rec.priority === 'high'
-                                  ? 'bg-orange-50 text-orange-600'
-                                  : 'bg-gray-50 text-gray-600'}
-                              `
-                            }>
-                              {rec.priority === 'high'
-                                ? (locale === 'br' ? 'Alta' : locale === 'fr' ? 'Élevée' : 'High')
-                                : (locale === 'br' ? 'Média' : locale === 'fr' ? 'Moyenne' : 'Medium')}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600">{rec.description}</p>
-                        </div>
+          {/* Recommendations Block - Just below salary cards */}
+          <div className="mb-6">
+            <div className="bg-[#FAFAFA] rounded-2xl shadow-[0_1px_6px_#0000000D] px-7 py-6 flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold text-gray-900">
+                  {locale === 'br' ? 'Recomendações PIM' : 
+                    locale === 'fr' ? 'Recommandations PIM' : 
+                    'PIM Recommendations'}
+                </h3>
+                <button 
+                  className="text-xs text-gray-500 hover:text-gray-700 font-medium transition p-0 bg-transparent shadow-none focus:outline-none"
+                  onClick={() => handleTabClick("Salário")}
+                >
+                  {locale === 'br' ? 'Ver todas' : locale === 'fr' ? 'Voir toutes' : 'View all'}
+                </button>
+              </div>
+              {/* Recommendations List */}
+              <div className="flex flex-col gap-4">
+                {recommendations.length > 0 ? (
+                  recommendations.slice(0,2).map((rec: any) => (
+                    <div key={rec.id} className="bg-white/80 rounded-xl px-5 py-3 shadow border border-gray-100 flex gap-4 items-start">
+                      <div className="w-6 h-6 flex items-center justify-center bg-gray-50 rounded-lg shrink-0 mt-0.5">
+                        {rec.icon}
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-gray-400 text-sm py-7 text-center">
-                      {locale === 'br'
-                        ? 'Nenhuma recomendação disponível no momento.'
-                        : locale === 'fr'
-                        ? 'Aucune recommandation disponible pour le moment.'
-                        : 'No recommendations available at the moment.'}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-semibold text-gray-900">{rec.title}</span>
+                          <span className={
+                            `px-2 py-0.5 text-xs rounded-full
+                             ${rec.priority === 'high'
+                                ? 'bg-orange-50 text-orange-600'
+                                : 'bg-gray-50 text-gray-600'}
+                            `
+                          }>
+                            {rec.priority === 'high'
+                              ? (locale === 'br' ? 'Alta' : locale === 'fr' ? 'Élevée' : 'High')
+                              : (locale === 'br' ? 'Média' : locale === 'fr' ? 'Moyenne' : 'Medium')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">{rec.description}</p>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  ))
+                ) : (
+                  <div className="text-gray-400 text-sm py-7 text-center">
+                    {locale === 'br'
+                      ? 'Nenhuma recomendação disponível no momento.'
+                      : locale === 'fr'
+                      ? 'Aucune recommandation disponible pour le moment.'
+                      : 'No recommendations available at the moment.'}
+                  </div>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Salary Analysis Block - Right, 1/3 width */}
+          {/* Salary Analysis Block - Right side */}
+          <div className="flex justify-end">
             <div className="w-full lg:max-w-xs">
               <div className="bg-[#FAFAFA] rounded-2xl px-7 py-6 h-full flex flex-col justify-between">
                 <div>
