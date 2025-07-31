@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
+import Image from "next/image";
 
 interface AIRecommendation {
   categorie: "Salaires" | "Beneficios" | "Assurances" | "Optimisation";
@@ -63,8 +64,16 @@ export default function AIRecommendations({
     return (
       <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Lightbulb className="w-6 h-6 text-emerald-600" />
-          <h3 className="text-lg font-semibold text-gray-800">Recomendações IA</h3>
+          <div className="w-6 h-6 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center">
+            <Image 
+              src="/images/pim-avatar.png" 
+              alt="PIM" 
+              width={20} 
+              height={20}
+              className="w-5 h-5"
+            />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800">Recomendações PIM</h3>
         </div>
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -79,8 +88,16 @@ export default function AIRecommendations({
     return (
       <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Lightbulb className="w-6 h-6 text-emerald-600" />
-          <h3 className="text-lg font-semibold text-gray-800">Recomendações IA</h3>
+          <div className="w-6 h-6 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center">
+            <Image 
+              src="/images/pim-avatar.png" 
+              alt="PIM" 
+              width={20} 
+              height={20}
+              className="w-5 h-5"
+            />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800">Recomendações PIM</h3>
         </div>
         <div className="text-center py-8">
           <div className="text-gray-500 mb-2">
@@ -104,8 +121,16 @@ export default function AIRecommendations({
   return (
     <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
       <div className="flex items-center gap-2 mb-4">
-        <Lightbulb className="w-6 h-6 text-emerald-600" />
-        <h3 className="text-lg font-semibold text-gray-800">Recomendações IA</h3>
+        <div className="w-6 h-6 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center">
+          <Image 
+            src="/images/pim-avatar.png" 
+            alt="PIM" 
+            width={20} 
+            height={20}
+            className="w-5 h-5"
+          />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800">Recomendações PIM</h3>
         {scoreOptimisation > 0 && (
           <span className="ml-auto px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
             Score: {scoreOptimisation}%

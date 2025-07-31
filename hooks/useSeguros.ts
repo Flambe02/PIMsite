@@ -27,14 +27,39 @@ const fetchSeguros = async (userId: string) => {
   return data as SeguroEntry[];
 };
 
-export default function useSeguros(userId: string | null) {
+export default function useSeguros(userId: string | null, holeriteRaw?: any) {
   return useQuery({
-    queryKey: ['seguros', userId],
-    queryFn: () => {
+    queryKey: ['seguros', userId, !!holeriteRaw],
+    queryFn: async () => {
       if (!userId) {
         return Promise.resolve([]);
       }
-      return fetchSeguros(userId);
+      
+      // 1. Vérifier d'abord la base de données
+      const fromDb = await fetchSeguros(userId);
+      if (fromDb && fromDb.length > 0) {
+        return fromDb;
+      }
+      
+      // 2. Si rien en DB et holerite disponible, détecter
+      if (holeriteRaw) {
+        const segurosExtraits = holeriteRaw.seguros || [];
+        
+        if (segurosExtraits.length > 0) {
+          console.log('🔍 Seguros extraits par l\'IA:', segurosExtraits);
+          return segurosExtraits.map((seguro: any, index: number) => ({
+            id: `local-detect-${index}`,
+            user_id: userId,
+            type: 'saude' as const, // Type par défaut
+            detected: true,
+            comment: `Seguro detectado: ${seguro}`,
+            link: '/recursos/seguros',
+            priority: index + 1,
+          }));
+        }
+      }
+      
+      return [];
     },
     enabled: !!userId,
   });

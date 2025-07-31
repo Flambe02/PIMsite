@@ -12,6 +12,7 @@ import Link from "next/link";
 interface SegurosProps {
   userId: string | null;
   employmentStatus: "PJ" | "CLT" | string;
+  holeriteRaw?: any;
 }
 
 const LABELS: Record<SeguroEntry['type'], string> = {
@@ -27,8 +28,8 @@ const ICON = (detected: boolean) => {
   return detected ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-red-500" />;
 };
 
-export default function Seguros({ userId, employmentStatus }: SegurosProps) {
-  const { data: seguros = [], isLoading } = useSeguros(userId);
+export default function Seguros({ userId, employmentStatus, holeriteRaw }: SegurosProps) {
+  const { data: seguros = [], isLoading } = useSeguros(userId, holeriteRaw);
 
   const [page, setPage] = React.useState(0);
   const PER_PAGE = 3;

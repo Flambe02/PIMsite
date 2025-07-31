@@ -10,16 +10,25 @@ import { Badge } from "@/components/ui/badge";
 
 interface DashHoleriteBlockProps {
   userId: string;
+  holeriteResult?: any; // Ajouter les données déjà traitées
 }
 
-export default function DashHoleriteBlock({ userId }: DashHoleriteBlockProps) {
+export default function DashHoleriteBlock({ userId, holeriteResult }: DashHoleriteBlockProps) {
   const { supabase } = useSupabase();
   const [holeriteData, setHoleriteData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  // Fetch latest holerite data
+  // Utiliser les données déjà traitées si disponibles
   useEffect(() => {
+    if (holeriteResult && holeriteResult.salarioBruto > 0) {
+      console.log('🔍 DashHoleriteBlock: Utilisation des données déjà traitées:', holeriteResult);
+      setHoleriteData(holeriteResult);
+      setLoading(false);
+      return;
+    }
+
+    // Sinon, faire la requête Supabase
     const fetchHoleriteData = async () => {
       try {
         setLoading(true);
@@ -46,7 +55,7 @@ export default function DashHoleriteBlock({ userId }: DashHoleriteBlockProps) {
     if (userId) {
       fetchHoleriteData();
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, holeriteResult]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -136,6 +145,58 @@ export default function DashHoleriteBlock({ userId }: DashHoleriteBlockProps) {
 
   const optimizationScore = getOptimizationScore();
   const recommendations = getRecommendations();
+  // Fonction d'extraction robuste des valeurs
+  const extractValue = (obj: any, path: string, defaultValue: any = 0) => {
+    if (!obj) return defaultValue;
+    
+    const keys = path.split('.');
+    let value = obj;
+    
+    for (const key of keys) {
+      if (value && typeof value === 'object' && key in value) {
+        value = value[key];
+      } else {
+        return defaultValue;
+      }
+    }
+    
+    if (value === null || value === undefined || value === '') {
+      return defaultValue;
+    }
+    
+    if (typeof value === 'object' && value !== null && 'valor' in value) {
+      value = value.valor;
+    }
+    
+    if (typeof value === 'object' && value !== null && 'value' in value) {
+      value = value.value;
+    }
+    
+    if (typeof value === 'string') {
+      const cleanedValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
+      const numValue = Number(cleanedValue);
+      return isNaN(numValue) ? defaultValue : numValue;
+    }
+    
+    const numValue = Number(value);
+    return isNaN(numValue) ? defaultValue : numValue;
+  };
+
+  // Extraire les salaires avec la même logique que le dashboard principal
+  const salarioBruto = extractValue(holeriteData, 'salario_bruto') || 
+                      extractValue(holeriteData.structured_data, 'final_data.salario_bruto') ||
+                      extractValue(holeriteData.structured_data, 'final_data.gross_salary') ||
+                      extractValue(holeriteData.structured_data, 'salario_bruto') ||
+                      extractValue(holeriteData.structured_data, 'gross_salary') ||
+                      0;
+
+  const salarioLiquido = extractValue(holeriteData, 'salario_liquido') || 
+                        extractValue(holeriteData.structured_data, 'final_data.salario_liquido') ||
+                        extractValue(holeriteData.structured_data, 'final_data.net_salary') ||
+                        extractValue(holeriteData.structured_data, 'salario_liquido') ||
+                        extractValue(holeriteData.structured_data, 'net_salary') ||
+                        0;
+
   const rawData = holeriteData.structured_data?.final_data || holeriteData;
 
   return (
@@ -169,13 +230,13 @@ export default function DashHoleriteBlock({ userId }: DashHoleriteBlockProps) {
           <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6">
             <p className="text-sm text-gray-600 mb-2">Salaire Brut</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatCurrency(rawData.salario_bruto || rawData.gross_salary)}
+              {formatCurrency(salarioBruto)}
             </p>
           </div>
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6">
             <p className="text-sm text-gray-600 mb-2">Salaire Net</p>
             <p className="text-2xl font-bold text-green-600">
-              {formatCurrency(rawData.salario_liquido || rawData.net_salary)}
+              {formatCurrency(salarioLiquido)}
             </p>
           </div>
         </div>

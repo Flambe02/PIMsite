@@ -197,60 +197,60 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
         Identificacao: structuredData?.Identificação
       });
       
-      // Créer la structure unifiée pour holerites
-      const holeriteData = {
-        user_id: userId,
-        structured_data: {
-          // Structure unifiée compatible avec le dashboard
-          final_data: {
-            employee_name: structuredData.employee_name || structuredData.Identificação?.employee_name,
-            company_name: structuredData.company_name || structuredData.Identificação?.company_name,
-            position: structuredData.position || structuredData.Identificação?.position,
-            statut: structuredData.profile_type || structuredData.Identificação?.profile_type,
-            salario_bruto: structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
-            salario_liquido: structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
-            descontos: structuredData.total_deductions || structuredData.descontos || 0,
-            period: structuredData.period || ''
-          },
-          recommendations: recommendations || {
-            recommendations: [],
-            resume_situation: '',
-            score_optimisation: 0
-          },
-          analysis_result: {
-            finalData: {
+              // Créer la structure unifiée pour holerites
+        const holeriteData = {
+          user_id: userId,
+          structured_data: {
+            // Structure unifiée compatible avec le dashboard
+            final_data: {
               employee_name: structuredData.employee_name || structuredData.Identificação?.employee_name,
               company_name: structuredData.company_name || structuredData.Identificação?.company_name,
               position: structuredData.position || structuredData.Identificação?.position,
               statut: structuredData.profile_type || structuredData.Identificação?.profile_type,
-              salario_bruto: structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
-              salario_liquido: structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
-              descontos: structuredData.total_deductions || structuredData.descontos || 0,
+              salario_bruto: structuredData.salary_bruto || structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
+              salario_liquido: structuredData.salary_liquido || structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
+              descontos: structuredData.descontos || structuredData.total_deductions || 0,
               period: structuredData.period || ''
             },
-            validation: {
-              confidence: analysisResult.confidence || 0.8,
-              warnings: []
-            }
+            recommendations: recommendations || {
+              recommendations: [],
+              resume_situation: '',
+              score_optimisation: 0
+            },
+            analysis_result: {
+              finalData: {
+                employee_name: structuredData.employee_name || structuredData.Identificação?.employee_name,
+                company_name: structuredData.company_name || structuredData.Identificação?.company_name,
+                position: structuredData.position || structuredData.Identificação?.position,
+                statut: structuredData.profile_type || structuredData.Identificação?.profile_type,
+                salario_bruto: structuredData.salary_bruto || structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
+                salario_liquido: structuredData.salary_liquido || structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
+                descontos: structuredData.descontos || structuredData.total_deductions || 0,
+                period: structuredData.period || ''
+              },
+              validation: {
+                confidence: analysisResult.confidence || 0.8,
+                warnings: []
+              }
+            },
+            // Données originales pour compatibilité - AJOUTER LES ANCIENS NOMS
+            employee_name: structuredData.employee_name || structuredData.Identificação?.employee_name,
+            company_name: structuredData.company_name || structuredData.Identificação?.company_name,
+            position: structuredData.position || structuredData.Identificação?.position,
+            profile_type: structuredData.profile_type || structuredData.Identificação?.profile_type,
+            gross_salary: structuredData.salary_bruto || structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
+            net_salary: structuredData.salary_liquido || structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
+            salario_bruto: structuredData.salary_bruto || structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
+            salario_liquido: structuredData.salary_liquido || structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
+            period: structuredData.period || ''
           },
-          // Données originales pour compatibilité - AJOUTER LES ANCIENS NOMS
-          employee_name: structuredData.employee_name || structuredData.Identificação?.employee_name,
-          company_name: structuredData.company_name || structuredData.Identificação?.company_name,
-          position: structuredData.position || structuredData.Identificação?.position,
-          profile_type: structuredData.profile_type || structuredData.Identificação?.profile_type,
-          gross_salary: structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
-          net_salary: structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
-          salario_bruto: structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
-          salario_liquido: structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
-          period: structuredData.period || ''
-        },
-        nome: structuredData.employee_name || structuredData.Identificação?.employee_name || '',
-        empresa: structuredData.company_name || structuredData.Identificação?.company_name || '',
-        perfil: structuredData.profile_type || structuredData.Identificação?.profile_type || '',
-        salario_bruto: structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
-        salario_liquido: structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
-        created_at: new Date().toISOString(),
-      };
+          nome: structuredData.employee_name || structuredData.Identificação?.employee_name || '',
+          empresa: structuredData.company_name || structuredData.Identificação?.company_name || '',
+          perfil: structuredData.profile_type || structuredData.Identificação?.profile_type || '',
+          salario_bruto: structuredData.salary_bruto || structuredData.gross_salary || structuredData.Salários?.gross_salary || structuredData.salario_bruto || structuredData.salarioBruto || 0,
+          salario_liquido: structuredData.salary_liquido || structuredData.net_salary || structuredData.Salários?.net_salary || structuredData.salario_liquido || structuredData.salarioLiquido || 0,
+          created_at: new Date().toISOString(),
+        };
 
       // DEBUG: Afficher la structure des données avant sauvegarde
       console.log('🔍 Structure des données holeriteData:', {

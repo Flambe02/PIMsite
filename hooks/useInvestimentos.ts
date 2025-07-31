@@ -32,8 +32,25 @@ export default function useInvestimentos(userId: string | null, holeriteRaw?: an
       if (fromDb && fromDb.length > 0) return fromDb;
       // 2. If nothing and holerite available, detect
       if (holeriteRaw) {
-        const text = JSON.stringify(holeriteRaw).toLowerCase();
-        const detected = KEYS.some(k => text.includes(k));
+        // Vérifier d'abord les données extraites par l'IA
+        const creditoExtraits = holeriteRaw.credito || [];
+        const outrosExtraits = holeriteRaw.outros || [];
+        
+        if (creditoExtraits.length > 0 || outrosExtraits.length > 0) {
+          console.log('🔍 Investimentos extraits par l\'IA:', { creditoExtraits, outrosExtraits });
+          return [{
+            id: 'local-detect',
+            user_id: userId,
+            asset_class: 'previdencia',
+            amount: 0,
+            yield_pct: null,
+            description: 'Investimentos detectados no holerite',
+          }];
+        }
+        
+        // Sinon, chercher dans le texte OCR
+        const ocrText = holeriteRaw.ocr_text || '';
+        const detected = KEYS.some(k => ocrText.toLowerCase().includes(k));
         if (detected) {
           return [{
             id: 'local-detect',

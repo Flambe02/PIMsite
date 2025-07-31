@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import InvestimentosComp from "@/components/investimentos/Investimentos";
 import useInvestimentos from "@/hooks/useInvestimentos";
 import { useFinancialCheckup } from "@/hooks/useFinancialCheckup";
+import { HoleriteHistory } from "@/components/dashboard/HoleriteHistory";
 // Temporairement désactivé pour éviter les erreurs next-intl
 // import { useTranslations, useLocale } from 'next-intl';
 import { useMediaQuery } from 'react-responsive';
@@ -827,32 +828,52 @@ export default function DashboardFullWidth() {
             return defaultValue;
           }
           
-          // Gestion des objets avec propriété 'valor'
+          // Gestion des objets avec propriété 'valor' (format JSON)
           if (typeof value === 'object' && value !== null && 'valor' in value) {
             value = value.valor;
+          }
+          
+          // Gestion des objets avec propriété 'value' (format alternatif)
+          if (typeof value === 'object' && value !== null && 'value' in value) {
+            value = value.value;
+          }
+          
+          // Gestion des valeurs text qui doivent être converties en nombre
+          if (typeof value === 'string') {
+            // Nettoyer la valeur (enlever espaces, caractères non numériques sauf point et virgule)
+            const cleanedValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
+            const numValue = Number(cleanedValue);
+            return isNaN(numValue) ? defaultValue : numValue;
           }
           
           const numValue = Number(value);
           return isNaN(numValue) ? defaultValue : numValue;
         };
 
-        // Extraction des données avec mapping exact selon la structure reçue
-        // PRIORITÉ 1: final_data (nouvelle structure unifiée)
-        // PRIORITÉ 2: structured_data direct (ancienne structure)
-        // PRIORITÉ 3: colonnes directes de la table
-        const salarioBruto = extractValue(data.structured_data, 'final_data.salario_bruto') ||
-                            extractValue(data.structured_data, 'gross_salary') ||
-                            extractValue(data.structured_data, 'salario_bruto') ||
-                            extractValue(data, 'salario_bruto') ||
-                            extractValue(data, 'gross_salary') ||
-                            0;
+        // PRIORITÉ 1: Colonnes directes de la table (gestion des types text)
+        let salarioBruto = extractValue(data, 'salario_bruto') || 0;
+        let salarioLiquido = extractValue(data, 'salario_liquido') || 0;
 
-        const salarioLiquido = extractValue(data.structured_data, 'final_data.salario_liquido') ||
-                              extractValue(data.structured_data, 'net_salary') ||
-                              extractValue(data.structured_data, 'salario_liquido') ||
-                              extractValue(data, 'salario_liquido') ||
-                              extractValue(data, 'net_salary') ||
-                              0;
+        // PRIORITÉ 2: structured_data si colonnes directes vides
+        if (!salarioBruto && data.structured_data) {
+          salarioBruto = extractValue(data.structured_data, 'final_data.salario_bruto') ||
+                         extractValue(data.structured_data, 'final_data.gross_salary') ||
+                         extractValue(data.structured_data, 'salario_bruto') ||
+                         extractValue(data.structured_data, 'gross_salary') ||
+                         extractValue(data.structured_data, 'salario_bruto_total') ||
+                         extractValue(data.structured_data, 'total_gross_salary') ||
+                         0;
+        }
+
+        if (!salarioLiquido && data.structured_data) {
+          salarioLiquido = extractValue(data.structured_data, 'final_data.salario_liquido') ||
+                           extractValue(data.structured_data, 'final_data.net_salary') ||
+                           extractValue(data.structured_data, 'salario_liquido') ||
+                           extractValue(data.structured_data, 'net_salary') ||
+                           extractValue(data.structured_data, 'salario_liquido_total') ||
+                           extractValue(data.structured_data, 'total_net_salary') ||
+                           0;
+        }
 
         // Extraction des descontos avec mapping exact
         const descontos = extractValue(data.structured_data, 'final_data.descontos') ||
@@ -908,6 +929,23 @@ export default function DashboardFullWidth() {
                                   data.structured_data?.incoherence_detectee ||
                                   data.incoherence_detectee ||
                                   false;
+
+        // DIAGNOSTIC DÉTAILLÉ DES SALAIRES
+        console.log('🔍 DIAGNOSTIC SALARIES:', {
+          direct_salario_bruto: data.salario_bruto,
+          direct_salario_liquido: data.salario_liquido,
+          structured_final_salario_bruto: data.structured_data?.final_data?.salario_bruto,
+          structured_final_salario_liquido: data.structured_data?.final_data?.salario_liquido,
+          structured_salario_bruto: data.structured_data?.salario_bruto,
+          structured_salario_liquido: data.structured_data?.salario_liquido,
+          structured_gross_salary: data.structured_data?.gross_salary,
+          structured_net_salary: data.structured_data?.net_salary,
+          final_salario_bruto: salarioBruto,
+          final_salario_liquido: salarioLiquido
+        });
+
+        // DIAGNOSTIC STRUCTURE COMPLÈTE
+        console.log('🔍 STRUCTURE COMPLÈTE structured_data:', JSON.stringify(data.structured_data, null, 2));
 
         console.log('🔍 Données extraites:', {
           salarioBruto,
@@ -991,7 +1029,8 @@ export default function DashboardFullWidth() {
         //   return;
         // }
 
-        setHoleriteResult({
+        // Créer le nouveau holeriteResult avec les données Supabase
+        const newHoleriteResult = {
           salarioBruto,
           salarioLiquido,
           descontos,
@@ -1017,7 +1056,22 @@ export default function DashboardFullWidth() {
             scoreOptimisation,
           },
           insights: [],
+        };
+
+        console.log('🔍 NOUVEAU HOLERITE RESULT CRÉÉ:', {
+          salarioBruto: newHoleriteResult.salarioBruto,
+          salarioLiquido: newHoleriteResult.salarioLiquido,
+          descontos: newHoleriteResult.descontos,
+          eficiencia: newHoleriteResult.eficiencia
         });
+
+        // Mettre à jour holeriteResult avec les données Supabase
+        setHoleriteResult(newHoleriteResult);
+        
+        // Nettoyer le localStorage pour éviter les conflits
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('holeriteResult');
+        }
         
         // SUPPRESSION DU LOCALSTORAGE - Utiliser uniquement les vraies données
         // localStorage.removeItem('holeriteResult');
@@ -1062,6 +1116,7 @@ export default function DashboardFullWidth() {
   }, [holeriteResult]);
 
   // Charger automatiquement les données sauvegardées du localStorage au démarrage
+  // MAIS seulement si pas de données Supabase disponibles
   useEffect(() => {
     if (typeof window !== 'undefined' && !holeriteResult) {
       const savedHolerite = localStorage.getItem('holeriteResult');
@@ -1069,7 +1124,15 @@ export default function DashboardFullWidth() {
         try {
           const parsedResult = JSON.parse(savedHolerite);
           console.log('📊 Dashboard: Chargement des données sauvegardées:', parsedResult);
-          setHoleriteResult(parsedResult);
+          
+          // Vérifier si les données sauvegardées ont des valeurs valides
+          if (parsedResult.salarioBruto > 0 || parsedResult.salarioLiquido > 0) {
+            console.log('✅ Données sauvegardées valides, utilisation du localStorage');
+            setHoleriteResult(parsedResult);
+          } else {
+            console.log('⚠️ Données sauvegardées invalides, attente des données Supabase');
+            // Ne pas utiliser les données invalides du localStorage
+          }
         } catch (error) {
           console.error('Erreur lors du chargement des données sauvegardées:', error);
         }
@@ -1077,49 +1140,49 @@ export default function DashboardFullWidth() {
     }
   }, [holeriteResult]);
 
+  // DEBUG: Log holeriteResult pour diagnostic
+  console.log('🔍 SUMMARY CARDS - holeriteResult:', holeriteResult);
+  console.log('🔍 SUMMARY CARDS - salarioBruto:', holeriteResult?.salarioBruto);
+  console.log('🔍 SUMMARY CARDS - salarioLiquido:', holeriteResult?.salarioLiquido);
+  
+  // DEBUG: Vérifier si holeriteResult a été mis à jour par syncWithSupabase
+  console.log('🔍 SUMMARY CARDS - holeriteResult complet:', JSON.stringify(holeriteResult, null, 2));
+
   // Use holeriteResult to update summary cards if available
   const summaryCardsData = holeriteResult ? [
     {
       title: "Salário Bruto",
-      value: holeriteResult.salarioBruto && holeriteResult.salarioBruto > 0 ? 
+      value: holeriteResult.salarioBruto > 0 ? 
         `R$ ${holeriteResult.salarioBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 
-        (holeriteResult.raw?.final_data?.salario_bruto ? 
-          `R$ ${Number(holeriteResult.raw.final_data.salario_bruto).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 
-          'R$ 0,00'),
+        'R$ 0,00',
       color: "border-blue-100 bg-white text-blue-700",
       icon: <BarChart3 className="w-5 h-5 text-blue-400" />,
       source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
-      isMinSalary: holeriteResult.salarioBruto && holeriteResult.salarioBruto > 0 && Math.abs(holeriteResult.salarioBruto - SALARIO_MINIMO) < 0.01
+      isMinSalary: holeriteResult.salarioBruto > 0 && Math.abs(holeriteResult.salarioBruto - SALARIO_MINIMO) < 0.01
     },
     {
       title: "Salário Líquido",
-      value: holeriteResult.salarioLiquido && holeriteResult.salarioLiquido > 0 ? 
+      value: holeriteResult.salarioLiquido > 0 ? 
         `R$ ${holeriteResult.salarioLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 
-        (holeriteResult.raw?.final_data?.salario_liquido ? 
-          `R$ ${Number(holeriteResult.raw.final_data.salario_liquido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 
-          'R$ 0,00'),
+        'R$ 0,00',
       color: "border-green-100 bg-white text-green-700",
       icon: <FileText className="w-5 h-5 text-green-400" />,
       source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
     },
     {
       title: "Descontos",
-      value: holeriteResult.descontos && holeriteResult.descontos > 0 ? 
+      value: holeriteResult.descontos > 0 ? 
         `R$ ${holeriteResult.descontos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 
-        (holeriteResult.raw?.final_data?.descontos ? 
-          `R$ ${Number(holeriteResult.raw.final_data.descontos).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 
-          'R$ 0,00'),
+        'R$ 0,00',
       color: "border-orange-100 bg-white text-orange-700",
       icon: <ArrowDownUp className="w-5 h-5 text-orange-400" />,
       source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
     },
     {
       title: "Eficiência",
-      value: holeriteResult.eficiencia && holeriteResult.eficiencia > 0 ? 
+      value: holeriteResult.eficiencia > 0 ? 
         `${holeriteResult.eficiencia.toFixed(1)}%` : 
-        (holeriteResult.raw?.final_data?.salario_bruto && holeriteResult.raw?.final_data?.salario_liquido ? 
-          `${((Number(holeriteResult.raw.final_data.salario_liquido) / Number(holeriteResult.raw.final_data.salario_bruto)) * 100).toFixed(1)}%` : 
-          '0,0%'),
+        '0,0%',
       color: "border-purple-100 bg-white text-purple-700",
       icon: <PercentCircle className="w-5 h-5 text-purple-400" />,
       source: holeriteResult.raw?.period ? `Holerite ${formatPeriod(holeriteResult.raw.period)}` : "Dados do holerite",
@@ -1188,15 +1251,37 @@ export default function DashboardFullWidth() {
       try {
         // 1. Si on dispose déjà d'un holerite analysé, on l'utilise comme source principale
         if (holeriteResult?.raw) {
-          const text = JSON.stringify(holeriteResult.raw).toLowerCase();
-          setBeneficiosDetectados(
-            BENEFIT_CATALOG.map((b) => ({
-              tipo: b.tipo,
-              comentario: b.comentario,
-              actionLink: b.actionLink,
-              detectado: b.keys.some((k) => text.includes(k)),
-            }))
-          );
+          // Vérifier d'abord si des bénéfices sont explicitement extraits par l'IA
+          const beneficiosExtraits = holeriteResult.raw.beneficios || [];
+          const segurosExtraits = holeriteResult.raw.seguros || [];
+          
+          // Si l'IA a extrait des bénéfices, les utiliser
+          if (beneficiosExtraits.length > 0 || segurosExtraits.length > 0) {
+            console.log('🔍 Bénéfices extraits par l\'IA:', { beneficiosExtraits, segurosExtraits });
+            setBeneficiosDetectados(
+              BENEFIT_CATALOG.map((b) => ({
+                tipo: b.tipo,
+                comentario: b.comentario,
+                actionLink: b.actionLink,
+                detectado: beneficiosExtraits.some((beneficio: any) => 
+                  beneficio.toLowerCase().includes(b.tipo.toLowerCase()) ||
+                  b.keys.some((k) => beneficio.toLowerCase().includes(k))
+                ),
+              }))
+            );
+          } else {
+            // Si aucun bénéfice extrait, chercher dans le texte OCR
+            const ocrText = holeriteResult.raw.ocr_text || '';
+            console.log('🔍 Recherche dans le texte OCR:', ocrText.substring(0, 200) + '...');
+            setBeneficiosDetectados(
+              BENEFIT_CATALOG.map((b) => ({
+                tipo: b.tipo,
+                comentario: b.comentario,
+                actionLink: b.actionLink,
+                detectado: b.keys.some((k) => ocrText.toLowerCase().includes(k)),
+              }))
+            );
+          }
           return; // pas besoin d'interroger la BD
         }
 
@@ -1288,50 +1373,63 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
         {/* Sidebar Desktop */}
-        <aside className="hidden lg:block col-span-2 xl:col-span-1 mb-8 lg:mb-0">
-          <div className="sticky top-8 pr-6 border-r border-gray-200">
+        <aside className="hidden lg:block col-span-2 mb-8 lg:mb-0">
+          <div className="sticky top-8 pr-6">
+            {/* Section Holerite Analisado */}
             {holeriteResult && holeriteResult.raw?.period ? (
-              <div className="w-full bg-gray-50 text-gray-700 font-medium px-4 py-3 rounded-xl flex flex-col gap-2 shadow-sm text-sm mb-8 border border-gray-200">
-                <div className="flex items-center justify-center gap-2">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <span>Holerite Analisado</span>
-                </div>
-                <div className="text-center text-sm">
-                  <div className="font-semibold">{formatPeriod(holeriteResult.raw.period)}</div>
-                  {holeriteResult.raw.employee_name && (
-                    <div className="text-xs opacity-75">{holeriteResult.raw.employee_name}</div>
-                  )}
-                  {holeriteResult.raw.company_name && (
-                    <div className="text-xs opacity-75">{holeriteResult.raw.company_name}</div>
-                  )}
+              <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
+                <div className="text-center mb-3">
+                  <div className="text-sm font-medium text-gray-600 mb-1">Holerite Analisado</div>
+                  <div className="text-lg font-semibold text-gray-900">{formatPeriod(holeriteResult.raw.period)}</div>
                 </div>
                 <button 
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white text-xs font-medium px-3 py-2 rounded-lg mt-2 transition-all duration-200" 
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200" 
                   onClick={() => router.push('/br/scan-new-pim')}
                 >
                   Novo Upload
                 </button>
               </div>
             ) : (
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2 shadow-sm text-sm mb-8 transition-all duration-200" onClick={() => router.push('/br/scan-new-pim')}>
-                <Upload className="w-4 h-4" /> Upload Holerite
-              </button>
+              <div className="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-200">
+                <div className="text-center mb-3">
+                  <div className="text-sm font-medium text-blue-600 mb-1">Aucun holerite analysé</div>
+                  <div className="text-sm text-blue-500">Uploadez votre premier holerite</div>
+                </div>
+                <button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200" 
+                  onClick={() => router.push('/br/scan-new-pim')}
+                >
+                  <Upload className="w-4 h-4 mr-2 inline" />
+                  Upload Holerite
+                </button>
+              </div>
             )}
-            <nav className="flex flex-col gap-2 w-full">
+
+            {/* Navigation principale */}
+            <nav className="space-y-1">
               {navItems.map((item, i) => (
                 <button
                   key={i}
-                  className={`w-full flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                     activeTab === item.label 
-                      ? `${item.activeColor} shadow-sm` 
-                      : `${item.color}`
+                      ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                   onClick={() => handleSidebarNav(item.label)}
                 >
-                  <span className="flex-1 whitespace-normal break-words text-left">{item.label}</span>
+                  {item.label}
                 </button>
               ))}
             </nav>
+
+            {/* Notification badge */}
+            <div className="mt-6">
+              <div className="bg-red-100 border border-red-200 rounded-lg px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-red-800">N 1 Issue X</span>
+                </div>
+              </div>
+            </div>
           </div>
         </aside>
         {/* Sidebar Mobile Hamburger */}
@@ -1393,7 +1491,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           </div>
         )}
         {/* Main content dynamique */}
-        <section className="col-span-12 lg:col-span-10 xl:col-span-11 flex flex-col gap-6 sm:gap-8 px-4 sm:pl-6">
+        <section className="col-span-12 lg:col-span-10 flex flex-col gap-6 sm:gap-8 px-4 sm:pl-6">
           
 
           
@@ -1574,7 +1672,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           )}
  
           {activeTab === "Seguros" && (
-            <Seguros userId={userId} employmentStatus={employmentStatus} />
+            <Seguros userId={userId} employmentStatus={employmentStatus} holeriteRaw={holeriteResult?.raw} />
           )}
 
           {activeTab === "Investimentos" && (
@@ -1630,36 +1728,10 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
 
           {activeTab === "Histórico & Documentos" && (
             <div className="bg-white rounded-2xl shadow border border-gray-100 p-8">
-              <div className="font-semibold text-lg mb-4 text-emerald-900 flex items-center gap-2">
+              <div className="font-semibold text-lg mb-6 text-emerald-900 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-emerald-600" /> Histórico & Documentos
               </div>
-              <div className="space-y-4">
-                {holeriteResult ? (
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Holerite - {holeriteResult.raw?.period || 'Période récente'}</h3>
-                        <p className="text-sm text-gray-600">Uploadé le {new Date().toLocaleDateString('pt-BR')}</p>
-                      </div>
-                      <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
-                        <Download className="w-4 h-4 mr-2 inline" />
-                        Télécharger
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>Aucun document uploadé pour le moment</p>
-                    <button 
-                      onClick={() => router.push('/br/scan-new-pim')}
-                      className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-                    >
-                      Uploader un holerite
-                    </button>
-                  </div>
-                )}
-              </div>
+              <HoleriteHistory />
             </div>
           )}
           
