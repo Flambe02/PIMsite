@@ -95,13 +95,13 @@ async function getArticleBySlug(slug: string): Promise<BlogArticleDetail | null>
 
 
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
-  try {
-    const { locale, slug } = await params;
-    
-    if (!locales.includes(locale as any)) notFound();
+  const { locale, slug } = await params;
+  
+  if (!locales.includes(locale as any)) notFound();
 
-    const country = locale as string;
-    
+  const country = locale as string;
+  
+  try {
     // Récupérer l'article depuis Sanity
     const article = await getArticleBySlug(slug);
 
@@ -213,7 +213,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
               className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6 transition-colors duration-200"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              <span className="font-medium">Retour au blog</span>
+              <span className="font-medium">{locale === 'br' ? 'Voltar ao blog' : locale === 'fr' ? 'Retour au blog' : 'Back to blog'}</span>
             </Link>
             
             <div className="flex items-center text-sm text-gray-500 mb-6 flex-wrap gap-2">
@@ -290,17 +290,22 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Quer analisar sua folha de pagamento?
+              {locale === 'br' ? 'Quer analisar sua folha de pagamento?' : 
+               locale === 'fr' ? 'Voulez-vous analyser votre bulletin de paie ?' :
+               'Want to analyze your payslip?'}
             </h2>
             <p className="text-blue-100 mb-8 max-w-2xl mx-auto text-lg leading-relaxed">
-              Faça o upload do seu holerite e receba insights personalizados sobre seus benefícios, 
-              impostos e oportunidades de otimização.
+              {locale === 'br' ? 'Faça o upload do seu holerite e receba insights personalizados sobre seus benefícios, impostos e oportunidades de otimização.' :
+               locale === 'fr' ? 'Téléchargez votre bulletin de paie et recevez des insights personnalisés sur vos avantages, impôts et opportunités d\'optimisation.' :
+               'Upload your payslip and receive personalized insights about your benefits, taxes and optimization opportunities.'}
             </p>
             <Link
               href={`/${country}/scan-new-pim`}
               className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-xl text-blue-600 bg-white hover:bg-gray-50 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
             >
-              Analisar meu holerite
+              {locale === 'br' ? 'Analisar meu holerite' :
+               locale === 'fr' ? 'Analyser mon bulletin de paie' :
+               'Analyze my payslip'}
               <ArrowLeft className="w-5 h-5 ml-2 rotate-180" />
             </Link>
           </div>
@@ -312,20 +317,28 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     console.error('❌ Erreur critique dans BlogArticlePage:', error);
     
     // Fallback en cas d'erreur - page avec message d'erreur mais pas de crash
+    const { locale } = await params;
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Article temporairement indisponible
+            {locale === 'br' ? 'Artigo temporariamente indisponível' :
+             locale === 'fr' ? 'Article temporairement indisponible' :
+             'Article temporarily unavailable'}
           </h1>
           <p className="text-gray-600 mb-8">
-            Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard.
+            {locale === 'br' ? 'Estamos enfrentando dificuldades técnicas. Tente novamente mais tarde.' :
+             locale === 'fr' ? 'Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard.' :
+             'We are experiencing technical difficulties. Please try again later.'}
           </p>
           <a 
             href="/" 
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Retour à l'accueil
+            {locale === 'br' ? 'Voltar ao início' :
+             locale === 'fr' ? 'Retour à l\'accueil' :
+             'Back to home'}
           </a>
         </div>
       </div>

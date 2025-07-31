@@ -8,7 +8,7 @@
     }
   },
   "international": {
-    "specialOffer": "Exclusive offer: get personalized support for your country’s tax and benefits system.",
+    "specialOffer": "Exclusive offer: get personalized support for your country's tax and benefits system.",
     "guide": "Check out our complete guide to social protection and benefits in your country.",
     "cta": "Discover your local advantages"
   },
@@ -16,5 +16,39 @@
     "specialOffer": "Exclusive offer for the UK: get support on British tax and benefits.",
     "guide": "Read our guide to social protection and benefits in the UK.",
     "cta": "See UK advantages"
+  },
+  "blog": {
+    "title": "PIM Blog",
+    "subtitle": "Insights and tips on payroll, benefits and career",
+    "searchPlaceholder": "Search articles...",
+    "filterByCategory": "Filter by category",
+    "allCategories": "All categories",
+    "noArticles": "No articles found",
+    "backToBlog": "Back to blog",
+    "readFullArticle": "Read full article",
+    "minutesRead": "min read",
+    "articlesFound": "articles found",
+    "of": "of",
+    "total": "total",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "clearFilters": "Clear filters",
+    "noArticlesMessage": "Soon we will have interesting articles for you. Explore our resources!",
+    "noArticlesWithFilters": "Try adjusting your search filters or explore other categories.",
+    "analyzePayslip": "Want to analyze your payslip?",
+    "analyzePayslipDescription": "Upload your payslip and receive personalized insights about your benefits, taxes and optimization opportunities.",
+    "analyzeMyPayslip": "Analyze my payslip",
+    "blogUnavailable": "Blog temporarily unavailable",
+    "technicalDifficulties": "We are experiencing technical difficulties. Please try again later.",
+    "backToHome": "Back to home",
+    "articleUnavailable": "Article temporarily unavailable",
+    "invalidDate": "Invalid date",
+    "noTitle": "No title",
+    "noExcerpt": "No excerpt available",
+    "moreTags": "more"
+  },
+  "country": {
+    "currentCountry": "Current country"
   }
 } 

@@ -76,54 +76,55 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Header amélioré */}
+      {/* Header compact et optimisé */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
-              <Globe className="w-8 h-8 text-blue-600" />
+            {/* Icône plus petite */}
+            <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full mb-4 md:mb-6">
+              <Globe className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
             </div>
-            <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+            
+            {/* Titre plus compact */}
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 md:mb-4 leading-tight">
               {dict.blog.title}
             </h1>
-            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-8">
+            
+            {/* Sous-titre plus court */}
+            <p className="text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-4 md:mb-6">
               {dict.blog.subtitle}
             </p>
-            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-              <Globe className="w-4 h-4 mr-2" />
+            
+            {/* Badge pays plus discret */}
+            <div className="inline-flex items-center px-3 py-1.5 md:px-4 md:py-2 bg-blue-100 text-blue-800 rounded-full text-xs md:text-sm font-medium">
+              <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
               <span>{dict.country.currentCountry}: {country.toUpperCase()}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Articles List avec meilleur espacement */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <BlogList articles={articles} locale={locale} country={country} dict={dict} />
+      {/* Articles List avec espacement optimisé */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <BlogList articles={articles as any} locale={locale} country={country} dict={dict} />
       </div>
 
-      {/* CTA Section amélioré */}
+      {/* CTA Section compact */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           <div className="text-center">
-            <h2 className="text-4xl font-bold text-white mb-6">
-              {locale === 'br' ? 'Quer analisar seu holerite?' : 
-               locale === 'fr' ? 'Voulez-vous analyser votre bulletin de paie ?' :
-               'Want to analyze your payslip?'}
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 md:mb-6">
+              {dict.blog.analyzePayslip}
             </h2>
-            <p className="text-blue-100 mb-8 max-w-3xl mx-auto text-lg leading-relaxed">
-              {locale === 'br' ? 'Faça upload do seu holerite e receba insights personalizados sobre seus benefícios, impostos e oportunidades de otimização.' :
-               locale === 'fr' ? 'Téléchargez votre bulletin de paie et recevez des insights personnalisés sur vos avantages, impôts et opportunités d\'optimisation.' :
-               'Upload your payslip and receive personalized insights about your benefits, taxes and optimization opportunities.'}
+            <p className="text-blue-100 mb-6 md:mb-8 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
+              {dict.blog.analyzePayslipDescription}
             </p>
             <Link
               href={`/${country}/scan-new-pim`}
-              className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-semibold rounded-xl text-blue-600 bg-white hover:bg-gray-50 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 border border-transparent text-base md:text-lg font-semibold rounded-xl text-blue-600 bg-white hover:bg-gray-50 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
             >
-              {locale === 'br' ? 'Analisar meu holerite' :
-               locale === 'fr' ? 'Analyser mon bulletin de paie' :
-               'Analyze my payslip'}
-              <ArrowRight className="w-5 h-5 ml-2" />
+              {dict.blog.analyzeMyPayslip}
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
             </Link>
           </div>
         </div>
@@ -134,26 +135,23 @@ export default async function BlogPage({ params }: BlogPageProps) {
     console.error('❌ Erreur critique dans BlogPage:', error);
     
     // Fallback en cas d'erreur - page avec message d'erreur mais pas de crash
+    const { locale } = await params;
+    const dict = await getDictionary(locale);
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {locale === 'br' ? 'Blog temporariamente indisponível' :
-             locale === 'fr' ? 'Blog temporairement indisponible' :
-             'Blog temporarily unavailable'}
+        <div className="text-center px-4">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
+            {dict.blog.blogUnavailable}
           </h1>
-          <p className="text-gray-600 mb-8">
-            {locale === 'br' ? 'Estamos enfrentando dificuldades técnicas. Tente novamente mais tarde.' :
-             locale === 'fr' ? 'Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard.' :
-             'We are experiencing technical difficulties. Please try again later.'}
+          <p className="text-gray-600 mb-6 md:mb-8 text-sm md:text-base">
+            {dict.blog.technicalDifficulties}
           </p>
           <a 
             href="/" 
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base"
           >
-            {locale === 'br' ? 'Voltar ao início' :
-             locale === 'fr' ? 'Retour à l\'accueil' :
-             'Back to home'}
+            {dict.blog.backToHome}
           </a>
         </div>
       </div>

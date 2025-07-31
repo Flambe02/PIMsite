@@ -18,7 +18,13 @@
       "benefits": "Benefícios",
       "tips": "Dicas",
       "loading": "Carregando artigos...",
-      "error": "Erro ao carregar artigos"
+      "error": "Erro ao carregar artigos",
+      "analyzePayslip": "Quer analisar seu holerite?",
+      "analyzePayslipDescription": "Faça upload do seu holerite e receba insights personalizados sobre seus benefícios, impostos e oportunidades de otimização.",
+      "analyzeMyPayslip": "Analisar meu holerite",
+      "blogUnavailable": "Blog temporariamente indisponível",
+      "technicalDifficulties": "Estamos enfrentando dificuldades técnicas. Tente novamente mais tarde.",
+      "backToHome": "Voltar ao início"
     },
     "country": {
       "selectCountry": "Selecionar país",
@@ -45,7 +51,13 @@
       "benefits": "Avantages",
       "tips": "Conseils",
       "loading": "Chargement des articles...",
-      "error": "Erreur lors du chargement des articles"
+      "error": "Erreur lors du chargement des articles",
+      "analyzePayslip": "Voulez-vous analyser votre bulletin de paie ?",
+      "analyzePayslipDescription": "Téléchargez votre bulletin de paie et recevez des insights personnalisés sur vos avantages, impôts et opportunités d'optimisation.",
+      "analyzeMyPayslip": "Analyser mon bulletin de paie",
+      "blogUnavailable": "Blog temporairement indisponible",
+      "technicalDifficulties": "Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard.",
+      "backToHome": "Retour à l'accueil"
     },
     "country": {
       "selectCountry": "Sélectionner le pays",
@@ -72,7 +84,13 @@
       "benefits": "Beneficios",
       "tips": "Consejos",
       "loading": "Cargando artículos...",
-      "error": "Error al cargar artículos"
+      "error": "Error al cargar artículos",
+      "analyzePayslip": "¿Quieres analizar tu nómina?",
+      "analyzePayslipDescription": "Sube tu nómina y recibe insights personalizados sobre tus beneficios, impuestos y oportunidades de optimización.",
+      "analyzeMyPayslip": "Analizar mi nómina",
+      "blogUnavailable": "Blog temporalmente no disponible",
+      "technicalDifficulties": "Estamos experimentando dificultades técnicas. Inténtalo de nuevo más tarde.",
+      "backToHome": "Volver al inicio"
     },
     "country": {
       "selectCountry": "Seleccionar país",
@@ -99,7 +117,13 @@
       "benefits": "Benefits",
       "tips": "Tips",
       "loading": "Loading articles...",
-      "error": "Error loading articles"
+      "error": "Error loading articles",
+      "analyzePayslip": "Want to analyze your payslip?",
+      "analyzePayslipDescription": "Upload your payslip and receive personalized insights about your benefits, taxes and optimization opportunities.",
+      "analyzeMyPayslip": "Analyze my payslip",
+      "blogUnavailable": "Blog temporarily unavailable",
+      "technicalDifficulties": "We are experiencing technical difficulties. Please try again later.",
+      "backToHome": "Back to home"
     },
     "country": {
       "selectCountry": "Select country",
