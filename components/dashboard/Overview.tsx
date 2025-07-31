@@ -189,6 +189,10 @@ export default function Overview({
     }
   };
 
+  const handleFinancialCheckupClick = () => {
+    router.push(`/${locale}/financial-checkup`);
+  };
+
   if (!hasHolerite) {
     return (
       <div className="flex flex-col gap-8 mt-8">
@@ -224,12 +228,12 @@ export default function Overview({
   }
 
   return (
-    <div className="flex flex-col gap-6 mt-0">
+    <div className="flex flex-col gap-4 mt-0">
       {/* Main Overview Card - Single white card encapsulating everything */}
       <Card className="shadow-lg border-gray-100 rounded-2xl bg-white">
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           {/* Header Row - Profile and Upload Button */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
                 <User className="w-6 h-6 text-emerald-600" />
@@ -246,7 +250,7 @@ export default function Overview({
             <Button 
               onClick={onUploadClick}
               variant="outline"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="border-green-500 text-green-600 hover:bg-green-50"
             >
               <Upload className="w-4 h-4 mr-2" />
               {locale === 'br' ? 'Novo Holerite' : 
@@ -256,10 +260,10 @@ export default function Overview({
           </div>
 
           {/* First Row - Key Info Tiles */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-0">
             {/* Salário Líquido */}
             <div className="md:col-span-2">
-              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
+              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-4 h-28 min-w-[220px] flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign className="w-5 h-5 text-gray-600" />
                   <span className="text-xs text-gray-500">
@@ -272,38 +276,59 @@ export default function Overview({
                   R$ {salarioLiquido.toLocaleString('pt-BR')}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {locale === 'br' ? 'Último holerite' : 
-                   locale === 'fr' ? 'Dernier bulletin' : 
-                   'Last payslip'}
+                  {formatPeriod(holeriteResult.raw?.period)}
                 </div>
               </div>
             </div>
 
-            {/* Poder de Compra Real */}
+            {/* Benefícios */}
             <div className="md:col-span-2">
-              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
+              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-4 h-28 min-w-[220px] flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="w-5 h-5 text-gray-600" />
+                  <Heart className="w-5 h-5 text-gray-600" />
                   <span className="text-xs text-gray-500">
-                    {locale === 'br' ? 'Poder de Compra Real' : 
-                     locale === 'fr' ? 'Pouvoir d\'achat réel' : 
-                     'Real Purchasing Power'}
+                    {locale === 'br' ? 'Benefícios Mensais' : 
+                     locale === 'fr' ? 'Avantages mensuels' : 
+                     'Monthly Benefits'}
                   </span>
                 </div>
-                <div className="text-3xl font-black text-black">
-                  R$ {poderCompraReal.toLocaleString('pt-BR')}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {locale === 'br' ? 'Ajustado pela inflação' : 
-                   locale === 'fr' ? 'Ajusté par l\'inflation' : 
-                   'Inflation adjusted'}
-                </div>
+                {beneficios > 0 ? (
+                  <>
+                    <div className="text-3xl font-black text-black">
+                      R$ {beneficios.toLocaleString('pt-BR')}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {locale === 'br' ? 'Vale refeição, saúde, previdência' : 
+                       locale === 'fr' ? 'Vale repas, santé, retraite' : 
+                       'Meal, health, retirement'}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-lg font-semibold text-gray-500 mb-1">
+                      {locale === 'br' ? 'Nenhum benefício' : 
+                       locale === 'fr' ? 'Aucun avantage' : 
+                       'No benefits'}
+                    </div>
+                    <button 
+                      onClick={() => handleTabClick("Benefícios")}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    >
+                      {locale === 'br' ? 'Ver benefícios disponíveis' : 
+                       locale === 'fr' ? 'Voir les avantages disponibles' : 
+                       'View available benefits'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Financial Check-up */}
             <div className="md:col-span-2">
-              <div className="bg-gray-50/60 rounded-xl flex flex-col items-center justify-center p-0 h-full shadow-sm min-w-[180px] min-h-[220px]">
+              <div 
+                className="bg-gray-50/60 rounded-xl flex flex-col items-center justify-center p-0 h-full shadow-sm min-w-[180px] min-h-[220px] cursor-pointer hover:bg-gray-100/60 transition-colors duration-200"
+                onClick={handleFinancialCheckupClick}
+              >
                 <span className="text-xl font-bold text-gray-900 mb-1">
                   {locale === 'br' ? 'Financial Check-up' : 
                    locale === 'fr' ? 'Check-up financier' : 
@@ -350,66 +375,70 @@ export default function Overview({
             </div>
           </div>
 
-          {/* Recommendations Block - Just below salary cards */}
-          <div className="mb-6">
-            <div className="bg-[#FAFAFA] rounded-2xl shadow-[0_1px_6px_#0000000D] px-7 py-6 flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold text-gray-900">
-                  {locale === 'br' ? 'Recomendações PIM' : 
-                    locale === 'fr' ? 'Recommandations PIM' : 
-                    'PIM Recommendations'}
-                </h3>
-                <button 
-                  className="text-xs text-gray-500 hover:text-gray-700 font-medium transition p-0 bg-transparent shadow-none focus:outline-none"
-                  onClick={() => handleTabClick("Salário")}
-                >
-                  {locale === 'br' ? 'Ver todas' : locale === 'fr' ? 'Voir toutes' : 'View all'}
-                </button>
-              </div>
-              {/* Recommendations List */}
-              <div className="flex flex-col gap-4">
-                {recommendations.length > 0 ? (
-                  recommendations.slice(0,2).map((rec: any) => (
-                    <div key={rec.id} className="bg-white/80 rounded-xl px-5 py-3 shadow border border-gray-100 flex gap-4 items-start">
-                      <div className="w-6 h-6 flex items-center justify-center bg-gray-50 rounded-lg shrink-0 mt-0.5">
-                        {rec.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-semibold text-gray-900">{rec.title}</span>
-                          <span className={
-                            `px-2 py-0.5 text-xs rounded-full
-                             ${rec.priority === 'high'
-                                ? 'bg-orange-50 text-orange-600'
-                                : 'bg-gray-50 text-gray-600'}
-                            `
-                          }>
-                            {rec.priority === 'high'
-                              ? (locale === 'br' ? 'Alta' : locale === 'fr' ? 'Élevée' : 'High')
-                              : (locale === 'br' ? 'Média' : locale === 'fr' ? 'Moyenne' : 'Medium')}
-                          </span>
+          {/* Recommendations & Salary Analysis - Unified Apple/Stripe Style */}
+          <div className="flex flex-col lg:flex-row gap-4 w-full mt-2">
+            {/* Recommendations Block - Left, 2/3 width */}
+            <div className="flex-1 min-w-0 -mt-20">
+              <div className="bg-[#FAFAFA] rounded-2xl shadow-[0_1px_6px_#0000000D] px-5 pt-0 pb-2 h-full flex flex-col">
+                <div className="mb-4">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    {locale === 'br' ? 'Recomendações PIM' : 
+                      locale === 'fr' ? 'Recommandations PIM' : 
+                      'PIM Recommendations'}
+                  </h3>
+                </div>
+                {/* Recommendations List */}
+                <div className="flex flex-col gap-3">
+                  {recommendations.length > 0 ? (
+                    recommendations.slice(0,2).map((rec: any) => (
+                      <div key={rec.id} className="bg-white/80 rounded-xl px-4 py-2 shadow border border-gray-100 flex gap-4 items-start">
+                        <div className="w-6 h-6 flex items-center justify-center bg-gray-50 rounded-lg shrink-0 mt-0.5">
+                          {rec.icon}
                         </div>
-                        <p className="text-sm text-gray-600">{rec.description}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-semibold text-gray-900">{rec.title}</span>
+                            <span className={
+                              `px-2 py-0.5 text-xs rounded-full
+                               ${rec.priority === 'high'
+                                  ? 'bg-orange-50 text-orange-600'
+                                  : 'bg-gray-50 text-gray-600'}
+                              `
+                            }>
+                              {rec.priority === 'high'
+                                ? (locale === 'br' ? 'Alta' : locale === 'fr' ? 'Élevée' : 'High')
+                                : (locale === 'br' ? 'Média' : locale === 'fr' ? 'Moyenne' : 'Medium')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">{rec.description}</p>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-400 text-sm py-7 text-center">
+                      {locale === 'br'
+                        ? 'Nenhuma recomendação disponível no momento.'
+                        : locale === 'fr'
+                        ? 'Aucune recommandation disponible pour le moment.'
+                        : 'No recommendations available at the moment.'}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-gray-400 text-sm py-7 text-center">
-                    {locale === 'br'
-                      ? 'Nenhuma recomendação disponível no momento.'
-                      : locale === 'fr'
-                      ? 'Aucune recommandation disponible pour le moment.'
-                      : 'No recommendations available at the moment.'}
-                  </div>
-                )}
+                  )}
+                </div>
+                {/* Ver todas link - positioned at bottom right */}
+                <div className="flex justify-end mt-3 pt-2 border-t border-gray-100">
+                  <button 
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 underline decoration-blue-300 hover:decoration-blue-600"
+                    onClick={() => handleTabClick("Salário")}
+                  >
+                    {locale === 'br' ? 'Ver todas' : locale === 'fr' ? 'Voir toutes' : 'View all'} →
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Salary Analysis Block - Right side */}
-          <div className="flex justify-end">
+            {/* Salary Analysis Block - Right, 1/3 width */}
             <div className="w-full lg:max-w-xs">
-              <div className="bg-[#FAFAFA] rounded-2xl px-7 py-6 h-full flex flex-col justify-between">
+              <div className="bg-[#FAFAFA] rounded-2xl px-5 py-4 h-full flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-4 h-4 text-yellow-500" />
