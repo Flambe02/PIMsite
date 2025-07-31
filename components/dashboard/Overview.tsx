@@ -224,12 +224,12 @@ export default function Overview({
   }
 
   return (
-    <div className="flex flex-col gap-6 mt-8">
+    <div className="flex flex-col gap-6 mt-0">
       {/* Main Overview Card - Single white card encapsulating everything */}
       <Card className="shadow-lg border-gray-100 rounded-2xl bg-white">
-        <CardContent className="p-8">
+        <CardContent className="p-6">
           {/* Header Row - Profile and Upload Button */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
                 <User className="w-6 h-6 text-emerald-600" />
@@ -256,9 +256,9 @@ export default function Overview({
           </div>
 
           {/* First Row - Key Info Tiles */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-6">
             {/* Salário Líquido */}
-            <div className="md:col-span-1">
+            <div className="md:col-span-2">
               <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign className="w-5 h-5 text-gray-600" />
@@ -280,7 +280,7 @@ export default function Overview({
             </div>
 
             {/* Poder de Compra Real */}
-            <div className="md:col-span-1">
+            <div className="md:col-span-2">
               <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="w-5 h-5 text-gray-600" />
@@ -303,13 +303,13 @@ export default function Overview({
 
             {/* Financial Check-up */}
             <div className="md:col-span-2">
-              <div className="bg-gray-50/60 rounded-xl flex flex-col items-center justify-center p-0 h-full shadow-sm min-w-[230px] min-h-[220px]">
+              <div className="bg-gray-50/60 rounded-xl flex flex-col items-center justify-center p-0 h-full shadow-sm min-w-[180px] min-h-[220px]">
                 <span className="text-xl font-bold text-gray-900 mb-1">
                   {locale === 'br' ? 'Financial Check-up' : 
                    locale === 'fr' ? 'Check-up financier' : 
                    'Financial Check-up'}
                 </span>
-                <div style={{ width: 160, height: 160, margin: "auto" }}>
+                <div style={{ width: 140, height: 140, margin: "auto" }}>
                   <CircularProgressbarWithChildren
                     value={financialHealthScore}
                     minValue={0}
@@ -324,15 +324,15 @@ export default function Overview({
                       textSize: "28px",
                     })}
                   >
-                    <div style={{ marginTop: 26, textAlign: "center" }}>
+                    <div style={{ marginTop: 20, textAlign: "center" }}>
                       <div style={{
-                        fontSize: 36,
+                        fontSize: 32,
                         fontWeight: 700,
                         color: "#181818",
                         marginBottom: 0
                       }}>{financialHealthScore}%</div>
                       <div style={{
-                        fontSize: 20,
+                        fontSize: 18,
                         color: "#888",
                         fontWeight: 600
                       }}>
@@ -341,7 +341,7 @@ export default function Overview({
                     </div>
                   </CircularProgressbarWithChildren>
                 </div>
-                <div className="text-gray-500 text-md mt-2">
+                <div className="text-gray-500 text-sm mt-2">
                   {locale === 'br' ? 'Saúde financeira' : 
                    locale === 'fr' ? 'Santé financière' : 
                    'Financial health'}
