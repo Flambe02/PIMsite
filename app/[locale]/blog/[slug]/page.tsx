@@ -2,26 +2,8 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, Clock, ArrowLeft, Globe, User } from 'lucide-react';
-// import { sanityClient, queries } from '@/lib/sanity/config';
-// import { urlFor } from '@/lib/sanity/config';
-// import { BlogArticleDetail } from '@/hooks/useSanityBlog';
+import { useSanityBlog, BlogArticleDetail } from '@/hooks/useSanityBlog';
 
-// Temporary interface while Sanity is disabled
-interface BlogArticleDetail {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  publishedAt: string;
-  author?: string;
-  image?: string;
-  body: any[];
-  tags?: string[];
-  country: string;
-  metaTitle?: string;
-  metaDescription?: string;
-  ogImage?: string;
-}
 import { PortableText } from '@portabletext/react';
 
 // Can be imported from a shared config
@@ -38,90 +20,69 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
 
   const country = locale as string;
   
-  // Temporary: return default metadata while Sanity is disabled
-  console.log('Blog temporarily disabled - Sanity integration paused');
-  return {
-    title: 'Blog Temporarily Disabled',
-    description: 'Blog functionality is temporarily unavailable.',
-  };
+  // Récupérer l'article depuis Supabase
+  const article = await getArticleBySlug(slug);
   
-  // Original code (commented out):
-  // const article = await sanityClient.fetch(queries.getArticleBySlug, { slug });
-  // 
-  // if (!article) {
-  //   return {
-  //     title: 'Article non trouvé',
-  //     description: 'L\'article que vous recherchez n\'existe pas.',
-  //   };
-  // }
+  if (!article) {
+    return {
+      title: 'Article non trouvé',
+      description: 'L\'article que vous recherchez n\'existe pas.',
+    };
+  }
 
-  // Temporary metadata while Sanity is disabled
+  const title = article.metaTitle || article.title;
+  const description = article.metaDescription || article.excerpt;
+  const ogImage = article.ogImage || article.image;
+  
   return {
-    title: 'Blog Temporarily Disabled | PIM',
-    description: 'Blog functionality is temporarily unavailable.',
-    keywords: 'blog, temporarily disabled',
+    title: `${title} | Blog PIM`,
+    description: description,
+    keywords: article.tags?.join(', ') || 'blog, folha de pagamento, holerite, benefícios',
     openGraph: {
-      title: 'Blog Temporarily Disabled',
-      description: 'Blog functionality is temporarily unavailable.',
-      type: 'website',
+      title: title,
+      description: description,
+      type: 'article',
       locale: locale,
+      images: ogImage ? [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        }
+      ] : [],
+      publishedTime: article.publishedAt,
+      authors: article.author ? [article.author] : [],
+      tags: article.tags || [],
     },
     twitter: {
-      card: 'summary',
-      title: 'Blog Temporarily Disabled',
-      description: 'Blog functionality is temporarily unavailable.',
+      card: 'summary_large_image',
+      title: title,
+      description: description,
+      images: ogImage ? [ogImage] : [],
     },
   };
-  
-  // Original code (commented out):
-  // const title = article.metaTitle || article.title;
-  // const description = article.metaDescription || article.excerpt;
-  // const ogImage = article.ogImage || article.image;
-  // 
-  // return {
-  //   title: `${title} | Blog PIM`,
-  //   description: description,
-  //   keywords: article.tags?.join(', ') || 'blog, folha de pagamento, holerite, benefícios',
-  //   openGraph: {
-  //     title: title,
-  //     description: description,
-  //     type: 'article',
-  //     locale: locale,
-  //     images: ogImage ? [
-  //       {
-  //         url: ogImage,
-  //         width: 1200,
-  //         height: 630,
-  //         alt: article.title,
-  //       }
-  //     ] : [],
-  //     publishedTime: article.publishedAt,
-  //     authors: article.author ? [article.author] : [],
-  //     tags: article.tags || [],
-  //   },
-  //   twitter: {
-  //     card: 'summary_large_image',
-  //     title: title,
-  //     description: description,
-  //     images: ogImage ? [ogImage] : [],
-  //   },
-  // };
 }
 
 async function getArticleBySlug(slug: string): Promise<BlogArticleDetail | null> {
-  // Temporary: return null while Sanity is disabled
-  console.log('Blog temporarily disabled - Sanity integration paused');
-  return null;
-  
-  // Original code (commented out):
-  // try {
-  //   const article = await sanityClient.fetch(queries.getArticleBySlug, { slug });
-  //   return article || null;
-  // } catch (error) {
-  //   console.error('Erreur lors de la récupération de l\'article:', error);
-  //   return null;
-  // }
+  try {
+    const { getArticleBySlug } = useSanityBlog();
+    const article = await getArticleBySlug(slug);
+    
+    if (!article) {
+      console.error('Article non trouvé:', slug);
+      return null;
+    }
+
+    console.log(`Article récupéré: ${article.slug}`);
+    return article;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'article:', error);
+    return null;
+  }
 }
+
+
 
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
   const { locale, slug } = await params;
@@ -130,7 +91,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const country = locale as string;
   
-  // Récupérer l'article depuis Sanity
+  // Récupérer l'article depuis Supabase
   const article = await getArticleBySlug(slug);
 
   if (!article) {
@@ -151,7 +112,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     types: {
       image: ({ value }: any) => {
         try {
-          const imageUrl = urlFor(value).url();
+          // Pour les images stockées dans Sanity
+          const imageUrl = value.asset?.url || value.url || '';
           return (
             <div className="my-8">
               <img

@@ -137,37 +137,50 @@ export default function BlogList({ articles, locale, country }: BlogListProps) {
 
       {/* Liste des articles */}
       {filteredArticles.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <div className="text-gray-400 mb-4">
-            <Search className="mx-auto h-12 w-12" />
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="text-gray-400 mb-6">
+            <Search className="mx-auto h-16 w-16" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
             Nenhum artigo encontrado
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
             {searchTerm || selectedTag 
-              ? 'Tente ajustar seus filtros de busca.'
-              : 'Em breve teremos artigos interessantes para você.'
+              ? 'Tente ajustar seus filtros de busca ou explore outras categorias.'
+              : 'Em breve teremos artigos interessantes para você. Explore nossos recursos!'
             }
           </p>
           {(searchTerm || selectedTag) && (
             <button
               onClick={clearFilters}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
             >
               Limpar filtros
             </button>
           )}
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredArticles.map((article) => (
-            <BlogCard
-              key={article._id}
-              article={article}
-              locale={locale}
-            />
-          ))}
+        <div className="space-y-8">
+          {/* Grille principale */}
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {filteredArticles.map((article) => (
+              <BlogCard
+                key={article._id}
+                article={article}
+                locale={locale}
+              />
+            ))}
+          </div>
+          
+          {/* Statistiques */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Affichage de <span className="font-semibold text-blue-600">{filteredArticles.length}</span> 
+                {filteredArticles.length === 1 ? ' article' : ' articles'} sur {articles.length} au total
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

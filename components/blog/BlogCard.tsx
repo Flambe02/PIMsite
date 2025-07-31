@@ -40,74 +40,84 @@ export default function BlogCard({ article, locale }: BlogCardProps) {
   };
 
   return (
-    <article className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      {/* Image */}
+    <article className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+      {/* Image avec overlay */}
       {article.image && (
-        <div className="aspect-video overflow-hidden">
+        <div className="aspect-video overflow-hidden relative">
           <img
             src={article.image}
             alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
       )}
       
       {/* Content */}
       <div className="p-6">
-        {/* Meta */}
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-          <div className="flex items-center">
-            <Calendar className="w-4 h-4 mr-1" />
-            <time dateTime={article.publishedAt}>
-              {formatDate(article.publishedAt)}
-            </time>
+        {/* Meta avec pays */}
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center">
+              <Calendar className="w-4 h-4 mr-1" />
+              <time dateTime={article.publishedAt}>
+                {formatDate(article.publishedAt)}
+              </time>
+            </div>
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 mr-1" />
+              <span>{getReadingTime()} min</span>
+            </div>
           </div>
           <div className="flex items-center">
-            <Clock className="w-4 h-4 mr-1" />
-            <span>{getReadingTime()} min</span>
+            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+              {article.country.toUpperCase()}
+            </span>
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+        <h2 className="text-xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
           <Link href={`/${locale}/blog/${article.slug}`}>
             {article.title}
           </Link>
         </h2>
 
         {/* Excerpt */}
-        <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">
+        <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed text-base">
           {article.excerpt}
         </p>
 
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-6">
             {article.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors duration-200"
               >
                 <Tag className="w-3 h-3 mr-1" />
                 {tag}
               </span>
             ))}
             {article.tags.length > 3 && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 flex items-center">
                 +{article.tags.length - 3} autres
               </span>
             )}
           </div>
         )}
 
-        {/* Read More */}
-        <Link 
-          href={`/${locale}/blog/${article.slug}`}
-          className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 group/link"
-        >
-          Ler mais
-          <ArrowRight className="w-4 h-4 ml-1 group-hover/link:translate-x-1 transition-transform duration-200" />
-        </Link>
+        {/* Read More avec meilleur style */}
+        <div className="border-t border-gray-100 pt-4">
+          <Link 
+            href={`/${locale}/blog/${article.slug}`}
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200 group/link"
+          >
+            Lire l'article complet
+            <ArrowRight className="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform duration-200" />
+          </Link>
+        </div>
       </div>
     </article>
   );

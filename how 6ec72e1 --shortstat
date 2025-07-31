@@ -1,0 +1,40 @@
+[33mcommit 6ec72e1e08de9af4369afb7affb94536fe5ab09b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mreprise-propre[m[33m, [m[1;31morigin/reprise-propre[m[33m)[m
+Author: Flambe02 <thepimentaorougecompany@gmail.com>
+Date:   Wed Jul 30 20:14:42 2025 +0200
+
+    Fix: Correction du processus de scan et affichage dashboard - Amélioration de la structure des données sauvegardées - Correction de l'extraction des valeurs salariales - Désactivation temporaire des filtres de données de test - Ajout de logs de debug pour le diagnostic
+
+ AMELIORATIONS_MOBILE_APPLIQUEES.md           | 115 [32m+++++[m
+ AUDIT_HOLERITE_STORAGE_FIX.md                | 159 [32m+++++++[m
+ AUDIT_MOBILE_DASHBOARD.md                    |  91 [32m++++[m
+ AUTHENTICATION_VERIFICATION.md               | 192 [32m++++++++[m
+ CORRECTION_AFFICHAGE_DASHBOARD.md            | 123 [32m+++++[m
+ CORRECTION_AFFICHAGE_DASHBOARD_FINALE.md     | 149 [32m++++++[m
+ CORRECTION_SAUVEGARDE_EDITION_FINALE.md      | 156 [32m+++++++[m
+ DASHBOARD_DATA_DISPLAY_ISSUE.md              | 172 [32m+++++++[m
+ DIAGNOSTIC_PROBLEME_AFFICHAGE_DASHBOARD.md   | 125 [32m+++++[m
+ DIAGNOSTIC_SAUVEGARDE_EDITION.md             | 138 [32m++++++[m
+ MIGRATION_TO_UNIFIED_SCAN_SYSTEM.md          | 128 [32m++++++[m
+ app/[locale]/calculadora/upload-holerite.tsx |   2 [32m+[m[31m-[m
+ app/[locale]/dash/page.tsx                   |  52 [32m++[m[31m-[m
+ app/[locale]/dashboard/layout.tsx            |  48 [32m+[m[31m-[m
+ app/[locale]/dashboard/page.tsx              | 659 [32m+++++++++++++++[m[31m------------[m
+ app/api/process-payslip/route.ts             | 301 [31m------------[m
+ app/api/scan-new-pim/route.ts                | 108 [32m++++[m[31m-[m
+ app/api/scan-new-pim/update/route.ts         | 347 [32m++++++++++++++[m
+ components/dash/DashHeader.tsx               |  23 [32m+[m[31m-[m
+ components/dash/DashHoleriteBlock.tsx        |   4 [32m+[m[31m-[m
+ components/dash/DashSidebar.tsx              | 137 [32m++++++[m
+ components/dashboard-client.tsx              |   4 [32m+[m[31m-[m
+ components/mobile/MobileTabBar.tsx           |  61 [32m+[m[31m--[m
+ components/payslip-upload.tsx                |   2 [32m+[m[31m-[m
+ components/scan-new-pim/ScanResults.tsx      |  33 [32m+[m[31m-[m
+ lib/services/payslipEditService.ts           | 114 [32m+++[m[31m--[m
+ scripts/audit-holerite-storage.ts            | 310 [32m+++++++++++++[m
+ scripts/debug-dashboard-data.ts              | 193 [32m++++++++[m
+ scripts/debug-supabase-data.ts               | 138 [32m++++++[m
+ scripts/diagnostic-scan-probleme.ts          | 253 [32m++++++++++[m
+ scripts/fix-holerite-data-sync.ts            | 281 [32m++++++++++++[m
+ scripts/test-new-scan.ts                     | 238 [32m++++++++++[m
+ scripts/test-scan-process.ts                 | 163 [32m+++++++[m
+ 33 files changed, 4255 insertions(+), 764 deletions(-)

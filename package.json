@@ -15,8 +15,7 @@
     "test:ai-analysis": "npx tsx scripts/test-ai-analysis.ts",
     "test:holerite-upload": "npx tsx scripts/test-holerite-upload.ts",
     "test:recommendations": "npx tsx scripts/test-recommendations-storage.ts",
-    "test:all": "npm run test:validation && npm run test:analysis && npm run test:integration",
-    "prebuild": "echo 'SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL' && echo 'SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY'"
+    "test:all": "npm run test:validation && npm run test:analysis && npm run test:integration"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

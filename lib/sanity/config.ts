@@ -1,11 +1,11 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
-import { projectId, dataset, apiVersion } from '../../sanity/env';
 
+// Configuration directe pour éviter les problèmes de variables d'environnement
 export const config = {
-  projectId,
-  dataset,
-  apiVersion,
+  projectId: 'y5sty7n2',
+  dataset: 'production',
+  apiVersion: '2025-07-29',
   useCdn: process.env.NODE_ENV === 'production', // `false` if you want to ensure fresh data
 };
 

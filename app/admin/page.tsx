@@ -21,7 +21,8 @@ import {
   LogOut,
   Plus,
   Save,
-  FileText
+  FileText,
+  BookOpen
 } from 'lucide-react'
 import { CountryList } from '@/components/admin/country-list'
 import { ProviderList } from '@/components/admin/provider-list'
@@ -184,7 +185,7 @@ export default function AdminPage() {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-8">
+            <TabsList className="grid w-full grid-cols-7 mb-8">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Dashboard
@@ -200,6 +201,10 @@ export default function AdminPage() {
               <TabsTrigger value="providers" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Fournisseurs
+              </TabsTrigger>
+              <TabsTrigger value="blog" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Blog
               </TabsTrigger>
               <TabsTrigger value="ocr" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
@@ -491,6 +496,51 @@ export default function AdminPage() {
                     </Button>
                   </form>
                   <ProviderList />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Blog Tab */}
+            <TabsContent value="blog" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Gestion du Blog
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-gray-600">
+                      Gérez le contenu de votre blog avec Sanity Studio. Créez, modifiez et publiez des articles facilement.
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Button 
+                        onClick={() => window.open('/studio', '_blank')}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Ouvrir Sanity Studio
+                      </Button>
+                      <Button 
+                        onClick={() => window.open('/br/blog', '_blank')}
+                        variant="outline"
+                      >
+                        <Globe className="h-4 w-4 mr-2" />
+                        Voir le Blog
+                      </Button>
+                    </div>
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-2">Instructions :</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Cliquez sur "Ouvrir Sanity Studio" pour accéder à l'éditeur de contenu</li>
+                        <li>• Créez de nouveaux articles avec le bouton "Create"</li>
+                        <li>• Utilisez l'éditeur WYSIWYG pour le contenu riche</li>
+                        <li>• Ajoutez des images, des tags et des métadonnées SEO</li>
+                        <li>• Publiez vos articles pour qu'ils apparaissent sur le blog</li>
+                      </ul>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
