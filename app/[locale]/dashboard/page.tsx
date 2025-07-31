@@ -1401,14 +1401,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
               ))}
             </nav>
 
-            {/* Notification badge */}
-            <div className="mt-6">
-              <div className="bg-red-100 border border-red-200 rounded-lg px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-red-800">N 1 Issue X</span>
-                </div>
-              </div>
-            </div>
+            {/* Notification badge - SUPPRIMÉ */}
           </div>
         </aside>
         {/* Sidebar Mobile Hamburger */}

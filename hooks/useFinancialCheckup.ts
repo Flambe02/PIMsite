@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSupabase } from '@/components/supabase-provider';
-import { CheckupResult } from '@/app/[locale]/financial-checkup/page';
+import { CheckupResult } from '@/types/financial-checkup';
 
 export function useFinancialCheckup(userId?: string) {
   const { supabase } = useSupabase();

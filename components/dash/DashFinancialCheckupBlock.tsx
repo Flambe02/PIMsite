@@ -85,7 +85,7 @@ export default function DashFinancialCheckupBlock({
     );
   }
 
-  const globalScore = latestCheckup.global_score;
+  const globalScore = latestCheckup.globalScore;
   const topScores = latestCheckup.scores
     .sort((a, b) => b.percentage - a.percentage)
     .slice(0, 3);
@@ -199,7 +199,7 @@ export default function DashFinancialCheckupBlock({
                     {blockNames[score.block] || score.block}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {score.percentage}% - {score.interpretation}
+                    {score.percentage}%
                   </p>
                 </div>
               </div>

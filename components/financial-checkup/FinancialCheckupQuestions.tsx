@@ -297,7 +297,7 @@ export default function FinancialCheckupQuestions({
 
              {/* Question dots */}
              <div className="flex gap-1">
-               {questions.map((_, index) => (
+               {questions.map((_: any, index: number) => (
                  <button
                    key={index}
                    onClick={() => setCurrentQuestionIndex(index)}

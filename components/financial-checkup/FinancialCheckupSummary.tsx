@@ -74,8 +74,8 @@ export default function FinancialCheckupSummary({
     return "from-red-400 to-red-600";
   };
 
-  const getRecommendations = () => {
-    const recommendations = [];
+  const getRecommendations = (): any[] => {
+    const recommendations: any[] = [];
     
     scores.forEach(score => {
       if (score.percentage < 60) {
@@ -89,7 +89,7 @@ export default function FinancialCheckupSummary({
       }
     });
     
-    return recommendations.sort((a, b) => a.percentage - b.percentage);
+    return recommendations.sort((a: any, b: any) => a.percentage - b.percentage);
   };
 
   const recommendations = getRecommendations();

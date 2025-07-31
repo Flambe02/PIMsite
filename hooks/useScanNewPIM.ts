@@ -18,6 +18,7 @@ export interface ScanResult {
 export interface ScanResults {
   ocr: ScanResult;
   analysis: AnalysisResult;
+  scanId: string;
   timestamp: number;
 }
 
@@ -124,6 +125,7 @@ export const useScanNewPIM = (): UseScanNewPIMReturn => {
           recommendations: result.data.analysis.recommendations,
           confidence: result.data.analysis.confidence
         },
+        scanId: result.data.scanId,
         timestamp: result.data.timestamp
       };
 

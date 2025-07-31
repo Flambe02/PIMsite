@@ -148,7 +148,7 @@ export default function DashPage() {
   };
 
   const handleStartCheckup = () => {
-    window.location.href = `/${params.locale}/financial-checkup`;
+    window.location.href = `/${params?.locale}/financial-checkup`;
   };
 
   // Calculate money score based on available data
@@ -170,7 +170,7 @@ export default function DashPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {params.locale === 'fr' ? 'Chargement...' : 'Carregando...'}
+            {params?.locale === 'fr' ? 'Chargement...' : 'Carregando...'}
           </p>
         </div>
       </div>
@@ -182,10 +182,10 @@ export default function DashPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {params.locale === 'fr' ? 'Accès Refusé' : 'Acesso Negado'}
+            {params?.locale === 'fr' ? 'Accès Refusé' : 'Acesso Negado'}
           </h1>
           <p className="text-gray-600">
-            {params.locale === 'fr' 
+            {params?.locale === 'fr' 
               ? 'Vous devez être connecté pour accéder au tableau de bord.' 
               : 'Você precisa estar logado para acessar o Dash.'
             }
@@ -205,7 +205,7 @@ export default function DashPage() {
       <DashSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        locale={params.locale as string}
+        locale={params?.locale as string}
         onUploadHolerite={handleUploadHolerite}
       />
 
@@ -216,7 +216,7 @@ export default function DashPage() {
           user={user}
           onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
           sidebarOpen={sidebarOpen}
-          locale={params.locale as string}
+          locale={params?.locale as string}
         />
 
         {/* Main Content */}
@@ -228,7 +228,7 @@ export default function DashPage() {
             hasCheckup={hasCheckup}
             onUploadHolerite={handleUploadHolerite}
             onStartCheckup={handleStartCheckup}
-            locale={params.locale as string}
+            locale={params?.locale as string}
           />
 
           {/* Main Content Grid */}
@@ -264,7 +264,7 @@ export default function DashPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <TotalCompensationBlock locale={params.locale as string} />
+              <TotalCompensationBlock locale={params?.locale as string} />
             </motion.div>
 
             {/* Benefits & Insurance */}
@@ -294,7 +294,7 @@ export default function DashPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <SocialRightsBlock locale={params.locale as string} />
+              <SocialRightsBlock locale={params?.locale as string} />
             </motion.div>
 
             {/* AI Recommendations */}

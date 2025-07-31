@@ -146,6 +146,9 @@ importers:
       react-calendar:
         specifier: ^6.0.0
         version: 6.0.0(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react-circular-progressbar:
+        specifier: ^2.2.0
+        version: 2.2.0(react@19.1.1)
       react-dom:
         specifier: ^19
         version: 19.1.1(react@19.1.1)
@@ -6231,6 +6234,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-circular-progressbar@2.2.0:
+    resolution: {integrity: sha512-cgyqEHOzB0nWMZjKfWN3MfSa1LV3OatcDjPz68lchXQUEiBD5O1WsAtoVK4/DSL0B4USR//cTdok4zCBkq8X5g==}
+    peerDependencies:
+      react: '>=0.14.0'
 
   react-clientside-effect@1.2.8:
     resolution: {integrity: sha512-ma2FePH0z3px2+WOu6h+YycZcEvFmmxIlAb62cF52bG86eMySciO/EQZeQMXd07kPCYB0a1dWDT5J+KE9mCDUw==}
@@ -14184,6 +14192,10 @@ snapshots:
       warning: 4.0.3
     optionalDependencies:
       '@types/react': 19.1.9
+
+  react-circular-progressbar@2.2.0(react@19.1.1):
+    dependencies:
+      react: 19.1.1
 
   react-clientside-effect@1.2.8(react@19.1.1):
     dependencies:

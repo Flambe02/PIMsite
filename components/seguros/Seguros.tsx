@@ -81,9 +81,9 @@ export default function Seguros({ userId, employmentStatus, holeriteRaw }: Segur
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visibleSeguros.map((seguro) => (
+                {visibleSeguros.map((seguro: any) => (
                   <TableRow key={seguro.id}>
-                    <TableCell className="font-medium whitespace-nowrap">{LABELS[seguro.type]}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap">{LABELS[seguro.type as keyof typeof LABELS]}</TableCell>
                     <TableCell className="text-center flex items-center justify-center">{ICON(seguro.detected)}</TableCell>
                     <TableCell>{seguro.comment}</TableCell>
                     <TableCell className="text-right">
@@ -101,10 +101,10 @@ export default function Seguros({ userId, employmentStatus, holeriteRaw }: Segur
 
           {/* Mobile Accordion */}
           <div className="sm:hidden flex flex-col divide-y divide-gray-200">
-            {visibleSeguros.map((seguro) => (
+            {visibleSeguros.map((seguro: any) => (
               <div key={seguro.id} className="py-3 flex flex-col gap-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900 text-sm">{LABELS[seguro.type]}</span>
+                  <span className="font-medium text-gray-900 text-sm">{LABELS[seguro.type as keyof typeof LABELS]}</span>
                   <span className="flex items-center gap-1 text-sm">{ICON(seguro.detected)}</span>
                 </div>
                 <div className="text-gray-600 text-xs">{seguro.comment}</div>

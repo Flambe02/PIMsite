@@ -120,7 +120,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
       return;
     }
 
-    if (!results.data?.scanId) {
+    if (!results.scanId) {
       toast({
         title: "Erreur de données",
         description: "Impossible de récupérer l'ID du scan. Veuillez réessayer.",
@@ -133,7 +133,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
     
     try {
       console.log('💾 Sauvegarde des données éditées...', {
-        scanId: results.data.scanId,
+        scanId: results.scanId,
         editedData,
         customFields,
         userId: session.user.id
@@ -141,7 +141,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
 
       // Utiliser le vrai service de sauvegarde
       const savedData = await payslipEditService.saveEditedPayslip(
-        results.data.scanId,
+        results.scanId,
         editedData,
         customFields,
         session.user.id
@@ -197,7 +197,7 @@ export const ScanResults: React.FC<ScanResultsProps> = ({
     results: results,
     structuredData: structuredData,
     analysis: analysis,
-    scanId: results.data?.scanId
+    scanId: results.scanId
   });
 
   return (

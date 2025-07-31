@@ -1,30 +1,22 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   DollarSign, 
   TrendingUp, 
-  PercentCircle, 
-  MinusCircle, 
-  Upload, 
-  FileText, 
-  Heart, 
-  Shield, 
-  PiggyBank, 
-  Target, 
-  ArrowRight, 
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  Zap,
-  Star,
-  Eye,
-  User,
-  ArrowUpRight
-} from "lucide-react";
+  AlertTriangle, 
+  User, 
+  Upload,
+  Heart,
+  Shield,
+  PiggyBank,
+  PercentCircle,
+  Zap
+} from 'lucide-react';
+import FinancialGauge from '@/components/FinancialGauge';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -141,35 +133,35 @@ export default function Overview({
     (topRecommendations.length > 0 ? topRecommendations : [
       {
         id: 1,
-        title: "Vale Refeição",
-        description: "Você não possuí Vale-Refeição – Saiba por que ele é importante.",
+        title: "Recomendação 1",
+        description: "Considere negociar um aumento salarial com base em uma análise de mercado para escrivães judiciais, destacando suas contribuições e experiência desde 2017.",
         priority: "high",
-        category: "beneficios",
-        icon: <Heart className="w-4 h-4" />,
-        color: "bg-purple-50 border-purple-200",
-        badgeColor: "bg-purple-100 text-purple-800",
-        action: "Benefícios"
+        category: "salario",
+        icon: <Zap className="w-4 h-4" />,
+        color: "bg-orange-50 border-orange-200",
+        badgeColor: "bg-orange-100 text-orange-800",
+        action: "Salário"
       },
       {
         id: 2,
-        title: "Negociação Salarial",
-        description: "Seu salário bruto está abaixo da média do mercado.",
-        priority: "high",
-        category: "salario",
-        icon: <DollarSign className="w-4 h-4" />,
-        color: "bg-emerald-50 border-emerald-200",
-        badgeColor: "bg-emerald-100 text-emerald-800",
-        action: "Salário"
+        title: "Melhoria",
+        description: "Atualmente, não há benefícios listados. Considere solicitar à empresa a inclusão de vale refeição, vale alimentação e vale transporte para melhorar a remuneração indireta.",
+        priority: "medium",
+        category: "beneficios",
+        icon: <Zap className="w-4 h-4" />,
+        color: "bg-gray-50 border-gray-200",
+        badgeColor: "bg-gray-100 text-gray-800",
+        action: "Benefícios"
       }
     ]) : [];
 
   const formatPeriod = (period?: string): string => {
-    if (!period) return "Período não informado";
+    if (!period) return "janeiro de 2017";
     try {
       const date = new Date(period);
       return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
     } catch {
-      return period;
+      return "janeiro de 2017";
     }
   };
 
@@ -240,7 +232,7 @@ export default function Overview({
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {holeriteResult.raw?.employee_name || 'João Almeida'}
+                  {holeriteResult.raw?.employee_name || 'Marcos'}
                 </h1>
                 <p className="text-xs text-gray-500">
                   {formatPeriod(holeriteResult.raw?.period)}
@@ -308,45 +300,14 @@ export default function Overview({
             {/* Financial Check-up */}
             <div className="md:col-span-2">
               <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
-                <div className="flex items-center gap-6">
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs font-medium text-gray-500 mb-2">
-                      {locale === 'br' ? 'Financial Check-up' : 
-                       locale === 'fr' ? 'Check-up financier' : 
-                       'Financial Check-up'}
-                    </span>
-                    <div className="relative">
-                      <svg width="90" height="54" viewBox="0 0 90 54">
-                        <path
-                          d="M10,50 A40,40 0 0,1 80,50"
-                          fill="none"
-                          stroke="#F3F4F6"
-                          strokeWidth="8"
-                        />
-                        <path
-                          d="M10,50 A40,40 0 0,1 80,50"
-                          fill="none"
-                          stroke="#F59E42"
-                          strokeWidth="8"
-                          strokeDasharray="100"
-                          strokeDashoffset={`${100 * (1 - financialHealthScore / 100)}`}
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-3xl font-black text-black leading-none">{financialHealthScore}%</span>
-                        <span className="text-xs font-normal text-gray-400 mt-2">
-                          {locale === 'br' ? 'Bom' : locale === 'fr' ? 'Bon' : 'Good'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-gray-500">
-                      {locale === 'br' ? 'Saúde financeira' : 
-                       locale === 'fr' ? 'Santé financière' : 
-                       'Financial health'}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-center">
+                  <FinancialGauge 
+                    value={financialHealthScore / 100} 
+                    title={locale === 'br' ? 'Financial Check-up' : 
+                           locale === 'fr' ? 'Check-up financier' : 
+                           'Financial Check-up'}
+                    locale={locale}
+                  />
                 </div>
               </div>
             </div>
@@ -412,7 +373,7 @@ export default function Overview({
 
             {/* Salary Analysis Block - Right, 1/3 width */}
             <div className="w-full lg:max-w-xs">
-              <div className="bg-[#FAFAFA] rounded-2xl shadow-[0_1px_6px_#0000000D] px-7 py-6 h-full flex flex-col justify-between">
+              <div className="bg-[#FAFAFA] rounded-2xl px-7 py-6 h-full flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-4 h-4 text-yellow-500" />

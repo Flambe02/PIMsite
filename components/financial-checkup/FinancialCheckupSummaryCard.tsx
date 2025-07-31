@@ -9,7 +9,7 @@ import {
   ArrowRight,
   RefreshCw
 } from "lucide-react";
-import { CheckupResult } from "@/app/[locale]/financial-checkup/page";
+import { CheckupResult } from "@/types/financial-checkup";
 import { useRouter } from "next/navigation";
 
 interface FinancialCheckupSummaryCardProps {
@@ -60,11 +60,11 @@ export default function FinancialCheckupSummaryCard({
     });
   };
 
-  const worstBlock = checkup.scores.reduce((worst, current) => 
+  const worstBlock = checkup.scores.reduce((worst: any, current: any) => 
     current.percentage < worst.percentage ? current : worst
   );
 
-  const bestBlock = checkup.scores.reduce((best, current) => 
+  const bestBlock = checkup.scores.reduce((best: any, current: any) => 
     current.percentage > best.percentage ? current : best
   );
 
@@ -141,8 +141,8 @@ export default function FinancialCheckupSummaryCard({
 
       {/* Block Scores */}
       <div className="space-y-3 mb-6">
-        {checkup.scores.map((score) => {
-          const config = blockConfig[score.block];
+        {checkup.scores.map((score: any) => {
+          const config = blockConfig[score.block as keyof typeof blockConfig];
           return (
             <div key={score.block} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -179,9 +179,9 @@ export default function FinancialCheckupSummaryCard({
             <p className="text-sm font-medium text-green-800">
               {locale === 'fr' ? 'Point fort' : 'Ponto forte'}
             </p>
-            <p className="text-xs text-green-700">
-              {blockConfig[bestBlock.block].label}: {bestBlock.percentage}%
-            </p>
+                          <p className="text-xs text-green-700">
+                {blockConfig[bestBlock.block as keyof typeof blockConfig].label}: {bestBlock.percentage}%
+              </p>
           </div>
         </div>
 
@@ -193,7 +193,7 @@ export default function FinancialCheckupSummaryCard({
                 {locale === 'fr' ? 'À améliorer' : 'A melhorar'}
               </p>
               <p className="text-xs text-red-700">
-                {blockConfig[worstBlock.block].label}: {worstBlock.percentage}%
+                {blockConfig[worstBlock.block as keyof typeof blockConfig].label}: {worstBlock.percentage}%
               </p>
             </div>
           </div>
