@@ -16,7 +16,11 @@ import {
   PercentCircle,
   Zap
 } from 'lucide-react';
-import FinancialGauge from '@/components/FinancialGauge';
+import {
+  CircularProgressbarWithChildren,
+  buildStyles
+} from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -299,15 +303,48 @@ export default function Overview({
 
             {/* Financial Check-up */}
             <div className="md:col-span-2">
-              <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-6 h-28 min-w-[220px] flex flex-col justify-center">
-                <div className="flex items-center justify-center">
-                  <FinancialGauge 
-                    value={financialHealthScore / 100} 
-                    title={locale === 'br' ? 'Financial Check-up' : 
-                           locale === 'fr' ? 'Check-up financier' : 
-                           'Financial Check-up'}
-                    locale={locale}
-                  />
+              <div className="bg-gray-50/60 rounded-xl flex flex-col items-center justify-center p-0 h-full shadow-sm min-w-[230px] min-h-[220px]">
+                <span className="text-xl font-bold text-gray-900 mb-1">
+                  {locale === 'br' ? 'Financial Check-up' : 
+                   locale === 'fr' ? 'Check-up financier' : 
+                   'Financial Check-up'}
+                </span>
+                <div style={{ width: 160, height: 160, margin: "auto" }}>
+                  <CircularProgressbarWithChildren
+                    value={financialHealthScore}
+                    minValue={0}
+                    maxValue={100}
+                    circleRatio={0.75} // 270°
+                    styles={buildStyles({
+                      rotation: 0.625, // 225° start (top left), opens the bottom
+                      strokeLinecap: "round",
+                      pathColor: financialHealthScore >= 80 ? "#2ecc40" : financialHealthScore >= 50 ? "#e4ba6c" : "#df6b57",
+                      trailColor: "#f0f1f4",
+                      textColor: "#111",
+                      textSize: "28px",
+                    })}
+                  >
+                    <div style={{ marginTop: 26, textAlign: "center" }}>
+                      <div style={{
+                        fontSize: 36,
+                        fontWeight: 700,
+                        color: "#181818",
+                        marginBottom: 0
+                      }}>{financialHealthScore}%</div>
+                      <div style={{
+                        fontSize: 20,
+                        color: "#888",
+                        fontWeight: 600
+                      }}>
+                        {financialHealthScore >= 80 ? "Excelente" : financialHealthScore >= 50 ? "Bom" : "Ruim"}
+                      </div>
+                    </div>
+                  </CircularProgressbarWithChildren>
+                </div>
+                <div className="text-gray-500 text-md mt-2">
+                  {locale === 'br' ? 'Saúde financeira' : 
+                   locale === 'fr' ? 'Santé financière' : 
+                   'Financial health'}
                 </div>
               </div>
             </div>
