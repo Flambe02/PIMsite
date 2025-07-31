@@ -30,8 +30,11 @@ const UploadHolerite = dynamic(() => import("@/app/[locale]/calculadora/upload-h
   ssr: false
 });
 
-// Composant de debug pour afficher les données JSON
-
+// Import du nouveau composant Overview
+const Overview = dynamic(() => import("@/components/dashboard/Overview"), {
+  loading: () => <div className="p-8 text-center text-emerald-900">Chargement de l'overview...</div>,
+  ssr: false
+});
 
 const navItems = [
   { 
@@ -1410,6 +1413,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
               {navItems.map((item, i) => (
                 <button
                   key={i}
+                  data-tab={item.label}
                   className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                     activeTab === item.label 
                       ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
@@ -1466,6 +1470,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
                 {navItems.map((item, i) => (
                   <button
                     key={i}
+                    data-tab={item.label}
                     className={`w-full flex items-center px-4 py-4 sm:py-3 rounded-lg font-medium text-base sm:text-sm transition-all duration-200 ${
                       activeTab === item.label 
                         ? `${item.activeColor} shadow-sm` 
@@ -1496,85 +1501,12 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
 
           
           {activeTab === "Overview" && (
-            <>
-              {/* Résumé cards */}
-              {summaryCardsData.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
-                {summaryCardsData.map((card, i) => (
-                  <div key={i} className={`flex flex-col w-full min-h-[140px] sm:min-h-[120px] px-4 sm:px-6 py-4 rounded-2xl border ${card.color} shadow-sm items-start transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      {card.icon}
-                      <span className="font-semibold text-lg sm:text-base flex items-center">{card.title}
-                        {card.title === "Eficiência" && (
-                          <span className="relative group ml-1 align-middle flex items-center">
-                            <HelpCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
-                            <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-20 shadow-lg">
-                              Calculado como Salário Líquido dividido por Salário Bruto. Indica sua capacidade de converter o bruto em neto.
-                            </span>
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <span className="text-xl font-bold flex items-center gap-2">
-                      {card.value}
-                      {card.title === "Salário Bruto" && card.isMinSalary && (
-                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">Salário Mínimo</span>
-                      )}
-                    </span>
-                    {card.source && (
-                      <span className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                        {holeriteResult ? (
-                          <>
-                            <FileText className="w-3 h-3" />
-                            {card.source}
-                          </>
-                        ) : (
-                          <>
-                            <Info className="w-3 h-3" />
-                            {card.source}
-                          </>
-                        )}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-              ) : (
-                <NoDataMessage onUpload={() => router.push('/br/scan-new-pim')} />
-              )}
-              
-              {/* Recommandations IA basées sur l'analyse du holerite */}
-              <AIRecommendations 
-                recommendations={holeriteResult?.raw?.recommendations?.recommendations || 
-                              holeriteResult?.raw?.analysis_result?.recommendations?.recommendations || 
-                              holeriteResult?.raw?.aiRecommendations || []}
-                resumeSituation={holeriteResult?.raw?.recommendations?.resume_situation || 
-                               holeriteResult?.raw?.analysis_result?.recommendations?.resume_situation || 
-                               holeriteResult?.raw?.resumeSituation}
-                scoreOptimisation={holeriteResult?.raw?.recommendations?.score_optimisation || 
-                                 holeriteResult?.raw?.analysis_result?.recommendations?.score_optimisation || 
-                                 holeriteResult?.raw?.scoreOptimisation}
-              />
-              
-              {/* Recommandations personnalisées basées sur le quiz */}
-              <PersonalizedRecommendations 
-                quizAnswers={quizAnswers}
-                employmentStatus={employmentStatus}
-                financialHealthScore={financialHealthScore}
-              />
-              
-              {/* Recommandations générales */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {recommendations.map((rec, i) => (
-                  <div key={i} className={`flex flex-col w-full min-h-[100px] p-6 rounded-2xl border shadow bg-white ${rec.color} transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
-                    <span className={`text-sm font-bold px-2 py-0.5 rounded mb-2 w-max ${rec.tag}`}>{rec.label}</span>
-                    <span className="font-bold text-base mb-1 text-gray-800">{rec.title}</span>
-                    <span className="text-gray-600 text-sm mb-3">{rec.desc}</span>
-                    <button className="mt-auto bg-white border border-gray-200 hover:bg-gray-50 text-emerald-700 font-semibold px-3 py-1.5 rounded shadow-sm text-sm transition-all duration-200 focus:ring-2 focus:ring-emerald-400">{rec.btn}</button>
-                  </div>
-                ))}
-              </div>
-            </>
+            <Overview 
+              holeriteResult={holeriteResult}
+              financialHealthScore={financialHealthScore}
+              locale={locale as string || 'br'}
+              onUploadClick={() => router.push('/br/scan-new-pim')}
+            />
           )}
 
           {activeTab === "Salário" && (
