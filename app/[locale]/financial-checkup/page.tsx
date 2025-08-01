@@ -179,12 +179,13 @@ export default function FinancialCheckupPage() {
     
     setIsLoading(true);
     try {
-      const result: CheckupResult = {
-        userId: session.user.id,
-        checkupDate: new Date(),
+      // Créer l'objet avec les noms de champs corrects pour Supabase
+      const result = {
+        user_id: session.user.id,
+        checkup_date: new Date(),
         answers,
         scores,
-        globalScore,
+        global_score: globalScore,
         comments: {},
         country,
         language,

@@ -14,8 +14,11 @@ import {
   Shield,
   PiggyBank,
   PercentCircle,
-  Zap
+  Zap,
+  Plus
 } from 'lucide-react';
+import BeneficiosInputModal from '@/components/dashboard/BeneficiosInputModal';
+import { useUserBeneficios } from '@/hooks/useUserBeneficios';
 import {
   CircularProgressbarWithChildren,
   buildStyles
@@ -38,6 +41,8 @@ export default function Overview({
   onUploadClick 
 }: OverviewProps) {
   const router = useRouter();
+  const [isBeneficiosModalOpen, setIsBeneficiosModalOpen] = useState(false);
+  const { beneficios: userBeneficios, getTotalBeneficios, loadBeneficios } = useUserBeneficios();
   const hasHolerite = holeriteResult && holeriteResult.raw;
 
   // Calculer les données financières
@@ -47,8 +52,35 @@ export default function Overview({
   const eficiencia = hasHolerite ? (holeriteResult.eficiencia || 0) : 0;
   
   // Calculer le pouvoir d'achat réel (salaire net + bénéfices)
-  const beneficios = hasHolerite ? (holeriteResult.raw?.beneficios || 0) : 0;
+  // Fonction pour calculer le total des bénéfices à partir d'un tableau d'objets
+  const calculateBenefitsTotal = (beneficiosArray: any[]): number => {
+    if (!Array.isArray(beneficiosArray)) return 0;
+    return beneficiosArray.reduce((total, beneficio) => {
+      if (beneficio && typeof beneficio === 'object') {
+        const valor = beneficio.valor || beneficio.value || 0;
+        return total + (Number(valor) || 0);
+      }
+      return total;
+    }, 0);
+  };
+
+  // Extraire les bénéfices depuis différentes structures (pour détection)
+  const beneficiosArray = hasHolerite ? 
+    (holeriteResult.raw?.structured_data?.final_data?.beneficios ||
+     holeriteResult.raw?.structured_data?.beneficios ||
+     holeriteResult.raw?.beneficios ||
+     []) : [];
+  
+  // Utiliser les bénéfices saisis par l'utilisateur, sinon les bénéfices détectés
+  const userBeneficiosTotal = getTotalBeneficios();
+  const detectedBeneficios = calculateBenefitsTotal(beneficiosArray);
+  const beneficios = userBeneficiosTotal > 0 ? userBeneficiosTotal : detectedBeneficios;
   const poderCompraReal = salarioLiquido + beneficios;
+
+  // Extraire les noms des bénéfices détectés pour le modal
+  const detectedBenefitNames = beneficiosArray
+    .filter((b: any) => b && typeof b === 'object' && b.nome)
+    .map((b: any) => b.nome);
 
   // Extraire les vraies recommandations du holerite
   const holeriteRecommendations = hasHolerite ? 
@@ -193,6 +225,14 @@ export default function Overview({
     router.push(`/${locale}/financial-checkup`);
   };
 
+  const handleBeneficiosClick = () => {
+    setIsBeneficiosModalOpen(true);
+  };
+
+  const handleSaveBeneficios = async (beneficios: any[]) => {
+    await loadBeneficios(); // Recharger les bénéfices après sauvegarde
+  };
+
   if (!hasHolerite) {
     return (
       <div className="flex flex-col gap-4 mt-4">
@@ -316,6 +356,14 @@ export default function Overview({
                        locale === 'fr' ? 'Vale repas, santé, retraite' : 
                        'Meal, health, retirement'}
                     </div>
+                    <button 
+                      onClick={handleBeneficiosClick}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors mt-2"
+                    >
+                      {locale === 'br' ? 'Gerenciar benefícios' : 
+                       locale === 'fr' ? 'Gérer les avantages' : 
+                       'Manage benefits'}
+                    </button>
                   </>
                 ) : (
                   <>
@@ -325,12 +373,13 @@ export default function Overview({
                        'No benefits'}
                     </div>
                     <button 
-                      onClick={() => handleTabClick("Benefícios")}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                      onClick={handleBeneficiosClick}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors flex items-center gap-1"
                     >
-                      {locale === 'br' ? 'Ver benefícios disponíveis' : 
-                       locale === 'fr' ? 'Voir les avantages disponibles' : 
-                       'View available benefits'}
+                      <Plus className="w-3 h-3" />
+                      {locale === 'br' ? 'Configurar benefícios' : 
+                       locale === 'fr' ? 'Configurer les avantages' : 
+                       'Configure benefits'}
                     </button>
                   </>
                 )}
@@ -507,6 +556,15 @@ export default function Overview({
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de saisie des bénéfices */}
+      <BeneficiosInputModal
+        isOpen={isBeneficiosModalOpen}
+        onClose={() => setIsBeneficiosModalOpen(false)}
+        detectedBenefits={detectedBenefitNames}
+        onSave={handleSaveBeneficios}
+        holeriteData={holeriteResult?.raw}
+      />
     </div>
   );
 } 

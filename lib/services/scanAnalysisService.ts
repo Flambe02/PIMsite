@@ -69,11 +69,18 @@ export class ScanAnalysisService {
       - Si encontrar "Escrivão judicial" → position: "Escrivão judicial"
       - Si encontrar "janeiro/2017" → period: "janeiro/2017"
 
-      **ANÁLISE DETALHADA DE DESCONTOS:**
+      **ANÁLISE DETALHADA DE DESCONTOS E BENEFÍCIOS:**
       - Procure por "INSS" e extraia o valor correspondant
-      - Procure por "IRFF" ou "IMPOSTO DE RENDA" e extraia o valeur
-      - Procure por "PENSAO ALIMENTICIA" et extraia le valeur
-      - Procure por "Total de Descontos" et calcule la différence
+      - Procure por "IRFF" ou "IMPOSTO DE RENDA" e extraia o valor
+      - Procure por "PENSAO ALIMENTICIA" e extraia o valor
+      - Procure por "Total de Descontos" e calcule a diferença
+
+      **EXTRACÇÃO DE BENEFÍCIOS (DETECÇÃO APENAS):**
+      - Procure por itens que parecem ser benefícios: "VALE REFEICAO", "VALE ALIMENTACAO", "VALE TRANSPORTE", "PLANO DE SAUDE", "PLANO ODONTOLOGICO", "GYMPASS", "ALUGUEL VEICULO", etc.
+      - Se encontrar DEDUÇÕES (ex: "DESC VALE REFEICAO: 54.00"), INFIRA que existe o benefício mas NÃO estime o valor total
+      - IMPORTANTE: Liste apenas os NOMES dos benefícios detectados no array "beneficios" com valor 0
+      - O usuário informará manualmente os valores reais dos benefícios
+      - Exemplo: Se encontrar "DESC VALE REFEICAO: 54.00", liste como {"nome": "Vale Refeição", "valor": 0}
 
       **ESTRUTURA JSON:**
       {
@@ -89,7 +96,11 @@ export class ScanAnalysisService {
           {"nome": "INSS", "valor": 0},
           {"nome": "IRFF", "valor": 0}
         ],
-        "beneficios": [],
+        "beneficios": [
+          {"nome": "Vale Refeição", "valor": 600.00},
+          {"nome": "Vale Transporte", "valor": 180.00},
+          {"nome": "Plano de Saúde", "valor": 400.00}
+        ],
         "seguros": [],
         "credito": [],
         "outros": [
@@ -533,14 +544,29 @@ NUNCA retorne "[object Object]", null, campos vazios ou valores padrão.`
         });
       };
 
+      // Traiter les bénéfices (maintenant on accepte les valeurs 0 pour détection)
+      const processBenefitsArray = (array: any[]): any[] => {
+        if (!Array.isArray(array)) return [];
+        return array.map(item => {
+          if (typeof item === 'object' && item.nome && item.valor !== undefined) {
+            const valor = parseFloat(item.valor) || 0;
+            // Accepter toutes les valeurs, y compris 0 (pour détection)
+            return { nome: item.nome, valor: valor };
+          }
+          return null;
+        }).filter(item => item !== null);
+      };
+
       // Créer l'objet final avec les champs mappés
       const result: any = {};
       
       Object.entries(structuredData).forEach(([key, value]) => {
         const mappedKey = fieldMapping[key] || key;
         
-        if (key === 'impostos' || key === 'beneficios' || key === 'seguros' || key === 'credito' || key === 'outros') {
+        if (key === 'impostos' || key === 'seguros' || key === 'credito' || key === 'outros') {
           result[mappedKey] = processDeductionArray(value as any[]);
+        } else if (key === 'beneficios') {
+          result[mappedKey] = processBenefitsArray(value as any[]);
         } else if (typeof value === 'number') {
           result[mappedKey] = value;
         } else if (typeof value === 'string') {

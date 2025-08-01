@@ -919,9 +919,24 @@ export default function DashboardFullWidth() {
                      '';
 
         // Extraction des données supplémentaires
-        const beneficios = extractValue(data.structured_data, 'final_data.beneficios') ||
-                         extractValue(data.structured_data, 'beneficios') ||
-                         0;
+        // Fonction pour calculer le total des bénéfices à partir d'un tableau d'objets
+        const calculateBenefitsTotal = (beneficiosArray: any[]): number => {
+          if (!Array.isArray(beneficiosArray)) return 0;
+          return beneficiosArray.reduce((total, beneficio) => {
+            if (beneficio && typeof beneficio === 'object') {
+              const valor = beneficio.valor || beneficio.value || 0;
+              return total + (Number(valor) || 0);
+            }
+            return total;
+          }, 0);
+        };
+
+        // Extraire les bénéfices depuis différentes structures
+        const beneficiosArray = data.structured_data?.final_data?.beneficios ||
+                               data.structured_data?.beneficios ||
+                               [];
+        
+        const beneficios = calculateBenefitsTotal(beneficiosArray);
 
         const seguros = extractValue(data.structured_data, 'final_data.seguros') ||
                        extractValue(data.structured_data, 'seguros') ||
@@ -1376,21 +1391,8 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
 
   return (
     <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-fadeIn">
-
-      {/* Header mobile avec icône d'engrenage */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#1a2e22] shadow-md">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="text-white font-bold text-lg">PIM</div>
-          <button 
-            onClick={() => handleSidebarNav("Dados")}
-            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-          >
-            <Settings className="w-5 h-5 text-white" />
-          </button>
-        </div>
-      </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:pt-0 pt-16">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
         {/* Sidebar Desktop */}
         <aside className="hidden lg:block col-span-2 mb-8 lg:mb-0">
           <div className="sticky top-8 pr-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
