@@ -195,10 +195,10 @@ export default function Overview({
 
   if (!hasHolerite) {
     return (
-      <div className="flex flex-col gap-8 mt-8">
+      <div className="flex flex-col gap-4 mt-4">
         {/* Header - Message d'incitation */}
         <Card className="shadow-lg border-gray-100 rounded-2xl bg-white">
-          <CardHeader className="text-center">
+          <CardHeader className="text-center p-6">
             <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Upload className="w-8 h-8 text-blue-600" />
             </div>
@@ -214,7 +214,7 @@ export default function Overview({
             </p>
             <Button 
               onClick={onUploadClick}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold"
+              className="w-full max-w-xs mx-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold"
             >
               <Upload className="w-4 h-4 mr-2" />
               {locale === 'br' ? 'Upload Holerite' : 
@@ -247,10 +247,11 @@ export default function Overview({
                 </p>
               </div>
             </div>
+            {/* Bouton upload caché sur mobile, affiché en desktop */}
             <Button 
               onClick={onUploadClick}
               variant="outline"
-              className="border-green-500 text-green-600 hover:bg-green-50"
+              className="hidden md:flex border-green-500 text-green-600 hover:bg-green-50"
             >
               <Upload className="w-4 h-4 mr-2" />
               {locale === 'br' ? 'Novo Holerite' : 
@@ -259,8 +260,21 @@ export default function Overview({
             </Button>
           </div>
 
-          {/* First Row - Key Info Tiles */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-0">
+          {/* Bouton Upload Mobile - Positionné sous le header */}
+          <div className="md:hidden mb-4">
+            <Button 
+              onClick={onUploadClick}
+              className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {locale === 'br' ? 'Novo Holerite' : 
+               locale === 'fr' ? 'Nouveau bulletin' : 
+               'New Payslip'}
+            </Button>
+          </div>
+
+          {/* First Row - Key Info Tiles - Layout mobile optimisé */}
+          <div className="flex flex-col md:grid md:grid-cols-6 gap-4 mb-4">
             {/* Salário Líquido */}
             <div className="md:col-span-2">
               <div className="bg-gray-50/60 rounded-2xl shadow-[0_1px_6px_#0000000D] p-4 h-28 min-w-[220px] flex flex-col justify-center">
@@ -323,10 +337,10 @@ export default function Overview({
               </div>
             </div>
 
-            {/* Financial Check-up */}
+            {/* Financial Check-up - Optimisé mobile */}
             <div className="md:col-span-2">
               <div 
-                className="bg-gray-50/60 rounded-xl flex flex-col items-center justify-center p-0 h-full shadow-sm min-w-[180px] min-h-[220px] cursor-pointer hover:bg-gray-100/60 transition-colors duration-200"
+                className="bg-gray-50/60 rounded-xl flex flex-col items-center justify-center p-4 h-full shadow-sm min-w-[180px] min-h-[220px] cursor-pointer hover:bg-gray-100/60 transition-colors duration-200"
                 onClick={handleFinancialCheckupClick}
               >
                 <span className="text-xl font-bold text-gray-900 mb-1">
@@ -334,7 +348,7 @@ export default function Overview({
                    locale === 'fr' ? 'Check-up financier' : 
                    'Financial Check-up'}
                 </span>
-                <div style={{ width: 140, height: 140, margin: "auto" }}>
+                <div className="mx-auto my-3" style={{ width: 140, height: 140 }}>
                   <CircularProgressbarWithChildren
                     value={financialHealthScore}
                     minValue={0}
@@ -375,7 +389,7 @@ export default function Overview({
             </div>
           </div>
 
-          {/* Recommendations & Salary Analysis - Unified Apple/Stripe Style */}
+          {/* Recommendations & Salary Analysis - Layout mobile optimisé */}
           <div className="flex flex-col lg:flex-row gap-4 w-full mt-2">
             {/* Recommendations Block - Left, 2/3 width */}
             <div className="flex-1 min-w-0 -mt-20">

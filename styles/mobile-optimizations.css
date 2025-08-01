@@ -1,0 +1,187 @@
+/* Optimisations Mobile pour Dashboard PIM */
+
+/* Amélioration du scroll sur mobile */
+@media (max-width: 768px) {
+  .mobile-optimized-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Réduction des paddings sur mobile */
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  /* Espacement uniforme entre les cards */
+  .mobile-card-gap {
+    gap: 1rem;
+  }
+  
+  /* Boutons plus grands pour le tactile */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Icônes plus grandes sur mobile */
+  .mobile-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  /* Textes plus lisibles sur mobile */
+  .mobile-text {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  /* Cards avec ombres plus subtiles */
+  .mobile-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+  }
+  
+  /* Navigation bottom fixe */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Padding bottom pour éviter que le contenu soit caché par la nav */
+  .mobile-content-padding {
+    padding-bottom: 5rem;
+  }
+  
+  /* Drawer mobile optimisé */
+  .mobile-drawer {
+    width: 100%;
+    max-width: 320px;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Overlay pour le drawer */
+  .mobile-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+  }
+  
+  /* Animations fluides */
+  .mobile-transition {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Bouton hamburger optimisé */
+  .mobile-hamburger {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 40;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+    padding: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Gauge Financial Check-up optimisée mobile */
+  .mobile-gauge {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto;
+  }
+  
+  /* Cards empilées verticalement sur mobile */
+  .mobile-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* Bouton upload mobile optimisé */
+  .mobile-upload-btn {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+}
+
+/* Optimisations pour très petits écrans */
+@media (max-width: 375px) {
+  .mobile-padding {
+    padding: 0.75rem;
+  }
+  
+  .mobile-card-gap {
+    gap: 0.75rem;
+  }
+  
+  .mobile-text {
+    font-size: 0.875rem;
+  }
+  
+  .mobile-gauge {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* Optimisations pour les écrans moyens */
+@media (min-width: 376px) and (max-width: 768px) {
+  .mobile-padding {
+    padding: 1.25rem;
+  }
+  
+  .mobile-card-gap {
+    gap: 1.25rem;
+  }
+}
+
+/* Amélioration de l'accessibilité tactile */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  .mobile-card {
+    cursor: pointer;
+  }
+  
+  .mobile-card:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Masquer la scrollbar pour la navigation mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Container de navigation mobile optimisé */
+.mobile-tab-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+/* Snap des tabs pour un centrage parfait */
+.mobile-tab-container > button {
+  scroll-snap-align: center;
+} 

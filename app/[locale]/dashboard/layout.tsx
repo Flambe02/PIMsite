@@ -4,6 +4,7 @@ import OnboardingRedirect from "@/components/OnboardingRedirect"
 import { BarChart3, Gift, Heart, Shield, TrendingUp, UserCircle, Upload, DollarSign, Users, FileText } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
+import "@/styles/mobile-optimizations.css";
 
 export const dynamic = 'force-dynamic';
 

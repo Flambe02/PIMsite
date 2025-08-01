@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image";
-import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info, ArrowUpRight, ArrowDownLeft, ArrowRight, DollarSign, Users, Calendar } from "lucide-react";
+import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info, ArrowUpRight, ArrowDownLeft, ArrowRight, DollarSign, Users, Calendar, MoreHorizontal, Settings } from "lucide-react";
 import BemEstar from "@/components/bemEstar/BemEstar";
 import Seguros from "@/components/seguros/Seguros"; // Importer Seguros
 import React, { useState, useRef, useEffect } from "react";
@@ -737,7 +737,6 @@ function NoDataMessage({ onUpload }: { onUpload: () => void }) {
 }
 
 export default function DashboardFullWidth() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [holeriteResult, setHoleriteResult] = useState<HoleriteResult | null>(null);
   const [showAnalysisDetail, setShowAnalysisDetail] = useState(false);
@@ -1376,10 +1375,22 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
 })
 
   return (
-    <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+    <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-fadeIn">
 
+      {/* Header mobile avec icône d'engrenage */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#1a2e22] shadow-md">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="text-white font-bold text-lg">PIM</div>
+          <button 
+            onClick={() => handleSidebarNav("Dados")}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <Settings className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:pt-0 pt-16">
         {/* Sidebar Desktop */}
         <aside className="hidden lg:block col-span-2 mb-8 lg:mb-0">
           <div className="sticky top-8 pr-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
@@ -1404,35 +1415,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
             {/* Notification badge - SUPPRIMÉ */}
           </div>
         </aside>
-        {/* Sidebar Mobile Hamburger */}
-        <button className="lg:hidden fixed top-4 left-4 z-40 bg-white border rounded-full p-3 shadow-lg" onClick={() => setMobileMenuOpen(true)}>
-          <Menu className="w-6 h-6" />
-        </button>
-        {/* Sidebar Mobile Drawer */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-black/40 flex">
-            <div className="w-72 sm:w-64 bg-white h-full p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 animate-fadeIn">
-              <button className="self-end mb-4 text-gray-500" onClick={() => setMobileMenuOpen(false)}>&times;</button>
-              <nav className="flex flex-col gap-3 sm:gap-2 w-full">
-                {navItems.map((item, i) => (
-                  <button
-                    key={i}
-                    data-tab={item.label}
-                    className={`w-full flex items-center px-4 py-4 sm:py-3 rounded-lg font-medium text-base sm:text-sm transition-all duration-200 ${
-                      activeTab === item.label 
-                        ? `${item.activeColor} shadow-sm` 
-                        : `${item.color}`
-                    }`}
-                    onClick={() => { handleSidebarNav(item.label); setMobileMenuOpen(false); }}
-                  >
-                    <span className="flex-1 truncate">{item.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-            <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
-          </div>
-        )}
+
         {/* Upload Holerite Modal */}
         {showUploadModal && (
           <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-8" onClick={() => setShowUploadModal(false)}>
@@ -1443,7 +1426,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           </div>
         )}
         {/* Main content dynamique */}
-        <section className="col-span-12 lg:col-span-10 flex flex-col gap-6 sm:gap-8 px-4 sm:pl-6">
+        <section className="col-span-12 lg:col-span-10 flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 sm:px-4 lg:pl-6">
           
 
           
@@ -1460,9 +1443,9 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
             <>
               {/* Résumé cards */}
               {summaryCardsData.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 {summaryCardsData.map((card, i) => (
-                  <div key={i} className={`flex flex-col w-full min-h-[120px] px-6 py-4 rounded-2xl border ${card.color} shadow-sm items-start transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
+                  <div key={i} className={`flex flex-col w-full min-h-[120px] px-4 md:px-6 py-4 rounded-2xl border ${card.color} shadow-sm items-start transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
                     <div className="flex items-center gap-2 mb-2">
                       {card.icon}
                       <span className="font-semibold text-base flex items-center">{card.title}
@@ -1525,9 +1508,9 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
               />
               
               {/* Recommandations générales */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                 {recommendations.map((rec, i) => (
-                  <div key={i} className={`flex flex-col w-full min-h-[100px] p-6 rounded-2xl border shadow bg-white ${rec.color} transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
+                  <div key={i} className={`flex flex-col w-full min-h-[100px] p-4 md:p-6 rounded-2xl border shadow bg-white ${rec.color} transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
                     <span className={`text-sm font-bold px-2 py-0.5 rounded mb-2 w-max ${rec.tag}`}>{rec.label}</span>
                     <span className="font-bold text-base mb-1 text-gray-800">{rec.title}</span>
                     <span className="text-gray-600 text-sm mb-3">{rec.desc}</span>
@@ -1559,11 +1542,11 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           )}
 
           {activeTab === "Direitos Sociais" && (
-            <div className="bg-white rounded-2xl shadow border border-gray-100 p-8">
+            <div className="bg-white rounded-2xl shadow border border-gray-100 p-4 md:p-8">
               <div className="font-semibold text-lg mb-4 text-emerald-900 flex items-center gap-2">
                 <Users className="w-6 h-6 text-emerald-600" /> Direitos Sociais
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {/* FGTS */}
                 <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
                   <div className="flex items-center gap-2 mb-3">
@@ -1606,8 +1589,8 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           )}
 
           {activeTab === "Histórico & Documentos" && (
-            <div className="bg-white rounded-2xl shadow border border-gray-100 p-8">
-              <div className="font-semibold text-lg mb-6 text-emerald-900 flex items-center gap-2">
+            <div className="bg-white rounded-2xl shadow border border-gray-100 p-4 md:p-8">
+              <div className="font-semibold text-lg mb-4 md:mb-6 text-emerald-900 flex items-center gap-2">
                 <FileText className="w-6 h-6 text-emerald-600" /> Histórico & Documentos
               </div>
               <HoleriteHistory />
@@ -1621,7 +1604,7 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
               
               {/* Section Dados do Holerite */}
               {holeriteResult && holeriteResult.raw && (
-                <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
+                <div className="bg-white rounded-2xl shadow border border-gray-100 p-4 md:p-6">
                   <div className="font-semibold text-lg mb-4 text-emerald-900 flex items-center gap-2">
                     <FileText className="w-6 h-6 text-emerald-600" /> Dados do Holerite
                   </div>
@@ -1633,14 +1616,14 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           
           {/* Pour les autres onglets, afficher un message temporaire */}
           {activeTab !== "Dados" && activeTab !== "Overview" && activeTab !== "Salário" && activeTab !== "Benefícios" && activeTab !== "Well-being" && activeTab !== "Seguros" && activeTab !== "Investimentos" && activeTab !== "Direitos Sociais" && activeTab !== "Histórico & Documentos" && (
-            <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 text-center">
-              <div className="text-2xl font-bold text-gray-800 mb-4">{activeTab}</div>
+            <div className="bg-white rounded-2xl shadow border border-gray-100 p-4 md:p-8 text-center">
+              <div className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{activeTab}</div>
               <p className="text-gray-600">Cette section sera bientôt disponible.</p>
             </div>
           )}
         </section>
-        {/* Colonne droite */}
-        <aside className="col-span-12 lg:col-span-3 xl:col-span-3 flex flex-col gap-8">
+        {/* Colonne droite - Masquée sur mobile */}
+        <aside className="hidden lg:flex col-span-12 lg:col-span-3 xl:col-span-3 flex-col gap-8">
           {/* Financial Check-up Summary */}
           {latestCheckup && !checkupLoading && (
             <FinancialCheckupSummaryCard 
@@ -1654,6 +1637,20 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
           )}
         </aside>
         </div>
+        
+        {/* Navigation mobile en bas d'écran - Nouvelle barre optimisée */}
+        {(() => {
+          const DashMobileTabBar = dynamic(() => import("@/components/dash/DashMobileTabBar"), {
+            loading: () => null,
+            ssr: false
+          });
+          return (
+            <DashMobileTabBar
+              activeTab={activeTab}
+              onTabChange={handleSidebarNav}
+            />
+          );
+        })()}
       </main>
   );
 }
