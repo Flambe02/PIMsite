@@ -8,7 +8,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, CheckCircle, AlertCircle, X, Eye, Trash2 } from 'lucide-react';
-import { useScanNewPIM } from '@/hooks/useScanNewPIM';
 import { FileUploadZone } from './FileUploadZone';
 import { ProgressBar } from './ProgressBar';
 import { DocumentPreview } from './DocumentPreview';
@@ -22,209 +21,164 @@ export interface ScanNewPIMProps {
   country?: string;
 }
 
-export const ScanNewPIM: React.FC<ScanNewPIMProps> = ({
+export default function ScanNewPIM({
   onComplete,
   onError,
-  className = '',
-  country = 'br'
-}) => {
-  const {
-    file,
-    uploadFile,
-    scanDocument,
-    results,
-    loading,
-    error,
-    progress,
-    resetScan
-  } = useScanNewPIM();
+  className = "",
+  country = "br"
+}: ScanNewPIMProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [results, setResults] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
 
-  const [showPreview, setShowPreview] = useState(false);
-
-  // Configuration par pays
-  const getCountryInfo = (countryCode: string) => {
-    const countries = {
-      'br': { 
-        name: 'Brasil', 
-        flag: '🇧🇷', 
-        language: 'Português',
-        title: 'SCAN NEW PIM',
-        subtitle: 'Análise inteligente de folhas de pagamento'
-      },
-      'fr': { 
-        name: 'France', 
-        flag: '🇫🇷', 
-        language: 'Français',
-        title: 'SCAN NEW PIM',
-        subtitle: 'Analyse intelligente de fiches de paie'
-      },
-      'pt': { 
-        name: 'Portugal', 
-        flag: '🇵🇹', 
-        language: 'Português',
-        title: 'SCAN NEW PIM',
-        subtitle: 'Análise inteligente de folhas de pagamento'
-      }
-    };
-    return countries[countryCode as keyof typeof countries] || countries.br;
-  };
-
-  const countryInfo = getCountryInfo(country);
-
-  const handleFileUpload = useCallback(async (file: File) => {
-    try {
-      await uploadFile(file);
-      setShowPreview(true);
-    } catch (error) {
-      onError?.(error as string);
-    }
-  }, [uploadFile, onError]);
+  const handleFileUpload = useCallback(async (uploadedFile: File) => {
+    setFile(uploadedFile);
+    setResults(null);
+    setError(null);
+  }, []);
 
   const handleScan = useCallback(async () => {
     if (!file) return;
     
     try {
-      const scanResults = await scanDocument(file);
-      onComplete?.(scanResults);
+      setLoading(true);
+      setError(null);
+      setProgress(10);
+
+      // Create FormData with country
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('analysisType', 'enhanced'); // Toujours enhanced
+      formData.append('country', country);
+
+      setProgress(20); // Upload terminé
+
+      // Toujours utiliser l'endpoint enhanced
+      const endpoint = '/api/scan-new-pim-enhanced';
+      
+      setProgress(30); // Scan OCR en cours
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        body: formData,
+      });
+
+      setProgress(50); // Validation en cours
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro durante o scan');
+      }
+
+      setProgress(70); // Analyse IA en cours
+      
+      // Simuler le temps de traitement pour une meilleure UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setProgress(90); // Finalisation
+      
+      // Simuler la finalisation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setProgress(100); // Terminé
+      setResults(result.data);
+      onComplete?.(result.data);
+      
+      console.log('✅ Analyse terminée:', result.data);
+
     } catch (error) {
-      onError?.(error as string);
+      const errorMessage = error instanceof Error ? error.message : 'Erro durante o scan';
+      setError(errorMessage);
+      onError?.(errorMessage);
+      console.error('❌ Erreur:', error);
+    } finally {
+      // Garder la progression à 100% un moment avant de la remettre à 0
+      setTimeout(() => {
+        setLoading(false);
+        setProgress(0);
+      }, 1000);
     }
-  }, [file, scanDocument, onComplete, onError]);
+  }, [file, country, onComplete, onError]);
 
   const handleReset = useCallback(() => {
-    resetScan();
-    setShowPreview(false);
-  }, [resetScan]);
+    setFile(null);
+    setResults(null);
+    setError(null);
+    setProgress(0);
+  }, []);
+
+  const handleError = useCallback((error: string) => {
+    setError(error);
+    onError?.(error);
+  }, [onError]);
+
+  if (error) {
+    return (
+      <div className={`scan-error ${className}`}>
+        <div className="text-center p-6">
+          <div className="text-red-500 text-6xl mb-4">❌</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Erro durante o scan</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={handleReset}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (results) {
+    return (
+      <ScanResults
+        results={results}
+        onReset={handleReset}
+        className={className}
+      />
+    );
+  }
 
   return (
     <div className={`scan-new-pim ${className}`}>
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6 md:mb-8"
-      >
-        <div className="flex items-center justify-center mb-4 px-4">
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 text-center leading-tight">
-            {countryInfo.subtitle} • {countryInfo.name}
-          </h1>
-        </div>
-      </motion.div>
-
-      {/* Zone d'upload */}
-      <AnimatePresence mode="wait">
-        {!file && (
-          <motion.div
-            key="upload"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-          >
-            <FileUploadZone onFileUpload={handleFileUpload} />
-          </motion.div>
-        )}
-
-        {/* Preview du document */}
-        {file && showPreview && (
-          <motion.div
-            key="preview"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="mb-6"
-          >
-            <DocumentPreview
-              file={file}
-              onRemove={handleReset}
-              onScan={handleScan}
-              loading={loading}
-            />
-          </motion.div>
-        )}
-
-        {/* Barre de progression */}
-        {loading && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-6"
-          >
-            <ProgressBar progress={progress} />
-          </motion.div>
-        )}
-
-        {/* Résultats du scan */}
-        {results && !loading && (
-          <motion.div
-            key="results"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <ScanResults
-              results={results}
-              onReset={handleReset}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Modal d'erreur */}
-      <ErrorModal
-        error={error}
-        onClose={() => onError?.('')}
-      />
-
-      {/* Indicateurs de statut */}
-      <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-gray-500">
-        <motion.div 
-          className="flex items-center space-x-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+      {!file ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
         >
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <CheckCircle className="w-4 h-4 text-green-500" />
-          </motion.div>
-          <span>Google Vision OCR</span>
+          <FileUploadZone
+            onFileUpload={handleFileUpload}
+          />
         </motion.div>
-        <motion.div 
-          className="flex items-center space-x-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-2xl mx-auto"
         >
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-          >
-            <CheckCircle className="w-4 h-4 text-green-500" />
-          </motion.div>
-          <span>IA Análise</span>
+          <DocumentPreview
+            file={file}
+            onRemove={handleReset}
+            onScan={handleScan}
+            loading={loading}
+          />
+          
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-6"
+            >
+              <ProgressBar progress={progress} />
+            </motion.div>
+          )}
         </motion.div>
-        <motion.div 
-          className="flex items-center space-x-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-        >
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-          >
-            <CheckCircle className="w-4 h-4 text-green-500" />
-          </motion.div>
-          <span>Seguro</span>
-        </motion.div>
-      </div>
+      )}
     </div>
   );
-};
-
-export default ScanNewPIM; 
+} 

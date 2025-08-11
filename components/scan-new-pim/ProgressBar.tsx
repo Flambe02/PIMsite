@@ -27,12 +27,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
   // Fonction améliorée pour détecter l'étape actuelle
   const getCurrentStep = (progress: number) => {
-    for (let i = steps.length - 1; i >= 0; i--) {
-      if (progress >= steps[i].progress) {
-        return steps[i];
-      }
-    }
-    return steps[0];
+    if (progress <= 0) return steps[0];
+    if (progress <= 20) return steps[0]; // Upload
+    if (progress <= 40) return steps[1]; // Scan OCR
+    if (progress <= 60) return steps[2]; // Validação
+    if (progress <= 80) return steps[3]; // Análise IA
+    return steps[4]; // Concluído
   };
 
   const currentStep = getCurrentStep(progress);
@@ -51,16 +51,28 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     const nextStep = steps[stepIndex + 1];
     
     if (stepIndex === 0) {
-      return progress > 0 && progress < (nextStep?.progress || 100);
+      return progress > 0 && progress <= 20;
     }
-    
-    return progress >= step.progress && progress < (nextStep?.progress || 100);
+    if (stepIndex === 1) {
+      return progress > 20 && progress <= 40;
+    }
+    if (stepIndex === 2) {
+      return progress > 40 && progress <= 60;
+    }
+    if (stepIndex === 3) {
+      return progress > 60 && progress <= 80;
+    }
+    return progress > 80;
   };
 
   // Fonction pour déterminer si une étape est terminée
   const isStepCompleted = (stepIndex: number, progress: number) => {
     const step = steps[stepIndex];
-    return progress >= step.progress;
+    if (stepIndex === 0) return progress > 20;
+    if (stepIndex === 1) return progress > 40;
+    if (stepIndex === 2) return progress > 60;
+    if (stepIndex === 3) return progress > 80;
+    return progress > 100;
   };
 
   return (
@@ -99,18 +111,18 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
             <div key={step.name} className="flex flex-col items-center">
               <motion.div
                 className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium
+                  w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300
                   ${isCompleted 
-                    ? 'bg-green-500 text-white' 
+                    ? 'bg-green-500 text-white scale-110' 
                     : isActive
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    ? 'bg-blue-500 text-white scale-110 shadow-lg shadow-blue-200'
+                    : 'bg-gray-200 text-gray-500 scale-100'
                   }
                 `}
                 initial={{ scale: 0 }}
                 animate={{ 
-                  scale: isActive ? [1, 1.1, 1] : 1,
-                  boxShadow: isActive ? '0 0 0 3px rgba(59, 130, 246, 0.3)' : 'none'
+                  scale: isActive ? [1, 1.1, 1] : isCompleted ? 1.1 : 1,
+                  boxShadow: isActive ? '0 0 0 4px rgba(59, 130, 246, 0.3)' : 'none'
                 }}
                 transition={{ 
                   delay: index * 0.1,
@@ -120,11 +132,21 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
               >
                 {isCompleted ? '✓' : isActive ? '⟳' : index + 1}
               </motion.div>
-              <span className={`text-xs mt-1 text-center ${
-                isActive ? 'text-blue-600 font-medium' : 'text-gray-500'
+              <span className={`text-xs mt-2 text-center font-medium transition-colors duration-300 ${
+                isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
               }`}>
                 {step.name}
               </span>
+              {isActive && (
+                <motion.p 
+                  className="text-xs text-blue-500 mt-1 text-center max-w-20"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  {step.description}
+                </motion.p>
+              )}
             </div>
           );
         })}

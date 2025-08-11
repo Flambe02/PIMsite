@@ -23,15 +23,17 @@ interface EnhancedScanNewPIMProps {
   onAnalysisComplete?: (result: EnhancedAnalysisResult, holeriteId?: string) => void;
   onClose?: () => void;
   className?: string;
+  country?: string;
 }
 
 export function EnhancedScanNewPIM({ 
   onAnalysisComplete, 
   onClose, 
-  className = "" 
+  className = "",
+  country = "br"
 }: EnhancedScanNewPIMProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [analysisType, setAnalysisType] = useState<'legacy' | 'enhanced'>('enhanced');
+  const [analysisType, setAnalysisType] = useState<'legacy' | 'enhanced'>('legacy');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -63,10 +65,14 @@ export function EnhancedScanNewPIM({
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('analysisType', analysisType);
+      formData.append('country', country);
 
       setProgress(30);
       
-      const response = await fetch('/api/scan-new-pim-enhanced', {
+      // Choose endpoint based on analysis type
+      const endpoint = analysisType === 'enhanced' ? '/api/scan-new-pim-enhanced' : '/api/scan-new-pim';
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
@@ -95,7 +101,7 @@ export function EnhancedScanNewPIM({
       setLoading(false);
       setProgress(0);
     }
-  }, [selectedFile, analysisType, onAnalysisComplete]);
+  }, [selectedFile, analysisType, country, onAnalysisComplete]);
 
   const getAnalysisTypeDescription = (type: 'legacy' | 'enhanced') => {
     if (type === 'enhanced') {

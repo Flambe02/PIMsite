@@ -25,6 +25,7 @@ export interface ScanNewPIMResponse {
     };
     scanId: string;
     timestamp: number;
+    analysisTypeUsed: string;
   };
   error?: string;
 }
@@ -56,9 +57,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
   try {
     console.log('🚀 Début traitement SCAN NEW PIM...');
 
-    // 1. Récupération du fichier depuis FormData
+    // 1. Récupération du fichier et des paramètres depuis FormData
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const analysisType = formData.get('analysisType') as string || 'legacy';
+    const country = formData.get('country') as string || 'br';
 
     if (!file) {
       return NextResponse.json(
@@ -67,7 +70,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
       );
     }
 
+    // Validate analysisType - legacy endpoint should not accept "enhanced"
+    if (analysisType === 'enhanced') {
+      return NextResponse.json(
+        { success: false, error: 'Ce endpoint ne supporte que l\'analyse legacy. Utilisez /api/scan-new-pim-enhanced pour l\'analyse enhanced.' },
+        { status: 400 }
+      );
+    }
+
     console.log('📁 Fichier reçu:', file.name, file.size, file.type);
+    console.log('🔍 Type d\'analyse sélectionné:', analysisType);
+    console.log('🌍 Pays détecté:', country);
 
     // 2. Validation du fichier
     const validation = validateFile(file);
@@ -77,10 +90,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
         { status: 400 }
       );
     }
-
-    // 2. Détection du pays (par défaut: Brésil)
-    const country = request.headers.get('x-country') || 'br';
-    console.log('🌍 Pays détecté:', country);
 
     // 3. Récupération de l'utilisateur connecté (optionnel pour le mode démo)
     const supabase = await createClient();
@@ -301,7 +310,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
           confidence: analysisResult.confidence
         },
         scanId: scanId,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        analysisTypeUsed: analysisType
       }
     };
 

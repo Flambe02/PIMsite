@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { googleVisionService } from '@/lib/services/googleVisionService';
 import { EnhancedPayslipAnalysisService, EnhancedAnalysisResult } from '@/lib/ia/enhancedPayslipAnalysisService';
 import { createClient } from '@/lib/supabase/server';
+import { payslipExplanationService } from '@/lib/services/payslipExplanationService';
 
 // Types pour la réponse API
 export interface ScanNewPIMEnhancedResponse {
@@ -22,6 +23,7 @@ export interface ScanNewPIMEnhancedResponse {
     scanId: string;
     holeriteId?: string;
     timestamp: number;
+    analysisTypeUsed: string;
   };
   error?: string;
 }
@@ -57,6 +59,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const analysisType = formData.get('analysisType') as 'legacy' | 'enhanced' || 'enhanced';
+    const country = formData.get('country') as string || 'br';
 
     if (!file) {
       return NextResponse.json(
@@ -77,9 +80,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
       );
     }
 
-    // 3. Détection du pays (par défaut: Brésil)
-    const country = request.headers.get('x-country') || 'br';
-    console.log('🌍 Pays détecté:', country);
+    // 3. Détection du pays (depuis FormData ou headers)
+    const countryFromHeaders = request.headers.get('x-country');
+    const finalCountry = country || countryFromHeaders || 'br';
+    console.log('🌍 Pays détecté:', finalCountry);
 
     // 4. Récupération de l'utilisateur connecté
     const supabase = await createClient();
@@ -133,139 +137,107 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
 
     // 7. Analyse IA avec le service enhanced
     console.log(`🤖 Début analyse IA ${analysisType}...`);
+    const startTime = Date.now();
+    
     const enhancedAnalysisService = new EnhancedPayslipAnalysisService();
-          const analysisResult = await enhancedAnalysisService.analyzePayslip(
-        ocrResult.text, 
-        analysisType, 
-        country, 
-        userId || undefined
-      );
+    const analysisResult = await enhancedAnalysisService.analyzePayslip(
+      ocrResult.text, 
+      analysisType, 
+      finalCountry, 
+      userId || undefined
+    );
 
-    console.log('✅ Analyse IA réussie, version:', analysisResult.version);
+    const analysisTime = Date.now() - startTime;
+    console.log(`✅ Analyse IA réussie en ${analysisTime}ms, version:`, analysisResult.version);
 
+    // 9. Générer l'explication améliorée
+    console.log('📝 Gerando explicação melhorada...');
+    console.log('🔍 Debug - Données envoyées au service d\'explication:', JSON.stringify(analysisResult.finalData, null, 2));
+    const enhancedExplanation = payslipExplanationService.generateExplanation(analysisResult.finalData);
+    
     // 8. Sauvegarde dans Supabase (optionnel en mode démo)
     let scanId = 'demo-' + Date.now();
     let holeriteInsert: { id: string } | null = null;
     
     if (userId) {
       console.log('💾 Sauvegarde dans Supabase...');
-      
+
       // Sauvegarde dans scan_results avec version
       const { data: insertData, error: insertError } = await supabase
         .from('scan_results')
         .insert({
           user_id: userId,
-          country: country,
+          country: finalCountry,
           file_name: file.name,
           file_size: file.size,
           file_type: file.type,
           ocr_text: ocrResult.text,
+          analysis_version: {
+            type: analysisType,
+            schema_version: 2,
+            enhanced_version: analysisResult.version.version
+          },
           structured_data: analysisResult.finalData,
           recommendations: analysisResult.recommendations,
-          confidence_score: analysisResult.validation.confidence,
-          scan_version: analysisType === 'enhanced' ? 2 : 1,
-          analysis_version: analysisResult.version,
-          explanation_report: analysisResult.explanation
+          // Limiter la confiance à 100% maximum
+          confidence_score: Math.min(analysisResult.validation.confidence || 0.8, 1.0),
+          created_at: new Date().toISOString()
         })
         .select()
         .single();
 
       if (insertError) {
-        console.error('❌ Erreur sauvegarde scan_results:', insertError);
+        console.error('❌ Erro ao salvar scan_results:', insertError);
+        // Continuer même en cas d'erreur de sauvegarde
       } else {
         scanId = insertData.id;
-        console.log('✅ Sauvegarde scan_results réussie, scan ID:', scanId);
+        console.log('✅ scan_results salvo com ID:', scanId);
       }
       
-      // SAUVEGARDE CRITIQUE : Insérer aussi dans holerites pour le dashboard
-      console.log('💾 Sauvegarde dans holerites pour le dashboard...');
-      
-      // Extraire les données principales
-      const finalData = analysisResult.finalData;
-      const recommendations = analysisResult.recommendations;
-      const explanation = analysisResult.explanation;
-      
-      // Créer la structure unifiée pour holerites avec support des nouvelles données
-      const holeriteInsertData = {
-        user_id: userId,
-        structured_data: {
-          // Structure unifiée compatible avec le dashboard
-          final_data: {
-            employee_name: finalData.employee_name,
-            company_name: finalData.company_name,
-            position: finalData.position,
-            statut: finalData.statut,
-            salario_bruto: finalData.salario_bruto || 0,
-            salario_liquido: finalData.salario_liquido || 0,
-            descontos: finalData.descontos || 0,
-            period: finalData.period || ''
-          },
-          recommendations: recommendations || {
-            recommendations: [],
-            resume_situation: '',
-            score_optimisation: 0
-          },
-          explanation: explanation || null,
-          analysis_version: analysisResult.version,
-          analysis_result: {
-            finalData: {
-              employee_name: finalData.employee_name,
-              company_name: finalData.company_name,
-              position: finalData.position,
-              statut: finalData.statut,
-              salario_bruto: finalData.salario_bruto || 0,
-              salario_liquido: finalData.salario_liquido || 0,
-              descontos: finalData.descontos || 0,
-              period: finalData.period || ''
+      // Sauvegarde dans holerites (simplifiée - seulement structured_data)
+      try {
+        const { data: holeriteData, error: holeriteError } = await supabase
+          .from('holerites')
+          .insert({
+            user_id: userId,
+            scan_id: scanId,
+            // Utiliser seulement les colonnes qui existent
+            nome: analysisResult.finalData.employee_name || '',
+            empresa: analysisResult.finalData.company_name || '',
+            perfil: analysisResult.finalData.statut || 'CLT',
+            salario_bruto: analysisResult.finalData.salario_bruto || 0,
+            salario_liquido: analysisResult.finalData.salario_liquido || 0,
+            // Stocker les données complètes dans structured_data
+            structured_data: {
+              ...analysisResult.finalData,
+              enhancedExplanation: enhancedExplanation
             },
-            validation: {
-              confidence: analysisResult.validation.confidence || 0.8,
-              warnings: analysisResult.validation.warnings || []
-            }
-          },
-          // Données originales pour compatibilité
-          employee_name: finalData.employee_name,
-          company_name: finalData.company_name,
-          position: finalData.position,
-          profile_type: finalData.statut,
-          gross_salary: finalData.salario_bruto || 0,
-          net_salary: finalData.salario_liquido || 0,
-          salario_bruto: finalData.salario_bruto || 0,
-          salario_liquido: finalData.salario_liquido || 0,
-          period: finalData.period || ''
-        },
-        nome: finalData.employee_name || '',
-        empresa: finalData.company_name || '',
-        perfil: finalData.statut || '',
-        salario_bruto: finalData.salario_bruto || 0,
-        salario_liquido: finalData.salario_liquido || 0,
-        created_at: new Date().toISOString(),
-      };
+            created_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
 
-      const { data: holeriteData, error: holeriteError } = await supabase
-        .from('holerites')
-        .insert(holeriteInsertData)
-        .select('id')
-        .single();
-      
-      if (holeriteError) {
-        console.error('❌ Erreur sauvegarde holerites:', holeriteError);
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: `Erreur de sauvegarde: ${holeriteError.message}` 
-          },
-          { status: 500 }
-        );
-      } else {
-        holeriteInsert = holeriteData;
-        console.log('✅ Sauvegarde holerites réussie, holerite ID:', holeriteInsert?.id);
+        if (holeriteError) {
+          console.error('❌ Erro ao salvar holerite:', holeriteError);
+        } else {
+          holeriteInsert = holeriteData;
+          console.log('✅ Holerite salvo com ID:', holeriteData.id);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao tentar salvar holerite:', error);
       }
-    } else {
-      console.log('💾 Mode démo - pas de sauvegarde');
     }
 
-    // 9. Réponse de succès
+    // 10. Préparer la réponse finale avec l'explication améliorée
+    const finalData = {
+      ...analysisResult.finalData,
+      enhancedExplanation
+    };
+
+    // Debug: Vérifier que l'explication est bien générée
+    console.log('🔍 Debug - enhancedExplanation générée:', JSON.stringify(enhancedExplanation, null, 2));
+    console.log('🔍 Debug - finalData avec explication:', JSON.stringify(finalData, null, 2));
+
     const response: ScanNewPIMEnhancedResponse = {
       success: true,
       data: {
@@ -275,12 +247,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
           processingTime: ocrResult.processingTime,
           duplicateInfo: ocrResult.duplicateInfo
         },
-        analysis: analysisResult,
+        analysis: {
+          version: analysisResult.version,
+          extraction: analysisResult.extraction,
+          validation: analysisResult.validation,
+          explanation: analysisResult.explanation, // Garder l'explication IA originale
+          recommendations: analysisResult.recommendations,
+          finalData: finalData // Inclure l'explication améliorée ici
+        },
         scanId: scanId,
         holeriteId: holeriteInsert?.id,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        analysisTypeUsed: analysisType
       }
     };
+
+    // Debug: Vérifier la réponse finale
+    console.log('🔍 Debug - Réponse API finale:', JSON.stringify(response, null, 2));
 
     console.log('🎉 Traitement SCAN NEW PIM ENHANCED terminé avec succès');
     return NextResponse.json(response);

@@ -24,14 +24,28 @@ import { RecommendationsReportDisplay } from '@/components/dashboard/Recommendat
 import { EnhancedAnalysisResult } from '@/lib/ia/enhancedPayslipAnalysisService';
 import { useRouter } from 'next/navigation';
 
-export default function EnhancedDashboardPage() {
+export default function EnhancedDashboardPage({
+  params
+}: {
+  params: Promise<{ locale: string }>
+}) {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<EnhancedAnalysisResult | null>(null);
   const [holeriteId, setHoleriteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showExplanation, setShowExplanation] = useState(true);
   const [showRecommendations, setShowRecommendations] = useState(true);
+  const [country, setCountry] = useState('br');
   const router = useRouter();
+
+  // Extract country from locale
+  useEffect(() => {
+    const extractCountry = async () => {
+      const { locale } = await params;
+      setCountry(locale);
+    };
+    extractCountry();
+  }, [params]);
 
   const handleAnalysisComplete = (result: EnhancedAnalysisResult, holeriteId?: string) => {
     setAnalysisResult(result);
@@ -361,6 +375,7 @@ export default function EnhancedDashboardPage() {
               <EnhancedScanNewPIM
                 onAnalysisComplete={handleAnalysisComplete}
                 onClose={() => setShowUploadModal(false)}
+                country={country}
               />
             </div>
           </div>
