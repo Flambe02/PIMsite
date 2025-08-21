@@ -736,6 +736,7 @@ function NoDataMessage({ onUpload }: { onUpload: () => void }) {
   );
 }
 
+import { DASHBOARD_V2 } from '@/lib/flags';
 export default function DashboardFullWidth() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [holeriteResult, setHoleriteResult] = useState<HoleriteResult | null>(null);
@@ -1429,7 +1430,42 @@ const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial
         )}
         {/* Main content dynamique */}
         <section className="col-span-12 lg:col-span-10 flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 sm:px-4 lg:pl-6">
-          
+          {/* Guarded V2 hero + top row (non-destructive) */}
+          {DASHBOARD_V2 && (
+            <>
+              {/* Hero Financial Check-up 360° elevated to top */}
+              {latestCheckup && !checkupLoading && (
+                // Server component placeholder; chart still loaded dynamically elsewhere
+                // @ts-expect-error Async Server Component
+                <(await import('@/components/dashboard-v2/HeroFinancialCheck')).default
+                  checkup={latestCheckup}
+                  locale={locale as string || 'br'}
+                />
+              )}
+
+              {/* Top 3 cards (reuse same computed values) */}
+              {/* @ts-expect-error Async Server Component */}
+              <(await import('@/components/dashboard-v2/TopRow')).default
+                locale={locale as string || 'br'}
+                netSalaryCard={{
+                  title: 'Salário Líquido',
+                  value: holeriteResult?.salarioLiquido ?? '—',
+                  hint: holeriteResult?.raw?.period ? `Holerite ${holeriteResult.raw.period}` : undefined,
+                }}
+                monthlyBenefitsCard={{
+                  title: 'Benefícios Mensais',
+                  value: beneficiosDetectados?.filter(b => b.detectado).length ?? 0,
+                }}
+                salaryAnalysisCard={{
+                  title: 'Análise Salarial',
+                  value: holeriteResult?.eficiencia ? `${holeriteResult.eficiencia.toFixed(1)}%` : '—',
+                }}
+              />
+
+              {/* CTA to improve score (keeps existing navigation) */}
+              {(await import('@/components/dashboard-v2/CTAImproveScore')).default({ href: '/br/simulador' })}
+            </>
+          )}
 
           
           {activeTab === "Overview" && (
