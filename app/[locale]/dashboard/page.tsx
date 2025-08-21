@@ -5,7 +5,8 @@ import TopRow from '@/components/dashboard-v2/TopRow';
 import CTAImproveScore from '@/components/dashboard-v2/CTAImproveScore';
 import { getFinancialCheck360, getLatestNetSalary, getMonthlyBenefits, getSalaryAnalysis, getUserId } from '@/lib/services/dashboardService';
 
-export default async function DashboardPage({ params: { locale } }: { params: { locale: 'br' | 'fr' } }) {
+export default async function DashboardPage({ params }: { params: Promise<{ locale: 'br' | 'fr' }> }) {
+  const { locale } = await params;
   const userId = await getUserId();
 
   const [check, net, benefits, analysis] = await Promise.all([
