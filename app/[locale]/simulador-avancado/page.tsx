@@ -1,4 +1,4 @@
-import UnifiedSalaryCalculatorWrapper from "@/components/unified-salary-calculator-wrapper";
+import SalaryCalculatorEnhancedClientWrapper from "@/components/salary-calculator-enhanced-client-wrapper";
 import Link from "next/link"
 import Image from "next/image"
 import { createClient } from '@/lib/supabase/server'
@@ -42,7 +42,10 @@ export default async function SimuladorAvancadoPage() {
                 salário bruto, seus dependentes e descontos na folha de pagamento.
               </p>
             </div>
-            <UnifiedSalaryCalculatorWrapper mode="enhanced" />
+            <SalaryCalculatorEnhancedClientWrapper 
+              inssBrackets={inssBrackets || []}
+              irrfBrackets={irrfBrackets || []}
+            />
 
             <div className="bg-gray-50 p-6 rounded-lg border">
               <h2 className="text-xl font-bold mb-4 text-blue-900">Informações sobre os Cálculos</h2>
