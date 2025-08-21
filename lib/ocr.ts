@@ -87,7 +87,7 @@ export async function parseWithOCRSpaceEnhanced(file: File | Buffer, enableFallb
   if (isPdf) {
     console.log('📄 Fichier PDF détecté, conversion en cours...');
     const formData = new FormData();
-    formData.append("file", new Blob([buf]), "document.pdf");
+    formData.append("file", new Blob([new Uint8Array(buf)]), "document.pdf");
     
     const response = await fetch("/api/convert-pdf", {
       method: "POST",
@@ -118,7 +118,7 @@ export async function parseWithOCRSpaceEnhanced(file: File | Buffer, enableFallb
     form.append("filetype", "jpg"); // Spécifier le type de fichier
     form.append("detectOrientation", "true"); // Détecter l'orientation
     form.append("removeTextLayer", "false"); // Garder la couche de texte
-    form.append("file", new Blob([buf]), "image.jpg");
+    form.append("file", new Blob([new Uint8Array(buf)]), "image.jpg");
 
     console.log('🚀 Envoi vers OCR.Space...');
     
