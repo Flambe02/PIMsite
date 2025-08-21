@@ -15,7 +15,11 @@
     "test:ai-analysis": "npx tsx scripts/test-ai-analysis.ts",
     "test:holerite-upload": "npx tsx scripts/test-holerite-upload.ts",
     "test:recommendations": "npx tsx scripts/test-recommendations-storage.ts",
-    "test:all": "npm run test:validation && npm run test:analysis && npm run test:integration"
+    "test:all": "npm run test:validation && npm run test:analysis && npm run test:integration",
+    "audit:dashboard:routes": "tsx scripts/audit/find-routes.ts",
+    "audit:dashboard:links": "tsx scripts/audit/find-links.ts",
+    "audit:dashboard:components": "tsx scripts/audit/find-components.ts",
+    "audit:dashboard:all": "pnpm audit:dashboard:routes && pnpm audit:dashboard:links && pnpm audit:dashboard:components"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

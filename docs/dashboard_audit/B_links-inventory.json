@@ -1,0 +1,40 @@
+[
+  {
+    "href": "/dashboard",
+    "label": "Voltar ao Painel",
+    "source": "app\\[locale]\\dashboard\\analysis\\page.tsx"
+  },
+  {
+    "href": "#",
+    "label": "Termos de Serviço",
+    "source": "app\\[locale]\\dashboard\\analysis\\page.tsx"
+  },
+  {
+    "href": "#",
+    "label": "Privacidade",
+    "source": "app\\[locale]\\dashboard\\analysis\\page.tsx"
+  },
+  {
+    "href": "/dashboard",
+    "source": "app\\[locale]\\dashboard\\enhanced\\page.tsx"
+  },
+  {
+    "href": "/br/scan-new-pim",
+    "source": "app\\[locale]\\dashboard\\layout.tsx",
+    "locale": "br"
+  },
+  {
+    "href": "/br/scan-new-pim",
+    "source": "app\\[locale]\\dashboard\\page.tsx",
+    "locale": "br"
+  },
+  {
+    "href": "/simuladores/beneficios",
+    "source": "app\\[locale]\\dashboard\\page.tsx"
+  },
+  {
+    "href": "/dashboard",
+    "label": "&larr; Retour au Tableau de Bord",
+    "source": "app\\[locale]\\dashboard\\payslip\\[id]\\page.tsx"
+  }
+]
