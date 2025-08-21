@@ -1,4 +1,4 @@
-import SalaryCalculatorClientWrapper from "@/components/salary-calculator-client-wrapper";
+import UnifiedSalaryCalculatorWrapper from "@/components/unified-salary-calculator-wrapper";
 import Link from "next/link"
 import Image from "next/image"
 
@@ -15,7 +15,7 @@ export default function SimuladorPage() {
                 salário bruto, seus dependentes e descontos na folha de pagamento.
               </p>
             </div>
-            <SalaryCalculatorClientWrapper />
+            <UnifiedSalaryCalculatorWrapper mode="basic" />
           </div>
         </div>
       </main>
