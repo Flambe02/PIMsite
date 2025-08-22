@@ -34,6 +34,6 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   return (
     <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-fadeIn">
       {DASHBOARD_V2 ? v2 : legacy}
-    </main>
+      </main>
   );
 }

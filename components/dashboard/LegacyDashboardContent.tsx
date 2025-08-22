@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image";
-import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info, ArrowUpRight, ArrowDownLeft, ArrowRight, DollarSign, Users, Calendar, MoreHorizontal, Settings } from "lucide-react";
+import { BarChart3, Gift, Heart, Shield, TrendingUp, FileText, PercentCircle, ArrowDownUp, Download, CheckCircle2, MessageCircle, PieChart as PieIcon, Upload, UserCircle, LogOut, Menu, Lightbulb, HelpCircle, Info, ArrowUpRight, ArrowDownLeft, ArrowRight, DollarSign, Users, Calendar, MoreHorizontal, Settings, RefreshCw } from "lucide-react";
 import BemEstar from "@/components/bemEstar/BemEstar";
 import Seguros from "@/components/seguros/Seguros";
 import React, { useState, useRef, useEffect } from "react";
@@ -117,6 +117,7 @@ type HoleriteResult = {
   raw?: any;
 };
 
+
 export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr' }) {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [holeriteResult, setHoleriteResult] = useState<HoleriteResult | null>(null);
@@ -166,11 +167,11 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
         .select('*')
         .eq('user_id', userId as string)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
       
-      if (data && !error) {
-        console.log('📊 Données récupérées de Supabase:', data);
+      if (data && data.length > 0 && !error) {
+        const holeriteData = data[0]; // Prendre le premier (le plus récent)
+        console.log('📊 Données récupérées de Supabase:', holeriteData);
         
         // Extraction des données avec gestion des différents formats
         const extractValue = (obj: any, path: string, defaultValue: any = 0) => {
@@ -209,58 +210,63 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
           return isNaN(numValue) ? defaultValue : numValue;
         };
 
-        let salarioBruto = extractValue(data, 'salario_bruto') || 0;
-        let salarioLiquido = extractValue(data, 'salario_liquido') || 0;
+        // CORRECTION CRITIQUE: Les vraies données sont dans gross_salary.valor et net_salary.valor
+        let salarioBruto = extractValue(holeriteData, 'salario_bruto') || 0;
+        let salarioLiquido = extractValue(holeriteData, 'salario_liquido') || 0;
 
-        if (!salarioBruto && data.structured_data) {
-          salarioBruto = extractValue(data.structured_data, 'final_data.salario_bruto') ||
-                         extractValue(data.structured_data, 'final_data.gross_salary') ||
-                         extractValue(data.structured_data, 'salario_bruto') ||
-                         extractValue(data.structured_data, 'gross_salary') ||
-                         extractValue(data.structured_data, 'salario_bruto_total') ||
-                         extractValue(data.structured_data, 'total_gross_salary') ||
+        if (!salarioBruto && holeriteData.structured_data) {
+          salarioBruto = extractValue(holeriteData.structured_data, 'final_data.gross_salary.valor') ||
+                         extractValue(holeriteData.structured_data, 'final_data.gross_salary') ||
+                         extractValue(holeriteData.structured_data, 'final_data.salario_bruto') ||
+                         extractValue(holeriteData.structured_data, 'gross_salary.valor') ||
+                         extractValue(holeriteData.structured_data, 'gross_salary') ||
+                         extractValue(holeriteData.structured_data, 'salario_bruto') ||
+                         extractValue(holeriteData.structured_data, 'salario_bruto_total') ||
+                         extractValue(holeriteData.structured_data, 'total_gross_salary') ||
                          0;
         }
 
-        if (!salarioLiquido && data.structured_data) {
-          salarioLiquido = extractValue(data.structured_data, 'final_data.salario_liquido') ||
-                           extractValue(data.structured_data, 'final_data.net_salary') ||
-                           extractValue(data.structured_data, 'salario_liquido') ||
-                           extractValue(data.structured_data, 'net_salary') ||
-                           extractValue(data.structured_data, 'salario_liquido_total') ||
-                           extractValue(data.structured_data, 'total_net_salary') ||
+        if (!salarioLiquido && holeriteData.structured_data) {
+          salarioLiquido = extractValue(holeriteData.structured_data, 'final_data.net_salary.valor') ||
+                           extractValue(holeriteData.structured_data, 'final_data.net_salary') ||
+                           extractValue(holeriteData.structured_data, 'final_data.salario_liquido') ||
+                           extractValue(holeriteData.structured_data, 'net_salary.valor') ||
+                           extractValue(holeriteData.structured_data, 'net_salary') ||
+                           extractValue(holeriteData.structured_data, 'salario_liquido') ||
+                           extractValue(holeriteData.structured_data, 'salario_liquido_total') ||
+                           extractValue(holeriteData.structured_data, 'total_net_salary') ||
                            0;
         }
 
-        const descontos = extractValue(data.structured_data, 'final_data.descontos') ||
-                         extractValue(data.structured_data, 'total_deductions') ||
-                         extractValue(data.structured_data, 'descontos') ||
+        const descontos = extractValue(holeriteData.structured_data, 'final_data.descontos') ||
+                         extractValue(holeriteData.structured_data, 'total_deductions') ||
+                         extractValue(holeriteData.structured_data, 'descontos') ||
                          (salarioBruto > 0 && salarioLiquido > 0 ? salarioBruto - salarioLiquido : 0);
         
         const eficiencia = salarioBruto > 0 && salarioLiquido > 0 ? 
           Number(((salarioLiquido / salarioBruto) * 100).toFixed(1)) : 0;
 
-        const employeeName = data.structured_data?.final_data?.employee_name ||
-                           data.structured_data?.employee_name ||
-                           data.nome ||
+        const employeeName = holeriteData.structured_data?.final_data?.employee_name ||
+                           holeriteData.structured_data?.employee_name ||
+                           holeriteData.nome ||
                            '';
 
-        const companyName = data.structured_data?.final_data?.company_name ||
-                          data.structured_data?.company_name ||
-                          data.empresa ||
+        const companyName = holeriteData.structured_data?.final_data?.company_name ||
+                          holeriteData.structured_data?.company_name ||
+                          holeriteData.empresa ||
                           '';
 
-        const position = data.structured_data?.final_data?.position ||
-                        data.structured_data?.position ||
+        const position = holeriteData.structured_data?.final_data?.position ||
+                        holeriteData.structured_data?.position ||
                         '';
 
-        const profileType = data.structured_data?.final_data?.statut ||
-                          data.structured_data?.profile_type ||
-                          data.perfil ||
+        const profileType = holeriteData.structured_data?.final_data?.statut ||
+                          holeriteData.structured_data?.profile_type ||
+                          holeriteData.perfil ||
                           '';
 
-        const period = data.structured_data?.final_data?.period ||
-                     data.structured_data?.period ||
+        const period = holeriteData.structured_data?.final_data?.period ||
+                     holeriteData.structured_data?.period ||
                      '';
 
         const calculateBenefitsTotal = (beneficiosArray: any[]): number => {
@@ -274,39 +280,40 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
           }, 0);
         };
 
-        const beneficiosArray = data.structured_data?.final_data?.beneficios ||
-                               data.structured_data?.beneficios ||
+        const beneficiosArray = holeriteData.structured_data?.final_data?.beneficios ||
+                               holeriteData.structured_data?.beneficios ||
                                [];
         
         const beneficios = calculateBenefitsTotal(beneficiosArray);
 
-        const seguros = extractValue(data.structured_data, 'final_data.seguros') ||
-                       extractValue(data.structured_data, 'seguros') ||
+        const seguros = extractValue(holeriteData.structured_data, 'final_data.seguros') ||
+                       extractValue(holeriteData.structured_data, 'seguros') ||
                        0;
 
-        const pays = data.structured_data?.final_data?.pays ||
-                   data.structured_data?.pays ||
-                   data.pays ||
+        const pays = holeriteData.structured_data?.final_data?.pays ||
+                   holeriteData.structured_data?.pays ||
+                   holeriteData.pays ||
                    '';
 
-        const incoherenceDetectee = data.structured_data?.final_data?.incoherence_detectee ||
-                                  data.structured_data?.incoherence_detectee ||
-                                  data.incoherence_detectee ||
+        const incoherenceDetectee = holeriteData.structured_data?.final_data?.incoherence_detectee ||
+                                  holeriteData.structured_data?.incoherence_detectee ||
+                                  holeriteData.incoherence_detectee ||
                                   false;
 
-        const aiRecommendations = data.structured_data?.analysis_result?.recommendations?.recommendations ||
-                                data.structured_data?.recommendations?.recommendations ||
-                                data.structured_data?.aiRecommendations ||
+        // CORRECTION: Extraire les recommandations du dernier holerite scanné
+        const aiRecommendations = holeriteData.structured_data?.recommendations?.recommendations ||
+                                holeriteData.structured_data?.analysis_result?.recommendations?.recommendations ||
+                                holeriteData.structured_data?.aiRecommendations ||
                                 [];
         
-        const resumeSituation = data.structured_data?.analysis_result?.recommendations?.resume_situation ||
-                              data.structured_data?.recommendations?.resume_situation ||
-                              data.structured_data?.resumeSituation ||
+        const resumeSituation = holeriteData.structured_data?.recommendations?.resume_situation ||
+                              holeriteData.structured_data?.analysis_result?.recommendations?.resume_situation ||
+                              holeriteData.structured_data?.resumeSituation ||
                               '';
         
-        const scoreOptimisation = data.structured_data?.analysis_result?.recommendations?.score_optimisation ||
-                                data.structured_data?.recommendations?.score_optimisation ||
-                                data.structured_data?.scoreOptimisation ||
+        const scoreOptimisation = holeriteData.structured_data?.recommendations?.score_optimisation ||
+                                holeriteData.structured_data?.analysis_result?.recommendations?.score_optimisation ||
+                                holeriteData.structured_data?.scoreOptimisation ||
                                 0;
 
         const newHoleriteResult = {
@@ -315,7 +322,7 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
           descontos,
           eficiencia,
           raw: {
-            ...data.structured_data,
+            ...holeriteData.structured_data,
             employee_name: employeeName,
             company_name: companyName,
             position: position,
@@ -337,13 +344,17 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
           insights: [],
         };
 
-        setHoleriteResult(newHoleriteResult);
+                setHoleriteResult(newHoleriteResult);
         
         if (typeof window !== 'undefined') {
           localStorage.removeItem('holeriteResult');
+          localStorage.removeItem('holeriteResult_timestamp');
         }
       } else {
         console.log('❌ Aucune donnée trouvée ou erreur:', error);
+        if (data && data.length === 0) {
+          console.log('📊 Aucun holerite trouvé pour cet utilisateur');
+        }
       }
     } catch (error) {
       console.error('❌ Erreur lors de la synchronisation avec Supabase:', error);
@@ -359,11 +370,25 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
     }
   }, [userId]);
 
+  // FORCER la synchronisation toutes les 30 secondes pour capturer les nouveaux scans
+  useEffect(() => {
+    if (userId) {
+      const interval = setInterval(() => {
+        console.log('🔄 Synchronisation automatique toutes les 30s...');
+        syncWithSupabase();
+      }, 30000);
+      
+      return () => clearInterval(interval);
+    }
+    return undefined; // Return explicite quand userId est false
+  }, [userId]);
+
   // À chaque update, sauvegarde dans localStorage
   useEffect(() => {
     if (holeriteResult && typeof window !== 'undefined') {
       console.log('💾 Dashboard: Sauvegarde holeriteResult dans localStorage:', holeriteResult);
       localStorage.setItem('holeriteResult', JSON.stringify(holeriteResult));
+      localStorage.setItem('holeriteResult_timestamp', Date.now().toString());
     }
   }, [holeriteResult]);
 
@@ -376,9 +401,22 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
           const parsedResult = JSON.parse(savedHolerite);
           console.log('📊 Dashboard: Chargement des données sauvegardées:', parsedResult);
           
+          // VÉRIFIER si les données sauvegardées sont récentes (moins de 5 minutes)
+          const savedTime = localStorage.getItem('holeriteResult_timestamp');
+          const isRecent = savedTime && (Date.now() - parseInt(savedTime)) < 300000; // 5 minutes
+          
           if (parsedResult.salarioBruto > 0 || parsedResult.salarioLiquido > 0) {
-            console.log('✅ Données sauvegardées valides, utilisation du localStorage');
-            setHoleriteResult(parsedResult);
+            if (isRecent) {
+              console.log('✅ Données sauvegardées récentes, utilisation du localStorage');
+              setHoleriteResult(parsedResult);
+            } else {
+              console.log('⚠️ Données sauvegardées trop anciennes, synchronisation forcée avec Supabase');
+              localStorage.removeItem('holeriteResult');
+              localStorage.removeItem('holeriteResult_timestamp');
+              if (userId) {
+                syncWithSupabase();
+              }
+            }
           } else {
             console.log('⚠️ Données sauvegardées invalides, attente des données Supabase');
           }
@@ -387,7 +425,7 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
         }
       }
     }
-  }, [holeriteResult]);
+  }, [holeriteResult, userId]);
 
   // Use holeriteResult to update summary cards if available
   const summaryCardsData = holeriteResult ? [
@@ -434,7 +472,10 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
   const handleHoleriteResult = (result: HoleriteResult) => {
     console.log('🎯 Dashboard: Nouveau résultat holerite reçu:', result);
     setHoleriteResult(result);
-    if (typeof window !== 'undefined') localStorage.setItem('holeriteResult', JSON.stringify(result));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('holeriteResult', JSON.stringify(result));
+      localStorage.setItem('holeriteResult_timestamp', Date.now().toString());
+    }
     setShowUploadModal(false);
     setShowAnalysisDetail(true);
     setActiveTab("Overview");
@@ -582,26 +623,21 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
     ssr: false
   })
 
-  const FinancialCheckupSummaryCard = dynamic(() => import("@/components/financial-checkup/FinancialCheckupSummaryCard"), {
-    loading: () => <div className="py-8 text-center text-emerald-900">Chargement du Financial Check-up...</div>,
-    ssr: false
-  })
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-      {/* Sidebar Desktop */}
+      {/* Sidebar Desktop - Proportions optimisées */}
       <aside className="hidden lg:block col-span-2 mb-8 lg:mb-0">
         <div className="sticky top-8 pr-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
-          {/* Navigation principale */}
-          <nav className="space-y-1">
+          {/* Navigation principale avec espacement optimisé */}
+          <nav className="space-y-2">
             {navItems.map((item, i) => (
               <button
                 key={i}
                 data-tab={item.label}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`w-full text-left px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 ${
                   activeTab === item.label 
-                    ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border border-indigo-200 shadow-sm' 
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
                 }`}
                 onClick={() => handleSidebarNav(item.label)}
               >
@@ -622,8 +658,8 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
         </div>
       )}
 
-      {/* Main content dynamique */}
-      <section className="col-span-12 lg:col-span-10 flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 sm:px-4 lg:pl-6">
+      {/* Main content dynamique - Utilise maintenant tout l'espace disponible avec espacement optimisé */}
+      <section className="col-span-12 lg:col-span-10 flex flex-col gap-6 md:gap-8 lg:gap-10 px-4 sm:px-6 lg:pl-8">
         {activeTab === "Overview" && (
           <Overview 
             holeriteResult={holeriteResult}
@@ -700,6 +736,32 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
                 </div>
               </div>
             )}
+            
+            {/* Bouton de rafraîchissement pour forcer la synchronisation */}
+            <div className="flex justify-center mb-6">
+              <button
+                onClick={() => {
+                  console.log('🔄 Rafraîchissement manuel demandé');
+                  localStorage.removeItem('holeriteResult');
+                  localStorage.removeItem('holeriteResult_timestamp');
+                  syncWithSupabase();
+                }}
+                disabled={isSyncing}
+                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-medium px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-200 shadow-sm"
+              >
+                {isSyncing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Sincronizando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    Atualizar Dados do Holerite
+                  </>
+                )}
+              </button>
+            </div>
             
             {/* Recommandations IA basées sur l'analyse du holerite */}
             <AIRecommendations 
@@ -837,17 +899,6 @@ export default function LegacyDashboardContent({ locale }: { locale: 'br' | 'fr'
           </div>
         )}
       </section>
-
-      {/* Colonne droite - Masquée sur mobile */}
-      <aside className="hidden lg:flex col-span-12 lg:col-span-3 xl:col-span-3 flex-col gap-8">
-        {/* Financial Check-up Summary */}
-        {latestCheckup && !checkupLoading && (
-          <FinancialCheckupSummaryCard 
-            checkup={latestCheckup} 
-            locale={locale as string || 'br'} 
-          />
-        )}
-      </aside>
 
       {/* Navigation mobile en bas d'écran - Nouvelle barre optimisée */}
       {(() => {

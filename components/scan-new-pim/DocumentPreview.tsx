@@ -82,9 +82,11 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         </div>
 
         <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Nome:</span>
-            <span className="font-medium">{file.name}</span>
+          <div className="text-sm">
+            <span className="text-gray-600 block mb-1">Nome:</span>
+            <span className="font-medium break-all text-xs bg-gray-50 p-2 rounded border font-mono">
+              {file.name}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Tamanho:</span>
@@ -169,9 +171,14 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 <p className="text-gray-600">
                   Aperçu PDF non disponible
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  {file.name} ({formatFileSize(file.size)})
-                </p>
+                <div className="text-sm text-gray-500 mt-2">
+                  <p className="break-all bg-white p-2 rounded border font-mono text-xs max-w-full">
+                    {file.name}
+                  </p>
+                  <p className="mt-1">
+                    ({formatFileSize(file.size)})
+                  </p>
+                </div>
               </div>
             )}
           </motion.div>

@@ -196,29 +196,50 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScanNewPI
       
       // Sauvegarde dans holerites (simplifiée - seulement structured_data)
       try {
+        // Extraire les valeurs correctes des données analysées
+        const finalData = analysisResult.finalData;
+        
+        // CORRECTION CRITIQUE: Les données viennent avec gross_salary/net_salary, pas salario_bruto/salario_liquido
+        // Utiliser any pour contourner les erreurs de type temporairement
+        const finalDataAny = finalData as any;
+        const grossSalary = finalDataAny.gross_salary?.valor || finalDataAny.salario_bruto || 0;
+        const netSalary = finalDataAny.net_salary?.valor || finalDataAny.salario_liquido || 0;
+        const employeeName = finalDataAny.employee_name || '';
+        const companyName = finalDataAny.company_name || '';
+        const profileType = finalDataAny.statut || finalDataAny.profile_type || 'CLT';
+        const period = finalDataAny.period || '';
+        
+        console.log('🔍 Debug - Données extraites pour holerite:', {
+          grossSalary,
+          netSalary,
+          employeeName,
+          companyName,
+          profileType,
+          period
+        });
+        
+        // CORRECTION: Adapter à la structure réelle de la table holerites
         const { data: holeriteData, error: holeriteError } = await supabase
           .from('holerites')
           .insert({
             user_id: userId,
-            scan_id: scanId,
-            // Utiliser seulement les colonnes qui existent
-            nome: analysisResult.finalData.employee_name || '',
-            empresa: analysisResult.finalData.company_name || '',
-            perfil: analysisResult.finalData.statut || 'CLT',
-            salario_bruto: analysisResult.finalData.salario_bruto || 0,
-            salario_liquido: analysisResult.finalData.salario_liquido || 0,
-            // Stocker les données complètes dans structured_data
-            structured_data: {
-              ...analysisResult.finalData,
-              enhancedExplanation: enhancedExplanation
-            },
-            created_at: new Date().toISOString()
+            nome: employeeName,
+            empresa: companyName,
+            salario_bruto: grossSalary?.toString() || '0', // Convertir en text
+            salario_liquido: netSalary?.toString() || '0', // Convertir en text
+            // Stocker les données importantes dans des colonnes existantes
+            inss: (finalData as any).inss_amount?.valor?.toString() || '0',
+            irrf: (finalData as any).irrf_amount?.valor?.toString() || '0',
+            data_pagamento: period || new Date().toISOString().split('T')[0],
+            // Stocker les données complètes dans une colonne JSON si elle existe
+            // Sinon, on devra créer une migration pour ajouter structured_data
           })
           .select('id')
           .single();
 
         if (holeriteError) {
           console.error('❌ Erro ao salvar holerite:', holeriteError);
+          console.error('❌ Détails de l\'erreur:', holeriteError.details);
         } else {
           holeriteInsert = holeriteData;
           console.log('✅ Holerite salvo com ID:', holeriteData.id);
