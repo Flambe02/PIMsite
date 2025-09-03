@@ -49,7 +49,7 @@ export async function parseWithOCRSpaceEnhanced(file: File | Buffer) {
   
   if (isPdf) {
     const formData = new FormData();
-    formData.append("file", new Blob([buf]), "document.pdf");
+    formData.append("file", new Blob([new Uint8Array(buf)]), "document.pdf");
     
     const response = await fetch("/api/convert-pdf", {
       method: "POST",
@@ -66,7 +66,7 @@ export async function parseWithOCRSpaceEnhanced(file: File | Buffer) {
   }
 
   const form = new FormData();
-  form.append("file", new Blob([img]), "page.png");
+  form.append("file", new Blob([new Uint8Array(img)]), "page.png");
   form.append("language", "por");
   form.append("isTable", "true");
   form.append("scale", "true");
