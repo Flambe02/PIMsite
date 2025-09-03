@@ -16,8 +16,8 @@ import { useSupabase } from "@/components/supabase-provider";
 
 function LoginPageContent() {
   const searchParams = useSearchParams()
-  const message = searchParams.get("message")
-  const redirectTo = searchParams.get("redirectTo")
+  const message = searchParams?.get("message")
+  const redirectTo = searchParams?.get("redirectTo")
   const [showPassword, setShowPassword] = useState(false)
   const [tab, setTab] = useState<'login' | 'register'>("login")
   const router = useRouter()

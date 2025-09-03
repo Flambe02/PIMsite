@@ -16,8 +16,8 @@ function LoginModalContent({ open, onOpenChange, message = "", redirectTo = "" }
   const [showPassword, setShowPassword] = useState(false);
   const [tab, setTab] = useState<'login' | 'register'>("login");
   const [emailValue, setEmailValue] = useState("");
-  const urlEmail = searchParams.get("email") || "";
-  const urlMessage = searchParams.get("message") || message;
+  const urlEmail = searchParams?.get("email") || "";
+  const urlMessage = searchParams?.get("message") || message;
   const [loginError, setLoginError] = useState("");
   const { supabase } = useSupabase();
 

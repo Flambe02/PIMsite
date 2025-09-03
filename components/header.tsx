@@ -16,14 +16,14 @@ export function Header() {
   const router = useRouter();
   
   const getCurrentLocale = () => {
-    const localeMatch = pathname.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
+    const localeMatch = pathname?.match(/^\/([a-z]{2}(-[a-z]{2})?)/);
     return localeMatch ? localeMatch[1] : 'br';
   };
 
   const currentLocale = getCurrentLocale();
 
   const switchCountry = (newLocale: string) => {
-    const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
+    const pathWithoutLocale = pathname?.replace(`/${currentLocale}`, '') || '/';
     const newPathname = newLocale === 'br' ? pathWithoutLocale : `/${newLocale}${pathWithoutLocale}`;
     router.push(newPathname);
     setCountryMenuOpen(false);

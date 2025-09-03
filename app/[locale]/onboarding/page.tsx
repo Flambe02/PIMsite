@@ -49,9 +49,9 @@ const steps = [
 function OnboardingPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const error = searchParams.get("error")
-  const errorDescription = searchParams.get("error_description")
-  const stepParam = searchParams.get("step")
+  const error = searchParams?.get("error")
+  const errorDescription = searchParams?.get("error_description")
+  const stepParam = searchParams?.get("step")
   const initialStep = stepParam ? parseInt(stepParam, 10) : 1
   const [currentStep, setCurrentStep] = useState(initialStep)
   const [userData, setUserData] = useState({

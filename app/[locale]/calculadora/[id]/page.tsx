@@ -35,7 +35,7 @@ export default function HoleriteDetailPage() {
   }, []);
 
   async function loadHolerite() {
-    if (!params.id) return;
+    if (!params?.id) return;
     
     setLoading(true);
     setError(null);
