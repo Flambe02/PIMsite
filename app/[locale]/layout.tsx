@@ -5,7 +5,7 @@ import '../globals.css';
 import { APP_VERSION } from '@/lib/getAppVersion';
 
 // Can be imported from a shared config
-const locales = ['br', 'fr', 'en', 'fr-ca', 'pt-pt', 'en-gb'];
+const locales = ['br', 'fr', 'en', 'fr-ca', 'pt-pt', 'en-gb', 'pt-BR'];
 
 export default async function LocaleLayout({
   children,
